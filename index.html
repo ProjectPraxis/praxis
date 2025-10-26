@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Praxis Demo</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons from Lucide -->
+    <script type="module" src="https://unpkg.com/lucide-react@latest/dist/esm/lucide-react.js"></script>
+    <script nomodule src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF;
+            color: #333333;
+        }
+
+        /* Gradient theme definitions using CSS variables */
+        :root {
+            --grad-1: #6EE7B7; /* Spring */
+            --grad-2: #FDE047;
+            --grad-text: linear-gradient(to right, var(--grad-1), var(--grad-2));
+        }
+        .theme-spring { --grad-1: #6EE7B7; --grad-2: #FDE047; }
+        .theme-ocean { --grad-1: #67E8F9; --grad-2: #60A5FA; }
+        .theme-twilight { --grad-1: #818CF8; --grad-2: #C084FC; }
+
+        /* Class to apply the primary theme gradient */
+        .primary-gradient {
+            background-image: var(--grad-text);
+        }
+
+        /* Class to apply the primary theme gradient to text */
+        .primary-gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: var(--grad-text);
+        }
+
+        /* Specific Data Viz Gradients (as requested) */
+        .student-understanding-gradient {
+            background-image: linear-gradient(to right, #10B981, #F59E0B, #EF4444); /* Green -> Yellow -> Red */
+        }
+        .course-coverage-gradient {
+            background-image: linear-gradient(to right, #22D3EE, #3B82F6); /* Cyan -> Blue */
+        }
+        .priority-delta-gradient {
+            background-image: linear-gradient(to right, #FACC15, #F97316, #A855F7); /* Yellow -> Orange -> Purple */
+        }
+
+        /* Animated Background Blobs */
+        .blob-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: -10;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            filter: blur(80px);
+            will-change: transform, opacity;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background-image: var(--grad-text);
+            animation: moveBlob1 25s infinite alternate;
+        }
+
+        .blob-2 {
+            width: 300px;
+            height: 300px;
+            background-image: linear-gradient(to right, #818CF8, #C084FC); /* Twilight */
+            animation: moveBlob2 30s infinite alternate;
+        }
+
+        @keyframes moveBlob1 {
+            0% { transform: translate(10vw, 10vh) scale(1); }
+            50% { transform: translate(60vw, 70vh) scale(1.2); }
+            100% { transform: translate(20vw, 80vh) scale(0.9); }
+        }
+
+        @keyframes moveBlob2 {
+            0% { transform: translate(80vw, 20vh) scale(1.1); }
+            50% { transform: translate(30vw, 40vh) scale(0.8); }
+            100% { transform: translate(70vw, 10vh) scale(1); }
+        }
+        
+        /* Helper for screen navigation */
+        .screen {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .modal-screen {
+             animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sidebar navigation styles */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #4B5563; /* text-gray-600 */
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-link:hover {
+            background-color: #F3F4F6; /* hover:bg-gray-100 */
+            color: #1F2937; /* hover:text-gray-800 */
+        }
+        .sidebar-link.active {
+            background-image: var(--grad-text);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        .sidebar-link.active svg {
+            stroke: white;
+        }
+        .sidebar-link svg {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            stroke: #4B5563; /* text-gray-600 */
+        }
+        
+        /* Custom timeline styles */
+        .timeline-track {
+            position: relative;
+            width: 100%;
+            height: 40px;
+            background-color: #F3F4F6; /* bg-gray-100 */
+            border-radius: 0.5rem;
+            margin-top: 8px;
+        }
+        .timeline-event {
+            position: absolute;
+            height: 100%;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+        .timeline-event:hover {
+            opacity: 1;
+            transform: scaleY(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Custom tab styles */
+        .tab-button {
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            color: #4B5563; /* text-gray-600 */
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .tab-button:hover {
+            color: #1F2937; /* text-gray-800 */
+        }
+        .tab-button.active {
+            color: #333;
+            border-image: var(--grad-text) 1;
+        }
+        
+        /* Mock SVG Line Chart */
+        .chart-line {
+            fill: none;
+            stroke-width: 3px;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Background Animated Blobs -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="theme-spring relative min-h-screen">
+        <div class="flex">
+            <!-- Sidebar Navigation -->
+            <nav class="sticky top-0 h-screen w-64 bg-white/80 backdrop-blur-sm border-r border-gray-200 p-4 space-y-2 flex-shrink-0">
+                <div class="flex-shrink-0 flex items-center h-16 px-2">
+                    <span class="font-bold text-2xl primary-gradient-text">Project Praxis</span>
+                </div>
+                
+                <div class="pt-4 space-y-2">
+                    <a id="nav-home" href="#" class="sidebar-link active" onclick="showScreen('screen-home-dashboard', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        <span>Home</span>
+                    </a>
+                    
+                    <a id="nav-courses" href="#" class="sidebar-link" onclick="showScreen('screen-course-hub', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                        <span>Courses</span>
+                    </a>
+                    
+                    <a id="nav-settings" href="#" class="sidebar-link" onclick="showScreen('screen-settings', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2.22l-.15.1a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1 0-2.22l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 min-w-0">
+                <!-- Top bar for Theme Switcher -->
+                <div class="sticky top-0 z-10 w-full bg-white/70 backdrop-blur-md h-16 flex justify-end items-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
+                    <!-- Theme Switcher Icon -->
+                    <button id="theme-switcher" title="Cycle Theme" class="p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.43-.43 1.13-.43 1.56 0l4.4 4.4c.43.43.43 1.13 0 1.56l-2.88 2.88m-7.96-7.96l.41-1.018a2.25 2.25 0 012.122-1.457h4.346a2.25 2.25 0 012.122 1.457l.41 1.018m-7.96 0h7.96" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Screen Content -->
+                <main class="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+                    <!-- === SCREEN 1: HOME DASHBOARD === -->
+                    <div id="screen-home-dashboard" class="screen space-y-8">
+                        <h1 class="text-3xl font-bold text-gray-900">Good Afternoon, Professor Dredze!</h1>
+                        
+                        <!-- Your Classes -->
+                        <section>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Classes</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Class Card (Clickable) -->
+                                <div onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <div class="text-xs text-gray-500">JHU 60.182</div>
+                                            <div class="text-lg font-semibold text-gray-900">Machine Learning</div>
+                                        </div>
+                                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-1">Lecture 3 of 12</div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="primary-gradient h-2.5 rounded-full" style="width: 25%"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Other Class Cards (Not Clickable) -->
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md opacity-70">
+                                    <div class="text-xs text-gray-500">JHU 60.441</div>
+                                    <div class="text-lg font-semibold text-gray-900">Computer Networks</div>
+                                    <div class="text-sm text-gray-600 mb-1 mt-4">Lecture 8 of 10</div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="primary-gradient h-2.5 rounded-full" style="width: 80%"></div></div>
+                                </div>
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md opacity-70">
+                                    <div class="text-xs text-gray-500">JHU 60.320</div>
+                                    <div class="text-lg font-semibold text-gray-900">Cognitive Science</div>
+                                    <div class="text-sm text-gray-600 mb-1 mt-4">Lecture 5 of 14</div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="primary-gradient h-2.5 rounded-full" style="width: 35%"></div></div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Pending Analyses -->
+                        <section>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Pending Analyses</h2>
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <div class="flex items-center gap-4">
+                                    <svg class="w-6 h-6 text-gray-500 animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-800">Analyzing "ML Lecture 2: GLMs"</h3>
+                                        <p class="text-sm text-gray-600">This analysis is processing and will be ready in ~5-10 minutes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- General Feedback -->
+                        <section>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-4">General Feedback</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Sustains Card -->
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <span class="flex-shrink-0 w-10 h-10 rounded-full bg-green-100 flex items-center justify-center"><svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>
+                                        <h3 class="text-xl font-semibold text-green-700">Sustains</h3>
+                                    </div>
+                                    <ul class="space-y-2 list-disc list-inside text-gray-700">
+                                        <li>Students love when you pause mid-lecture to check for understanding.</li>
+                                        <li>Real-world examples for 'GLMs' were highly effective across all classes.</li>
+                                    </ul>
+                                </div>
+                                <!-- Improves Card -->
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <span class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center"><svg class="w-6 h-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" /></svg></span>
+                                        <h3 class="text-xl font-semibold text-yellow-700">Improves</h3>
+                                    </div>
+                                    <ul class="space-y-2 list-disc list-inside text-gray-700">
+                                        <li>Connection between lecture topics and assignment questions could be clearer.</li>
+                                        <li>Pacing at the end of lectures tends to accelerate.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- === SCREEN 2: COURSE HUB === -->
+                    <div id="screen-course-hub" class="screen hidden space-y-8">
+                        <h1 class="text-3xl font-bold text-gray-900">60.182 - Machine Learning</h1>
+                        
+                        <!-- Tabs -->
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                                <button id="tab-btn-overview" class="tab-button active" onclick="showTab('tab-overview', this)">Overview</button>
+                                <button id="tab-btn-lectures" class="tab-button" onclick="showTab('tab-lectures', this)">Lectures</button>
+                                <button id="tab-btn-assignments" class="tab-button" onclick="showScreen('screen-assignments-hub', document.getElementById('nav-courses'))">Assignments</button>
+                                <button id="tab-btn-trends" class="tab-button" onclick="showScreen('screen-student-trends', document.getElementById('nav-courses'))">Student Trends</button>
+                            </nav>
+                        </div>
+
+                        <!-- Tab Content: Overview -->
+                        <div id="tab-overview" class="tab-content space-y-6">
+                            <!-- Student Understanding Graph -->
+                            <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Student Understanding (Overall)</h2>
+                                <div class="mb-4">
+                                    <div class="w-full h-3 rounded-full student-understanding-gradient"></div>
+                                    <div class="flex justify-between text-xs text-gray-600 mt-1 px-1"><span>Strong</span><span>Developing</span><span>Struggling</span></div>
+                                </div>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <div class="py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Probability Distributions</div>
+                                    <div class="py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">GLMs</div>
+                                    <div class="py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Random Variables</div>
+                                    <div class="py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Inverse Link Function</div>
+                                </div>
+                            </section>
+
+                            <!-- Course Coverage Graph -->
+                            <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h2 class="text-xl font-semibold text-gray-800 mb-4">Course Coverage</h2>
+                                <div class="flex items-center gap-4 mb-4 text-sm">
+                                    <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full course-coverage-gradient"></div><span>Covered</span></div>
+                                    <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-gray-200 border border-gray-300"></div><span>Planned</span></div>
+                                </div>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <div class="py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Probability Distributions</div>
+                                    <div class="py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Generalized Linear Models</div>
+                                    <div class="py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Gradient Descent</div>
+                                </div>
+                            </section>
+                        </div>
+                        
+                        <!-- Tab Content: Lectures -->
+                        <div id="tab-lectures" class="tab-content hidden space-y-6">
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Past Lectures</h3>
+                                <ul class="space-y-2">
+                                    <li><a onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses'))" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"><span class="font-medium text-gray-700">1. Probability Distributions</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
+                                    <li><a class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-not-allowed opacity-60"><span class="font-medium text-gray-700">2. Generalized Linear Models</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
+                                </ul>
+                            </div>
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Upcoming Lectures</h3>
+                                <ul class="space-y-2">
+                                    <li><a onclick="showScreen('screen-lecture-planning', document.getElementById('nav-courses'))" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"><span class="font-medium text-gray-700">3. Gradient Descent</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- === SCREEN 3: LECTURE ANALYSIS VIEW (PAST LECTURE) === -->
+                    <div id="screen-lecture-analysis" class="screen hidden space-y-6">
+                        <!-- Breadcrumbs -->
+                        <div class="text-sm text-gray-600">
+                            <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+                            <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">Machine Learning</span> <span class="mx-1">&gt;</span>
+                            <span class="font-medium text-gray-800">Lecture 1: Analysis</span>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900">Lecture 1: Probability Distributions</h1>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left Panel: Media & Transcript -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <!-- Video Player -->
+                                <div class="bg-gray-900 rounded-xl shadow-md aspect-video flex items-center justify-center">
+                                    <span class="text-gray-400 text-lg font-medium">Mock Video Player</span>
+                                </div>
+                                <!-- Transcript -->
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md h-96 overflow-y-auto">
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Transcript</h3>
+                                    <div class="space-y-3 text-gray-700">
+                                        <p><span class="font-semibold text-black">[0:00]</span> Good morning, everyone! Welcome back. I hope you all had a good weekend. Today we're diving into probability distributions...</p>
+                                        <p><span class="font-semibold text-black">[0:15]</span> ...which is one of the most fundamental ideas in statistics and machine learning. So, the key idea here is to model randomness...</p>
+                                        <p><span class="font-semibold text-black">[0:45]</span> [Student Question] <span class="text-blue-600">Professor, how is this different from a regular function?</span></p>
+                                        <p><span class="font-semibold text-black">[0:52]</span> [Professor Answer] <span class="text-green-700">That's a great question. A function maps an input to a *single* output. A probability distribution maps an input... or rather, an *event*, to a *likelihood*.</span></p>
+                                        <p><span class="font-semibold text-black">[1:30]</span> Now, if we look at the 'Common Distributions' on slide 3, you'll see the Bernoulli, Binomial, and Poisson... [Image of a bell curve chart]</p>
+                                        <p><span class="font-semibold text-black">[2:10]</span> [Personal Story] <span class="text-purple-700">I remember my first stats class, I was so confused by this. It's like... it's just a... it's a way of, uh, counting. Yeah, just counting things. But with, with probabilities.</span> [Clunky explanation start]</p>
+                                        <p><span class="font-semibold text-black">[2:45]</span> [Good Joke] <span class="text-pink-600">So, a statistician is someone who... well, you get the idea. (Students laugh)</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Panel: Insights & Recommendations -->
+                            <aside class="space-y-6">
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center">
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Lecture Quality Score</h3>
+                                    <div class="text-6xl font-bold text-gray-900 mb-3">75<span class="text-4xl text-gray-500">/100</span></div>
+                                    <div class="w-full bg-gray-200 rounded-full h-4">
+                                        <div class="h-4 rounded-full bg-gradient-to-r from-green-500 to-yellow-500" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                                <div id="dynamic-insight-panel" class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-4">AI Reflections</h3>
+                                    <ul id="insight-content" class="space-y-3">
+                                        <li class="flex items-start gap-3">
+                                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" /></svg></span>
+                                            <div>
+                                                <h4 class="font-semibold text-gray-800">Opportunity: 'Random Variables'</h4>
+                                                <p class="text-gray-600">This topic was planned but not covered. Student performance on Assignment 1 suggests this is a key missing link.</p>
+                                            </div>
+                                        </li>
+                                        <li class="flex items-start gap-3">
+                                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" /></svg></span>
+                                            <div>
+                                                <h4 class="font-semibold text-gray-800">Success: 'Common Distributions'</h4>
+                                                <p class="text-gray-600">Your real-world examples (e.g., "calls to a support center") were highly effective.</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </aside>
+                        </div>
+                        
+                        <!-- Bottom Panel: Multi-Track Analysis Timeline -->
+                        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md overflow-x-auto">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Analysis Timeline</h3>
+                            <div class="space-y-2 min-w-[800px]">
+                                <!-- Clarity Track -->
+                                <div class="font-medium text-sm text-gray-700">Clarity</div>
+                                <div class="timeline-track">
+                                    <div class="timeline-event bg-yellow-500" style="left: 30%; width: 10%;" title="Clunky Explanation (2:10 - 2:40)" onclick="showInsight('clarity')"></div>
+                                </div>
+                                <!-- Interaction Track -->
+                                <div class="font-medium text-sm text-gray-700">Interaction</div>
+                                <div class="timeline-track">
+                                    <div class="timeline-event bg-blue-500" style="left: 10%; width: 3%;" title="Student Question (0:45)" onclick="showInsight('question')"></div>
+                                    <div class="timeline-event bg-green-500" style="left: 11.5%; width: 5%;" title="Professor Answer (0:52)" onclick="showInsight('answer')"></div>
+                                </div>
+                                <!-- Positive Reinforcement Track -->
+                                <div class="font-medium text-sm text-gray-700">Positive</div>
+                                <div class="timeline-track">
+                                    <div class="timeline-event bg-pink-500" style="left: 35%; width: 3%;" title="Good Joke (2:45)" onclick="showInsight('joke')"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- === SCREEN 4: LECTURE PLANNING VIEW (UPCOMING) === -->
+                    <div id="screen-lecture-planning" class="screen hidden space-y-8">
+                        <!-- Breadcrumbs -->
+                        <div class="text-sm text-gray-600">
+                            <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+                            <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">Machine Learning</span> <span class="mx-1">&gt;</span>
+                            <span class="font-medium text-gray-800">Plan: Gradient Descent</span>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900">Plan Lecture 3: Gradient Descent</h1>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Main Content (Planning) -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <section>
+                                    <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 bg-white/50 backdrop-blur-sm">
+                                        <div class="text-center">
+                                            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+                                            <div class="mt-4 flex text-sm leading-6 text-gray-600"><label for="file-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500"><span>Upload your slides</span><input id="file-upload" name="file-upload" type="file" class="sr-only"></label><p class="pl-1">or drag and drop</p></div>
+                                            <p class="text-xs leading-5 text-gray-600">Praxis will analyze them to create a desired coverage graph.</p>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Desired Coverage</h2>
+                                    <div class="flex flex-wrap gap-4 items-center">
+                                        <div class="py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Optimization</div>
+                                        <div class="py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Derivatives</div>
+                                        <button class="py-3 px-5 rounded-full text-gray-500 font-medium border-2 border-dashed border-gray-400 hover:bg-gray-100 transition-colors">+ Add Topic</button>
+                                    </div>
+                                </section>
+                            </div>
+                            <!-- Sidebar (Delta) -->
+                            <aside>
+                                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Course Delta: Priority Topics</h3>
+                                    <p class="text-sm text-gray-600 mb-4">Based on past lectures, consider including these missing topics.</p>
+                                    <div class="mb-4">
+                                        <div class="w-full h-3 rounded-full priority-delta-gradient"></div>
+                                        <div class="flex justify-between text-xs text-gray-600 mt-1 px-1"><span>Low Priority</span><span>High Priority</span></div>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <div class="py-2 px-4 rounded-lg text-white font-medium shadow-sm bg-purple-600">1. Inverse Link Function</div>
+                                        <div class="py-2 px-4 rounded-lg text-white font-medium shadow-sm bg-orange-500">2. Random Variables</div>
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+
+                    <!-- === SCREEN 5: ASSIGNMENTS & ASSESSMENTS HUB === -->
+                    <div id="screen-assignments-hub" class="screen hidden space-y-8">
+                        <!-- Breadcrumbs -->
+                        <div class="text-sm text-gray-600">
+                            <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+                            <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">Machine Learning</span> <span class="mx-1">&gt;</span>
+                            <span class="font-medium text-gray-800">Assignments</span>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900">Assignments & Assessments</h1>
+                        <p class="text-gray-600">Connect student performance to course topics. Data is imported from your LMS.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Assignment Card -->
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">Homework 1</h3>
+                                <p class="text-sm text-gray-500 mb-4">Overall Avg. Score: 78%</p>
+                                <button onclick="showModal('modal-hw1')" class="font-medium primary-gradient-text">Tag Topics</button>
+                            </div>
+                            <!-- Midterm Card -->
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">Midterm 1</h3>
+                                <p class="text-sm text-gray-500 mb-4">Overall Avg. Score: 71%</p>
+                                <button class="font-medium text-gray-500 cursor-not-allowed">Tag Topics</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- === SCREEN 6: STUDENT INSIGHTS & TRENDS VIEW === -->
+                    <div id="screen-student-trends" class="screen hidden space-y-8">
+                        <!-- Breadcrumbs -->
+                        <div class="text-sm text-gray-600">
+                            <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+                            <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">Machine Learning</span> <span class="mx-1">&gt;</span>
+                            <span class="font-medium text-gray-800">Student Trends</span>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900">Student Insights & Trends</h1>
+                        <p class="text-gray-600">Diagnose systemic knowledge gaps over the semester.</p>
+
+                        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Student Deficiency Graph</h3>
+                            <div class="w-full h-96">
+                                <!-- Mock Line Chart -->
+                                <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                                    <!-- X-axis Labels -->
+                                    <text x="10" y="95" font-size="5" fill="#6B7280">HW 1</text>
+                                    <text x="110" y="95" font-size="5" fill="#6B7280">Midterm 1</text>
+                                    <text x="210" y="95" font-size="5" fill="#6B7280">HW 2</text>
+                                    
+                                    <!-- Y-axis Lines -->
+                                    <line x1="0" y1="10" x2="300" y2="10" stroke="#E5E7EB" stroke-width="0.5" />
+                                    <line x1="0" y1="50" x2="300" y2="50" stroke="#E5E7EB" stroke-width="0.5" />
+                                    <line x1="0" y1="90" x2="300" y2="90" stroke="#9CA3AF" stroke-width="0.5" />
+                                    
+                                    <!-- Line 1: Probability (Good) -->
+                                    <path class="chart-line" stroke="#10B981" d="M 10 20 L 110 15 L 210 25" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: drawChart 1s 0s forwards;"></path>
+                                    <text x="230" y="25" font-size="5" fill="#10B981">Probability</text>
+
+                                    <!-- Line 2: Inverse Link Function (Bad) -->
+                                    <path class="chart-line" stroke="#EF4444" d="M 10 70 L 110 80 L 210 85" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: drawChart 1s 0.2s forwards;"></path>
+                                    <text x="230" y="85" font-size="5" fill="#EF4444">Inverse Link Function</text>
+                                </svg>
+                                <style>@keyframes drawChart { to { stroke-dashoffset: 0; } }</style>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- === SCREEN 7: SETTINGS & INTEGRATIONS HUB === -->
+                    <div id="screen-settings" class="screen hidden space-y-8">
+                        <h1 class="text-3xl font-bold text-gray-900">Settings</h1>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- API Integrations Card -->
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md space-y-4">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">API Integrations</h3>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-700">Canvas LMS</span>
+                                    <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div></div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-700">Zoom Cloud Recordings</span>
+                                    <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div></div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-700">Google Calendar</span>
+                                    <div class="w-10 h-6 bg-gray-200 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md"></div></div>
+                                </div>
+                            </div>
+                            <!-- Privacy Card -->
+                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">Privacy & Data</h3>
+                                <p class="text-gray-600 mb-4">Your data is private and is never used for performance reviews. You are in full control.</p>
+                                <button class="font-medium primary-gradient-text">Manage My Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        
+        <!-- Modal for HW1 -->
+        <div id="modal-hw1" class="modal-screen hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 relative">
+                <button onclick="hideModal('modal-hw1')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Homework 1: Topic Breakdown</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">Q1-3: Definition of Probability</span>
+                        <span class="font-semibold text-green-600">Avg. Score: 92%</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">Q4: Inverse Link Function</span>
+                        <span class="font-semibold text-red-600">Avg. Score: 58%</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-medium text-gray-700">Q5-6: Random Variables</span>
+                        <span class="font-semibold text-yellow-600">Avg. Score: 67%</span>
+                    </div>
+                </div>
+                <button onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses')); hideModal('modal-hw1');" class="mt-6 w-full text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                    Find Related Lecture Moments
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const themes = ['theme-spring', 'theme-ocean', 'theme-twilight'];
+        let currentThemeIndex = 0;
+        const appContainer = document.getElementById('app-container');
+        const themeSwitcher = document.getElementById('theme-switcher');
+        
+        let activeSidebarLink = document.getElementById('nav-home');
+        let activeTabButton = document.getElementById('tab-btn-overview');
+
+        // Function to navigate between screens
+        function showScreen(screenId, navElement) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            
+            // Show the target screen
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.remove('hidden');
+            }
+            
+            // Update sidebar active state
+            if (navElement) {
+                if (activeSidebarLink) {
+                    activeSidebarLink.classList.remove('active');
+                }
+                navElement.classList.add('active');
+                activeSidebarLink = navElement;
+            }
+            
+            // Reset to first tab if navigating to course hub
+            if (screenId === 'screen-course-hub') {
+                 showTab('tab-overview', document.getElementById('tab-btn-overview'));
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Function to cycle themes
+        function cycleTheme() {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            const newTheme = themes[currentThemeIndex];
+            themes.forEach(theme => appContainer.classList.remove(theme));
+            appContainer.classList.add(newTheme);
+        }
+        
+        // Function to handle tabs
+        function showTab(tabId, tabElement) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show the target tab content
+            document.getElementById(tabId).classList.remove('hidden');
+            // Activate the target tab button
+            tabElement.classList.add('active');
+            activeTabButton = tabElement;
+        }
+        
+        // Functions for modals
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+        
+        // Mock function for timeline event click
+        function showInsight(insightType) {
+            const panel = document.getElementById('insight-content');
+            let content = '';
+            
+            switch (insightType) {
+                case 'clarity':
+                    content = `
+                        <li class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" /></svg></span>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">[2:10] Clunky Explanation</h4>
+                                <p class="text-gray-600">This explanation of 'distributions' was repetitive and used high filler words. The personal story was good, but it interrupted the definition.</p>
+                                <p class="text-gray-600 mt-2 font-medium">Suggestion: Try to state the formal definition *before* the personal anecdote.</p>
+                            </div>
+                        </li>`;
+                    break;
+                case 'question':
+                    content = `
+                        <li class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></span>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">[0:45] Student Question</h4>
+                                <p class="text-gray-600">A student asked for clarification on the difference between a function and a distribution.</p>
+                            </div>
+                        </li>`;
+                    break;
+                case 'answer':
+                     content = `
+                        <li class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">[0:52] Clear Answer</h4>
+                                <p class="text-gray-600">Your answer was concise and directly addressed the student's confusion. Great job!</p>
+                            </div>
+                        </li>`;
+                    break;
+                case 'joke':
+                     content = `
+                        <li class="flex items-start gap-3">
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-pink-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75s.168-.75.375-.75.375.336.375.75zm-.75 0h.008v.008H9v-.008zm4.5 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.75 0h.008v.008H13.5v-.008z" /></svg></span>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">[2:45] Good Joke</h4>
+                                <p class="text-gray-600">This joke landed well. Audible student laughter was detected. These moments are great for building rapport.</p>
+                            </div>
+                        </li>`;
+                    break;
+            }
+            panel.innerHTML = content;
+        }
+
+        // Add event listener for theme switcher
+        themeSwitcher.addEventListener('click', cycleTheme);
+    </script>
+</body>
+</html>
+
