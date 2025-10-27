@@ -26,7 +26,7 @@
         :root {
             /* IMPLEMENTED: Updated gradients for much better contrast */
             --grad-1: #10B981; /* Spring (Emerald 600) */
-            --grad-2: #f5e50b; /* (Amber 500) */
+            --grad-2: #F59E0B; /* (Amber 500) */
             --grad-text: linear-gradient(to right, var(--grad-1), var(--grad-2));
         }
         /* IMPLEMENTED: Darker, more saturated themes for WCAG contrast */
@@ -229,6 +229,93 @@
             stroke-width: 3px;
             transition: stroke-dashoffset 1s ease-out;
         }
+        
+        /* --- NEW: Lecture Rewind Timeline Styles --- */
+        .rewind-timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 1.25rem; /* calc(theme(spacing.5) + 2px) */
+            top: 2.5rem; /* A bit below the icon */
+            bottom: -1.5rem; /* Pull it down */
+            width: 2px;
+            background-color: #E5E7EB; /* bg-gray-200 */
+            z-index: 0;
+        }
+        .rewind-timeline-item:last-child::before { 
+            display: none; 
+        }
+        .rewind-icon {
+            z-index: 1;
+            background-color: #F9FAFB; /* Match body bg */
+            border-width: 2px;
+        }
+        
+        /* --- NEW: Print styles for Lecture Rewind --- */
+        @media print {
+            body {
+                background-color: #FFFFFF !important;
+                font-family: 'Figtree', sans-serif !important;
+            }
+            
+            /* Hide all UI elements *except* the rewind modal */
+            body > div > div:not(#modal-lecture-rewind), 
+            nav, 
+            header,
+            #app-container > div > div:not(.printable-area) {
+                display: none !important;
+            }
+            
+            #modal-lecture-rewind {
+                position: static !important;
+                display: block !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                background-color: #FFFFFF !important;
+                z-index: 9999 !important;
+            }
+            
+            .rewind-print-content {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            /* Hide buttons inside the modal */
+            .no-print {
+                display: none !important;
+            }
+            
+            /* Ensure colors and gradients print */
+            .rewind-summary-card, .rewind-icon, .rewind-timeline-card {
+                color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+            
+            .rewind-timeline-card {
+                background-color: #FFFFFF !important;
+                border: 1px solid #E5E7EB !important;
+                box-shadow: none !important;
+            }
+            
+            .rewind-summary-card {
+                 background-color: #FFFFFF !important;
+                 border: 1px solid #E5E7EB !important;
+                 box-shadow: none !important;
+            }
+            
+            /* Prevent page breaks inside cards */
+            .rewind-timeline-item, .rewind-summary-card, .rewind-report-section {
+                page-break-inside: avoid !important;
+            }
+
+            h1, h2, h3 {
+                page-break-after: avoid !important;
+            }
+        }
+        
     </style>
 </head>
 <body class="antialiased">
@@ -263,7 +350,7 @@
                 </div>
             </nav>
 
-            <div class="flex-1 min-w-0">
+            <div class="flex-1 min-w-0 printable-area">
                 <div class="sticky top-0 z-10 w-full bg-white/70 backdrop-blur-md h-16 flex justify-between items-center px-4 sm:px-6 lg:px-8 border-b border-gray-200">
                     <button id="history-back-button" title="Go Back" class="p-2 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                         <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -474,7 +561,15 @@
                             <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">Machine Learning</span> <span class="mx-1">&gt;</span>
                             <span class="font-medium text-gray-800">Lecture 1: Analysis</span>
                         </div>
-                        <h1 class="text-4xl font-bold text-gray-900">Lecture 1: Probability Distributions</h1>
+                        
+                        <div class="flex justify-between items-center">
+                            <h1 class="text-4xl font-bold text-gray-900">Lecture 1: Probability Distributions</h1>
+                            <button onclick="showModal('modal-lecture-rewind')" class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" /></svg>
+                                Launch Lecture Rewind
+                            </button>
+                        </div>
+
 
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div class="lg:col-span-2 space-y-6">
@@ -785,7 +880,7 @@
         
         <div id="modal-hw1" class="modal-screen hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 relative">
-                <button onclick="hideModal('modal-hw1')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <button onclick="hideModal('modal-hw1')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 no-print">
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Homework 1: Topic Analysis</h3>
@@ -815,7 +910,7 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses')); hideModal('modal-hw1');" class="mt-6 w-full text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                <button onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses')); hideModal('modal-hw1');" class="mt-6 w-full text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity no-print">
                     Find Related Lecture Moments
                 </button>
             </div>
@@ -823,7 +918,7 @@
         
         <div id="modal-pdf-viewer" class="modal-screen hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-4xl h-[90vh] rounded-xl shadow-2xl p-6 relative flex flex-col">
-                <button onclick="hideModal('modal-pdf-viewer')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10">
+                <button onclick="hideModal('modal-pdf-viewer')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 no-print">
                     <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Homework 1 PDF</h3>
@@ -833,7 +928,140 @@
                 </div>
             </div>
         </div>
-
+        
+        <div id="modal-lecture-rewind" class="modal-screen hidden fixed inset-0 z-40 bg-gray-50/90 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div class="bg-white w-full max-w-4xl mx-auto rounded-xl shadow-2xl border border-gray-200 p-6 sm:p-8 rewind-print-content">
+                <div class="flex justify-between items-center mb-6 no-print">
+                    <h2 class="text-3xl font-bold text-gray-900">Lecture 1 Rewind</h2>
+                    <div class="flex gap-2">
+                        <button onclick="printRewindReport()" class="flex items-center gap-2 text-gray-700 font-semibold py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6 18.25m0-4.421l.24.03.72.096m-1.92 0l-.24.03-.72.096m1.92 0l.24.03.72.096M6 18.25l-.24.03-.72.096m1.92 0l.24.03.72.096m-1.92 0l.24.03.72.096M6 18.25l.24.03.72.096m-1.92 0l.24.03.72.096m0 0l.24.03.72.096m0 0l.24.03.72.096M6 18.25l.24.03.72.096m-1.92 0l.24.03.72.096M12 10.5c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m11.318 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025M7.5 6a4.5 4.5 0 014.5 4.5v.25m.001-4.75a4.5 4.5 0 004.5 4.5v.25m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025M12 10.5v9.75m0 0c-.178-.01-.357-.018-.538-.025m1.076 0c-.178-.01-.357-.018-.538-.025m1.076 0c-.178-.01-.357-.018-.538-.025m1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025M3 10.5c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025M3 10.5v9.75m0 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025" /></svg>
+                            Export as Report
+                        </button>
+                        <button onclick="hideModal('modal-lecture-rewind')" class="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <h1 class="text-xl font-bold text-gray-900">Lecture 1: Probability Distributions</h1>
+                <p class="text-gray-600 mb-6">This report provides a consolidated, moment-by-moment analysis of the lecture, merging AI reflections, student interactions, and topic coverage.</p>
+                
+                <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="rewind-summary-card bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                        <h4 class="text-sm font-semibold text-gray-500">Lecture Score</h4>
+                        <p class="text-3xl font-bold text-gray-900">75<span class="text-xl text-gray-400">/100</span></p>
+                    </div>
+                    <div class="rewind-summary-card bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                        <h4 class="text-sm font-semibold text-gray-500">Key Strength</h4>
+                        <p class="text-2xl font-bold text-green-600">Q&A Clarity</p>
+                    </div>
+                    <div class="rewind-summary-card bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                        <h4 class="text-sm font-semibold text-gray-500">Key Opportunity</h4>
+                        <p class="text-2xl font-bold text-red-600">Topic Coverage</p>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Master Timeline</h2>
+                    <div class="max-w-3xl">
+                        <div class="relative rewind-timeline-item pb-10">
+                            <div class="flex items-start">
+                                <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-blue-500">
+                                    <svg class="w-5 h-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+                                </div>
+                                <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                                    <span class="font-semibold text-sm text-blue-600">[0:45] - Student Interaction</span>
+                                    <h4 class="text-lg font-semibold text-gray-900 mt-1">Student Question</h4>
+                                    <p class="text-gray-600">A student asked for clarification on the difference between a function and a distribution.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative rewind-timeline-item pb-10">
+                            <div class="flex items-start">
+                                <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
+                                    <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                </div>
+                                <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                                    <span class="font-semibold text-sm text-green-600">[0:52] - Success</span>
+                                    <h4 class="text-lg font-semibold text-gray-900 mt-1">Clear Answer</h4>
+                                    <p class="text-gray-600">Your answer was concise and directly addressed the student's confusion. Great job!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative rewind-timeline-item pb-10">
+                            <div class="flex items-start">
+                                <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-yellow-500">
+                                    <svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" /></svg>
+                                </div>
+                                <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                                    <span class="font-semibold text-sm text-yellow-600">[2:10] - Opportunity</span>
+                                    <h4 class="text-lg font-semibold text-gray-900 mt-1">Clunky Explanation</h4>
+                                    <p class="text-gray-600">This explanation of 'distributions' was repetitive and used high filler words. The personal story was good, but it interrupted the definition.</p>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="relative rewind-timeline-item pb-10">
+                            <div class="flex items-start">
+                                <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
+                                    <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" /></svg>
+                                </div>
+                                <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                                    <span class="font-semibold text-sm text-green-600">[2:45] - Success</span>
+                                    <h4 class="text-lg font-semibold text-gray-900 mt-1">Good Joke</h4>
+                                    <p class="text-gray-600">This joke landed well. Audible student laughter was detected. These moments are great for building rapport.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative rewind-timeline-item pb-10">
+                            <div class="flex items-start">
+                                <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-red-500">
+                                    <svg class="w-5 h-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </div>
+                                <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                                    <span class="font-semibold text-sm text-red-600">[End of Lecture] - Critical Insight</span>
+                                    <h4 class="text-lg font-semibold text-gray-900 mt-1">Missed Topic: 'Random Variables'</h4>
+                                    <p class="text-gray-600">This topic was planned but not covered. Student performance on HW1 (67% Avg) confirms this was a key missing link.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="mt-10 pt-8 border-t border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="rewind-report-section">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Key Strengths (Sustains)</h2>
+                            <ul class="space-y-4">
+                                <li class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                                    <h4 class="font-semibold text-green-800">Excellent Q&A Handling</h4>
+                                    <p class="text-gray-700">You handled the student question at [0:45] perfectly, providing a concise answer that clarified a core concept for the whole class.</p>
+                                </li>
+                                <li class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                                    <h4 class="font-semibold text-green-800">Good Rapport Building</h4>
+                                    <p class="text-gray-700">The use of a personal anecdote and a well-timed joke helped build rapport and keep student engagement high.</p>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="rewind-report-section">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Actionable Opportunities (Improves)</h2>
+                            <ul class="space-y-4">
+                                <li class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+                                    <h4 class="font-semibold text-yellow-800">Refine Topic Definitions</h4>
+                                    <p class="text-gray-700">The explanation at [2:10] was a bit circular. Try to state the formal definition *before* giving the personal anecdote for better clarity.</p>
+                                </li>
+                                <li class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                                    <h4 class="font-semibold text-red-800">Address Missed Topics</h4>
+                                    <p class="text-gray-700">The most critical feedback. 'Random Variables' was missed. This *must* be covered in the first 5 minutes of Lecture 2 to unblock students for HW1.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </div>
+        
     </div>
 
     <script>
@@ -992,7 +1220,7 @@
                     newTitle = 'Positive Moment';
                      content = `
                         <li class="flex items-start gap-3">
-                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-pink-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75s.168-.75.375-.75.375.336.375.75zm-.75 0h.008v.008H9v-.008zm4.5 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.75 0h.008v.008H13.5v-.008z" /></svg></span>
+                            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-pink-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75s.168-.75.375.75.375.336.375.75zm-.75 0h.008v.008H9v-.008zm4.5 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375.75.375.336.375.75zm-.75 0h.008v.008H13.5v-.008z" /></svg></span>
                             <div>
                                 <h4 class="font-semibold text-gray-800">[2:45] Good Joke</h4>
                                 <p class="text-gray-600">This joke landed well. Audible student laughter was detected. These moments are great for building rapport.</p>
@@ -1044,6 +1272,11 @@
                 list.appendChild(newPill);
                 input.value = '';
             }
+        }
+        
+        // --- NEW: Function to print the rewind report ---
+        function printRewindReport() {
+            window.print();
         }
     </script>
 </body>
