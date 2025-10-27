@@ -3,7 +3,7 @@
 # input: audio file
 
 # output: transcript.json:
-# array of {start: float, end: float, text: string, confidence: float}
+# array of words: {start: float, end: float, text: string, confidence: float}
 
 
 # backend/asr.py
@@ -11,17 +11,30 @@ from faster_whisper import WhisperModel
 import json, argparse
 
 def transcribe(audio_path: str, out_path: str):
-    model = WhisperModel("large-v2")   # change to "base" for speed
-    segments, info = model.transcribe(audio_path, beam_size=5)
+    model = WhisperModel("small")   # Using "base" for speed; "small"/"medium" for better fillers
+    segments, info = model.transcribe(
+        audio_path, 
+        beam_size=5,
+        language="en",         # Force English language detection
+        word_timestamps=True,  # Enable word-level timestamps for finer control
+        vad_filter=True,       # Voice Activity Detection - helps identify silence
+        suppress_blank=False, # Don't suppress blank tokens - helps with fillers
+        vad_parameters=dict(
+            min_silence_duration_ms=500,  # Minimum silence duration to consider a pause
+            speech_pad_ms=200             # Padding around speech segments
+        )
+    )
     
     results = []
     for seg in segments:
-        results.append({
-            "start": float(seg.start),
-            "end": float(seg.end),
-            "text": seg.text.strip(),
-            "conf": float(seg.avg_logprob) if seg.avg_logprob else None
-        })
+        if hasattr(seg, 'words') and seg.words:
+            for word in seg.words:
+                results.append({
+                    "start": float(word.start),
+                    "end": float(word.end),
+                    "text": word.word,
+                    "conf": float(word.probability)
+                })
 
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2)

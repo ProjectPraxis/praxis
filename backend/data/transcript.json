@@ -1,422 +1,2702 @@
 [
   {
     "start": 0.0,
-    "end": 3.56,
-    "text": "My name is Amy Burge and I'm a teaching fellow in the School of Literatures,",
-    "conf": -0.1731294684049462
+    "end": 0.18,
+    "text": " Hi",
+    "conf": 0.8735747337341309
   },
   {
-    "start": 3.56,
-    "end": 7.76,
-    "text": "Languages and Cultures and I also work in the Institute for Academic Development",
-    "conf": -0.1731294684049462
+    "start": 0.18,
+    "end": 0.56,
+    "text": " everyone,",
+    "conf": 0.8859444856643677
   },
   {
-    "start": 7.76,
-    "end": 12.64,
-    "text": "in the group of people who support tutors and demonstrators. I teach people how to",
-    "conf": -0.1731294684049462
+    "start": 0.86,
+    "end": 2.0,
+    "text": " my",
+    "conf": 0.8784367442131042
   },
   {
-    "start": 12.64,
-    "end": 17.04,
-    "text": "teach effectively. There are a few key values that drive my teaching. I think one",
-    "conf": -0.1731294684049462
+    "start": 2.24,
+    "end": 2.66,
+    "text": " name",
+    "conf": 0.9997795224189758
   },
   {
-    "start": 17.04,
-    "end": 22.240000000000002,
-    "text": "of the most important is thinking about the student as an active learner. So I",
-    "conf": -0.1731294684049462
+    "start": 2.66,
+    "end": 2.92,
+    "text": " is",
+    "conf": 0.999133288860321
   },
   {
-    "start": 22.240000000000002,
-    "end": 27.240000000000002,
-    "text": "like to focus much more on what the student does and less on what I do. This is",
-    "conf": -0.1731294684049462
+    "start": 2.92,
+    "end": 3.38,
+    "text": " Jason",
+    "conf": 0.9655457139015198
   },
   {
-    "start": 27.240000000000002,
-    "end": 30.720000000000002,
-    "text": "perhaps more in the classroom scenario because of course in advance when I'm",
-    "conf": -0.14996709749102594
+    "start": 3.38,
+    "end": 3.72,
+    "text": " and",
+    "conf": 0.880925714969635
   },
   {
-    "start": 30.720000000000002,
-    "end": 35.28,
-    "text": "preparing for teaching I am doing quite a lot of things but the things I do are",
-    "conf": -0.14996709749102594
+    "start": 3.72,
+    "end": 4.06,
+    "text": " today",
+    "conf": 0.9957131147384644
   },
   {
-    "start": 35.28,
-    "end": 40.160000000000004,
-    "text": "mainly in order so that in the classroom itself it's I'm doing less I'm talking",
-    "conf": -0.14996709749102594
+    "start": 4.06,
+    "end": 4.36,
+    "text": " I",
+    "conf": 0.9797958135604858
   },
   {
-    "start": 40.160000000000004,
-    "end": 43.92,
-    "text": "less and the students are doing more. So to promote student learning in my",
-    "conf": -0.14996709749102594
+    "start": 4.36,
+    "end": 4.54,
+    "text": " want",
+    "conf": 0.9959503412246704
   },
   {
-    "start": 43.92,
-    "end": 49.72,
-    "text": "teaching I very much think about students as I said as active learners and I",
-    "conf": -0.14996709749102594
+    "start": 4.54,
+    "end": 4.64,
+    "text": " to",
+    "conf": 0.9993103742599487
   },
   {
-    "start": 49.72,
-    "end": 53.6,
-    "text": "like to think about the teaching environment a little bit differently because I",
-    "conf": -0.14996709749102594
+    "start": 4.64,
+    "end": 4.82,
+    "text": " give",
+    "conf": 0.9994853734970093
   },
   {
-    "start": 53.6,
-    "end": 56.68000000000001,
-    "text": "think trying to break down that classroom space where students are sitting",
-    "conf": -0.14996709749102594
+    "start": 4.82,
+    "end": 5.04,
+    "text": " you",
+    "conf": 0.9978749752044678
   },
   {
-    "start": 56.68,
-    "end": 61.0,
-    "text": "and facing you is really important in getting them to do something active. So",
-    "conf": -0.1679647147345046
+    "start": 5.04,
+    "end": 5.16,
+    "text": " a",
+    "conf": 0.9993084669113159
   },
   {
-    "start": 61.0,
-    "end": 64.76,
-    "text": "for example in a course I organise where I teach research research methods I",
-    "conf": -0.1679647147345046
+    "start": 5.16,
+    "end": 5.34,
+    "text": " quick",
+    "conf": 0.998525083065033
   },
   {
-    "start": 64.76,
+    "start": 5.34,
+    "end": 5.82,
+    "text": " overview",
+    "conf": 0.9963163137435913
+  },
+  {
+    "start": 5.82,
+    "end": 6.58,
+    "text": " of",
+    "conf": 0.9876641631126404
+  },
+  {
+    "start": 6.58,
+    "end": 7.02,
+    "text": " gradient",
+    "conf": 0.6916585564613342
+  },
+  {
+    "start": 7.02,
+    "end": 7.46,
+    "text": " descent,",
+    "conf": 0.9796586036682129
+  },
+  {
+    "start": 7.74,
+    "end": 8.26,
+    "text": " which",
+    "conf": 0.9990754127502441
+  },
+  {
+    "start": 8.72,
+    "end": 8.86,
+    "text": " is",
+    "conf": 0.999690055847168
+  },
+  {
+    "start": 8.86,
+    "end": 9.0,
+    "text": " one",
+    "conf": 0.9997039437294006
+  },
+  {
+    "start": 9.0,
+    "end": 9.08,
+    "text": " of",
+    "conf": 0.9997782111167908
+  },
+  {
+    "start": 9.08,
+    "end": 9.16,
+    "text": " the",
+    "conf": 0.999594509601593
+  },
+  {
+    "start": 9.16,
+    "end": 9.36,
+    "text": " core",
+    "conf": 0.9990047812461853
+  },
+  {
+    "start": 9.36,
+    "end": 9.94,
+    "text": " optimization",
+    "conf": 0.9989253878593445
+  },
+  {
+    "start": 9.94,
+    "end": 10.6,
+    "text": " algorithms",
+    "conf": 0.9996851682662964
+  },
+  {
+    "start": 10.6,
+    "end": 11.14,
+    "text": " in",
+    "conf": 0.9970940351486206
+  },
+  {
+    "start": 11.14,
+    "end": 11.36,
+    "text": " machine",
+    "conf": 0.9965002536773682
+  },
+  {
+    "start": 11.36,
+    "end": 11.64,
+    "text": " learning.",
+    "conf": 0.9998351335525513
+  },
+  {
+    "start": 12.61,
+    "end": 12.99,
+    "text": " It",
+    "conf": 0.998263418674469
+  },
+  {
+    "start": 12.99,
+    "end": 13.27,
+    "text": " helps",
+    "conf": 0.9997329115867615
+  },
+  {
+    "start": 13.27,
+    "end": 13.65,
+    "text": " models",
+    "conf": 0.9934318661689758
+  },
+  {
+    "start": 13.65,
+    "end": 13.91,
+    "text": " learn",
+    "conf": 0.9997448325157166
+  },
+  {
+    "start": 13.91,
+    "end": 14.15,
+    "text": " by",
+    "conf": 0.9992777705192566
+  },
+  {
+    "start": 14.15,
+    "end": 14.61,
+    "text": " gradually",
+    "conf": 0.9995716214179993
+  },
+  {
+    "start": 14.61,
+    "end": 14.93,
+    "text": " adjusting",
+    "conf": 0.9992864727973938
+  },
+  {
+    "start": 14.93,
+    "end": 15.41,
+    "text": " parameters",
+    "conf": 0.9992608428001404
+  },
+  {
+    "start": 15.41,
+    "end": 15.99,
+    "text": " to",
+    "conf": 0.9993008375167847
+  },
+  {
+    "start": 15.99,
+    "end": 16.25,
+    "text": " minimize",
+    "conf": 0.9997746348381042
+  },
+  {
+    "start": 16.25,
+    "end": 16.51,
+    "text": " a",
+    "conf": 0.6081323623657227
+  },
+  {
+    "start": 16.51,
+    "end": 16.75,
+    "text": " loss",
+    "conf": 0.9794313311576843
+  },
+  {
+    "start": 16.75,
+    "end": 17.09,
+    "text": " function,",
+    "conf": 0.9999158382415771
+  },
+  {
+    "start": 17.33,
+    "end": 18.35,
+    "text": " basically",
+    "conf": 0.999224066734314
+  },
+  {
+    "start": 18.35,
+    "end": 18.71,
+    "text": " to",
+    "conf": 0.9976407289505005
+  },
+  {
+    "start": 18.71,
+    "end": 18.89,
+    "text": " make",
+    "conf": 0.999953031539917
+  },
+  {
+    "start": 18.89,
+    "end": 19.27,
+    "text": " predictions",
+    "conf": 0.9997110962867737
+  },
+  {
+    "start": 19.27,
+    "end": 19.57,
+    "text": " more",
+    "conf": 0.9997907280921936
+  },
+  {
+    "start": 19.57,
+    "end": 19.93,
+    "text": " accurate",
+    "conf": 0.9999585151672363
+  },
+  {
+    "start": 19.93,
+    "end": 20.17,
+    "text": " over",
+    "conf": 0.99989914894104
+  },
+  {
+    "start": 20.17,
+    "end": 20.43,
+    "text": " time.",
+    "conf": 0.9999922513961792
+  },
+  {
+    "start": 21.8,
+    "end": 22.36,
+    "text": " Imagine",
+    "conf": 0.9993293285369873
+  },
+  {
+    "start": 22.36,
+    "end": 22.56,
+    "text": " you're",
+    "conf": 0.9930342733860016
+  },
+  {
+    "start": 22.56,
+    "end": 22.88,
+    "text": " standing",
+    "conf": 0.9998070597648621
+  },
+  {
+    "start": 22.88,
+    "end": 23.14,
+    "text": " on",
+    "conf": 0.9999412298202515
+  },
+  {
+    "start": 23.14,
+    "end": 23.32,
+    "text": " top",
+    "conf": 0.9997132420539856
+  },
+  {
+    "start": 23.32,
+    "end": 23.5,
+    "text": " of",
+    "conf": 0.9999547004699707
+  },
+  {
+    "start": 23.5,
+    "end": 23.6,
+    "text": " a",
+    "conf": 0.9997949004173279
+  },
+  {
+    "start": 23.6,
+    "end": 23.84,
+    "text": " hill",
+    "conf": 0.9998555183410645
+  },
+  {
+    "start": 23.84,
+    "end": 24.38,
+    "text": " and",
+    "conf": 0.9870397448539734
+  },
+  {
+    "start": 24.38,
+    "end": 24.6,
+    "text": " you",
+    "conf": 0.9996662139892578
+  },
+  {
+    "start": 24.6,
+    "end": 24.78,
+    "text": " want",
+    "conf": 0.9997568726539612
+  },
+  {
+    "start": 24.78,
+    "end": 24.88,
+    "text": " to",
+    "conf": 0.9999778270721436
+  },
+  {
+    "start": 24.88,
+    "end": 25.04,
+    "text": " reach",
+    "conf": 0.999950647354126
+  },
+  {
+    "start": 25.04,
+    "end": 25.24,
+    "text": " the",
+    "conf": 0.9995867609977722
+  },
+  {
+    "start": 25.24,
+    "end": 25.52,
+    "text": " bottom.",
+    "conf": 0.9999412298202515
+  },
+  {
+    "start": 25.66,
+    "end": 26.12,
+    "text": " The",
+    "conf": 0.9997518658638
+  },
+  {
+    "start": 26.65,
+    "end": 26.89,
+    "text": " shape",
+    "conf": 0.9994418025016785
+  },
+  {
+    "start": 26.89,
+    "end": 27.09,
+    "text": " of",
+    "conf": 0.9998651742935181
+  },
+  {
+    "start": 27.09,
+    "end": 27.19,
+    "text": " the",
+    "conf": 0.968693196773529
+  },
+  {
+    "start": 27.19,
+    "end": 27.37,
+    "text": " hill",
+    "conf": 0.999131977558136
+  },
+  {
+    "start": 27.37,
+    "end": 27.67,
+    "text": " represents",
+    "conf": 0.9995434880256653
+  },
+  {
+    "start": 27.67,
+    "end": 28.09,
+    "text": " the",
+    "conf": 0.9999489784240723
+  },
+  {
+    "start": 28.09,
+    "end": 28.29,
+    "text": " lost",
+    "conf": 0.6529455780982971
+  },
+  {
+    "start": 28.29,
+    "end": 28.67,
+    "text": " surface",
+    "conf": 0.9996575117111206
+  },
+  {
+    "start": 28.67,
+    "end": 29.37,
+    "text": " and",
+    "conf": 0.9729337096214294
+  },
+  {
+    "start": 29.52,
+    "end": 29.68,
+    "text": " your",
+    "conf": 0.9998164772987366
+  },
+  {
+    "start": 29.68,
+    "end": 30.04,
+    "text": " position",
+    "conf": 0.9998359680175781
+  },
+  {
+    "start": 30.04,
+    "end": 30.48,
+    "text": " represents",
+    "conf": 0.9996562004089355
+  },
+  {
+    "start": 30.48,
+    "end": 30.92,
+    "text": " the",
+    "conf": 0.9997455477714539
+  },
+  {
+    "start": 30.92,
+    "end": 31.14,
+    "text": " model",
+    "conf": 0.9991443157196045
+  },
+  {
+    "start": 31.14,
+    "end": 31.6,
+    "text": " parameters.",
+    "conf": 0.999627947807312
+  },
+  {
+    "start": 31.6,
+    "end": 32.58,
+    "text": " Gradient",
+    "conf": 0.7552350461483002
+  },
+  {
+    "start": 33.23,
+    "end": 33.73,
+    "text": " descent",
+    "conf": 0.808290421962738
+  },
+  {
+    "start": 33.73,
+    "end": 34.13,
+    "text": " tells",
+    "conf": 0.9780837893486023
+  },
+  {
+    "start": 34.13,
+    "end": 34.33,
+    "text": " you",
+    "conf": 0.9869575500488281
+  },
+  {
+    "start": 34.33,
+    "end": 34.49,
+    "text": " which",
+    "conf": 0.9872833490371704
+  },
+  {
+    "start": 34.49,
+    "end": 34.91,
+    "text": " direction",
+    "conf": 0.9941505789756775
+  },
+  {
+    "start": 34.91,
+    "end": 35.07,
+    "text": " is",
+    "conf": 0.9932242631912231
+  },
+  {
+    "start": 35.07,
+    "end": 35.37,
+    "text": " downhill,",
+    "conf": 0.9427324533462524
+  },
+  {
+    "start": 35.61,
+    "end": 35.89,
+    "text": " the",
+    "conf": 0.9894974231719971
+  },
+  {
+    "start": 35.89,
+    "end": 36.29,
+    "text": " direction",
+    "conf": 0.9964876174926758
+  },
+  {
+    "start": 36.29,
+    "end": 36.47,
+    "text": " of",
+    "conf": 0.9973185658454895
+  },
+  {
+    "start": 36.47,
+    "end": 36.93,
+    "text": " steepest",
+    "conf": 0.9834987223148346
+  },
+  {
+    "start": 36.93,
+    "end": 37.15,
+    "text": " decrease,",
+    "conf": 0.9812977313995361
+  },
+  {
+    "start": 37.45,
+    "end": 37.99,
+    "text": " and",
+    "conf": 0.9926300048828125
+  },
+  {
+    "start": 38.36,
+    "end": 38.5,
+    "text": " how",
+    "conf": 0.9963280558586121
+  },
+  {
+    "start": 38.5,
+    "end": 38.74,
+    "text": " big",
+    "conf": 0.9975464940071106
+  },
+  {
+    "start": 38.74,
+    "end": 38.88,
+    "text": " a",
+    "conf": 0.9665898680686951
+  },
+  {
+    "start": 38.88,
+    "end": 39.12,
+    "text": " step",
+    "conf": 0.9986050724983215
+  },
+  {
+    "start": 39.12,
+    "end": 39.26,
+    "text": " to",
+    "conf": 0.9956619143486023
+  },
+  {
+    "start": 39.26,
+    "end": 39.5,
+    "text": " take.",
+    "conf": 0.9990670084953308
+  },
+  {
+    "start": 39.7,
+    "end": 40.1,
+    "text": " We",
+    "conf": 0.9906392097473145
+  },
+  {
+    "start": 40.5,
+    "end": 40.82,
+    "text": " repeat",
+    "conf": 0.9556944370269775
+  },
+  {
+    "start": 40.82,
+    "end": 41.12,
+    "text": " this",
+    "conf": 0.9970965385437012
+  },
+  {
+    "start": 41.12,
+    "end": 41.4,
+    "text": " again",
+    "conf": 0.9958996176719666
+  },
+  {
+    "start": 41.4,
+    "end": 41.6,
+    "text": " and",
+    "conf": 0.9899091720581055
+  },
+  {
+    "start": 41.6,
+    "end": 41.78,
+    "text": " again",
+    "conf": 0.9995118379592896
+  },
+  {
+    "start": 41.78,
+    "end": 42.16,
+    "text": " until",
+    "conf": 0.9517542719841003
+  },
+  {
+    "start": 42.16,
+    "end": 42.32,
+    "text": " we",
+    "conf": 0.9990655779838562
+  },
+  {
+    "start": 42.32,
+    "end": 42.5,
+    "text": " get",
+    "conf": 0.9971919655799866
+  },
+  {
+    "start": 42.5,
+    "end": 42.76,
+    "text": " close",
+    "conf": 0.9922123551368713
+  },
+  {
+    "start": 42.76,
+    "end": 42.92,
+    "text": " to",
+    "conf": 0.9986520409584045
+  },
+  {
+    "start": 42.92,
+    "end": 43.02,
+    "text": " the",
+    "conf": 0.9978402853012085
+  },
+  {
+    "start": 43.02,
+    "end": 43.28,
+    "text": " minimum.",
+    "conf": 0.9956122636795044
+  },
+  {
+    "start": 45.5,
+    "end": 46.06,
+    "text": " Before",
+    "conf": 0.9272992610931396
+  },
+  {
+    "start": 46.06,
+    "end": 46.36,
+    "text": " I",
+    "conf": 0.9969913959503174
+  },
+  {
+    "start": 46.36,
+    "end": 46.48,
+    "text": " go",
+    "conf": 0.9989711046218872
+  },
+  {
+    "start": 46.48,
+    "end": 46.84,
+    "text": " deeper,",
+    "conf": 0.998741090297699
+  },
+  {
+    "start": 47.0,
+    "end": 47.28,
+    "text": " I",
+    "conf": 0.9983953833580017
+  },
+  {
+    "start": 47.28,
+    "end": 47.44,
+    "text": " just",
+    "conf": 0.9919596314430237
+  },
+  {
+    "start": 47.44,
+    "end": 47.6,
+    "text": " want",
+    "conf": 0.9738698601722717
+  },
+  {
+    "start": 47.6,
+    "end": 47.8,
+    "text": " to",
+    "conf": 0.9997071623802185
+  },
+  {
+    "start": 47.8,
+    "end": 48.02,
+    "text": " like",
+    "conf": 0.29441866278648376
+  },
+  {
+    "start": 48.02,
+    "end": 48.78,
+    "text": " quickly",
+    "conf": 0.8993354439735413
+  },
+  {
+    "start": 49.18,
+    "end": 49.54,
+    "text": " mention",
+    "conf": 0.996581494808197
+  },
+  {
+    "start": 49.54,
+    "end": 49.98,
+    "text": " that",
+    "conf": 0.9977532029151917
+  },
+  {
+    "start": 49.98,
+    "end": 50.16,
+    "text": " this",
+    "conf": 0.9997093081474304
+  },
+  {
+    "start": 50.16,
+    "end": 50.44,
+    "text": " isn't",
+    "conf": 0.9968675076961517
+  },
+  {
+    "start": 50.44,
+    "end": 50.68,
+    "text": " only",
+    "conf": 0.9992552399635315
+  },
+  {
+    "start": 50.68,
+    "end": 51.0,
+    "text": " for",
+    "conf": 0.9994779229164124
+  },
+  {
+    "start": 51.0,
+    "end": 51.24,
+    "text": " neural",
+    "conf": 0.9995242357254028
+  },
+  {
+    "start": 51.24,
+    "end": 51.62,
+    "text": " networks.",
+    "conf": 0.9996814727783203
+  },
+  {
+    "start": 51.9,
+    "end": 52.46,
+    "text": " It",
+    "conf": 0.9989223480224609
+  },
+  {
+    "start": 52.46,
+    "end": 52.7,
+    "text": " also",
+    "conf": 0.9997249245643616
+  },
+  {
+    "start": 52.7,
+    "end": 52.98,
+    "text": " works",
+    "conf": 0.999816358089447
+  },
+  {
+    "start": 52.98,
+    "end": 53.24,
+    "text": " for",
+    "conf": 0.9998446702957153
+  },
+  {
+    "start": 53.24,
+    "end": 54.58,
+    "text": " linear",
+    "conf": 0.9802194237709045
+  },
+  {
+    "start": 54.58,
+    "end": 54.96,
+    "text": " regression,",
+    "conf": 0.9996894598007202
+  },
+  {
+    "start": 55.32,
+    "end": 56.08,
+    "text": " logistic",
+    "conf": 0.9992517232894897
+  },
+  {
+    "start": 56.08,
+    "end": 56.4,
+    "text": " regression,",
+    "conf": 0.9998714923858643
+  },
+  {
+    "start": 56.74,
+    "end": 57.44,
+    "text": " and",
+    "conf": 0.999854326248169
+  },
+  {
+    "start": 57.44,
+    "end": 57.64,
+    "text": " many",
+    "conf": 0.9999051094055176
+  },
+  {
+    "start": 57.64,
+    "end": 57.9,
+    "text": " others.",
+    "conf": 0.9994946718215942
+  },
+  {
+    "start": 58.79,
+    "end": 59.35,
+    "text": " Also,",
+    "conf": 0.999466598033905
+  },
+  {
+    "start": 59.45,
+    "end": 59.77,
+    "text": " I",
+    "conf": 0.999806821346283
+  },
+  {
+    "start": 59.77,
+    "end": 59.89,
+    "text": " was",
+    "conf": 0.9998676776885986
+  },
+  {
+    "start": 59.89,
+    "end": 60.07,
+    "text": " reading",
+    "conf": 0.9999213218688965
+  },
+  {
+    "start": 60.07,
+    "end": 60.23,
+    "text": " this",
+    "conf": 0.9993274211883545
+  },
+  {
+    "start": 60.23,
+    "end": 60.51,
+    "text": " article",
+    "conf": 0.9998435974121094
+  },
+  {
+    "start": 60.51,
+    "end": 60.75,
+    "text": " about",
+    "conf": 0.9994043111801147
+  },
+  {
+    "start": 60.75,
+    "end": 61.03,
+    "text": " someone",
+    "conf": 0.9995599389076233
+  },
+  {
+    "start": 61.03,
+    "end": 61.29,
+    "text": " using",
+    "conf": 0.9998255372047424
+  },
+  {
+    "start": 61.29,
+    "end": 61.71,
+    "text": " gradient",
+    "conf": 0.999284565448761
+  },
+  {
+    "start": 61.71,
+    "end": 62.01,
+    "text": " descent",
+    "conf": 0.999049723148346
+  },
+  {
+    "start": 62.01,
+    "end": 62.93,
+    "text": " to",
+    "conf": 0.9982962012290955
+  },
+  {
+    "start": 62.93,
+    "end": 63.29,
+    "text": " optimize",
+    "conf": 0.9997633099555969
+  },
+  {
+    "start": 63.29,
+    "end": 63.55,
+    "text": " their",
+    "conf": 0.99972003698349
+  },
+  {
+    "start": 63.55,
+    "end": 63.85,
+    "text": " coffee",
+    "conf": 0.999671220779419
+  },
+  {
+    "start": 63.85,
+    "end": 64.15,
+    "text": " brewing",
+    "conf": 0.9961079955101013
+  },
+  {
+    "start": 64.15,
+    "end": 64.57,
+    "text": " temperature.",
+    "conf": 0.9998376369476318
+  },
+  {
+    "start": 64.73,
+    "end": 65.29,
+    "text": " Okay,",
+    "conf": 0.03548332303762436
+  },
+  {
+    "start": 65.29,
+    "end": 65.29,
+    "text": " so",
+    "conf": 0.6690390706062317
+  },
+  {
+    "start": 65.29,
+    "end": 65.29,
+    "text": " let's",
+    "conf": 0.5167563669383526
+  },
+  {
+    "start": 65.29,
+    "end": 65.29,
+    "text": " get",
+    "conf": 0.19993744790554047
+  },
+  {
+    "start": 65.29,
+    "end": 65.29,
+    "text": " started.",
+    "conf": 0.5377411246299744
+  },
+  {
+    "start": 65.29,
+    "end": 65.85,
+    "text": " Okay,",
+    "conf": 0.0029109944589436054
+  },
+  {
+    "start": 68.42,
+    "end": 68.76,
+    "text": " back",
+    "conf": 0.9745894074440002
+  },
+  {
+    "start": 68.76,
     "end": 69.0,
-    "text": "like to use the workshop space and get students to do something active whether",
-    "conf": -0.1679647147345046
+    "text": " to",
+    "conf": 0.9939093589782715
   },
   {
     "start": 69.0,
-    "end": 74.32,
-    "text": "that be group discussion whether that be working creatively to cut and stick",
-    "conf": -0.1679647147345046
+    "end": 69.1,
+    "text": " the",
+    "conf": 0.9373816847801208
   },
   {
-    "start": 74.32,
-    "end": 79.36,
-    "text": "some documents together whether that be doing some writing together I like to",
-    "conf": -0.1679647147345046
+    "start": 69.1,
+    "end": 69.4,
+    "text": " actual",
+    "conf": 0.9956570863723755
   },
   {
-    "start": 79.36,
-    "end": 83.03999999999999,
-    "text": "try and think about ways students can learn through doing rather than just",
-    "conf": -0.1679647147345046
+    "start": 69.4,
+    "end": 69.68,
+    "text": " math.",
+    "conf": 0.9849167466163635
+  },
+  {
+    "start": 70.43,
+    "end": 70.79,
+    "text": " At",
+    "conf": 0.9759696125984192
+  },
+  {
+    "start": 70.79,
+    "end": 70.99,
+    "text": " each",
+    "conf": 0.9980853796005249
+  },
+  {
+    "start": 70.99,
+    "end": 71.39,
+    "text": " step,",
+    "conf": 0.9982230067253113
+  },
+  {
+    "start": 71.45,
+    "end": 71.69,
+    "text": " we",
+    "conf": 0.9907609820365906
+  },
+  {
+    "start": 71.69,
+    "end": 71.97,
+    "text": " compute",
+    "conf": 0.9950194358825684
+  },
+  {
+    "start": 71.97,
+    "end": 72.37,
+    "text": " the",
+    "conf": 0.9900712966918945
+  },
+  {
+    "start": 72.37,
+    "end": 72.69,
+    "text": " gradient",
+    "conf": 0.9846097230911255
+  },
+  {
+    "start": 72.69,
+    "end": 73.03,
+    "text": " of",
+    "conf": 0.9927575588226318
+  },
+  {
+    "start": 73.03,
+    "end": 73.13,
+    "text": " the",
+    "conf": 0.9873958230018616
+  },
+  {
+    "start": 73.13,
+    "end": 73.41,
+    "text": " loss",
+    "conf": 0.8079453110694885
+  },
+  {
+    "start": 73.41,
+    "end": 73.77,
+    "text": " function",
+    "conf": 0.995722770690918
+  },
+  {
+    "start": 73.77,
+    "end": 74.17,
+    "text": " with",
+    "conf": 0.969481348991394
+  },
+  {
+    "start": 74.17,
+    "end": 74.49,
+    "text": " respect",
+    "conf": 0.9987632036209106
+  },
+  {
+    "start": 74.49,
+    "end": 74.73,
+    "text": " to",
+    "conf": 0.9975624084472656
+  },
+  {
+    "start": 74.73,
+    "end": 74.83,
+    "text": " each",
+    "conf": 0.9963000416755676
+  },
+  {
+    "start": 74.83,
+    "end": 75.15,
+    "text": " parameter.",
+    "conf": 0.9959468245506287
+  },
+  {
+    "start": 76.21,
+    "end": 76.69,
+    "text": " If",
+    "conf": 0.9799025654792786
+  },
+  {
+    "start": 76.69,
+    "end": 76.83,
+    "text": " our",
+    "conf": 0.9942981600761414
+  },
+  {
+    "start": 76.83,
+    "end": 77.13,
+    "text": " learning",
+    "conf": 0.9923950433731079
+  },
+  {
+    "start": 77.13,
+    "end": 77.45,
+    "text": " rate,",
+    "conf": 0.9960414171218872
+  },
+  {
+    "start": 77.61,
+    "end": 78.07,
+    "text": " often",
+    "conf": 0.9867011904716492
+  },
+  {
+    "start": 78.07,
+    "end": 78.27,
+    "text": " written",
+    "conf": 0.9922189712524414
+  },
+  {
+    "start": 78.27,
+    "end": 78.49,
+    "text": " as",
+    "conf": 0.9956936836242676
+  },
+  {
+    "start": 78.49,
+    "end": 78.75,
+    "text": " alpha,",
+    "conf": 0.9251046776771545
+  },
+  {
+    "start": 78.89,
+    "end": 79.49,
+    "text": " is",
+    "conf": 0.9928231239318848
+  },
+  {
+    "start": 79.49,
+    "end": 79.65,
+    "text": " 0",
+    "conf": 0.9917804598808289
+  },
+  {
+    "start": 79.65,
+    "end": 80.23,
+    "text": ".01,",
+    "conf": 0.9979938268661499
+  },
+  {
+    "start": 80.53,
+    "end": 81.01,
+    "text": " that",
+    "conf": 0.9911444783210754
+  },
+  {
+    "start": 81.38,
+    "end": 81.6,
+    "text": " means",
+    "conf": 0.9988522529602051
+  },
+  {
+    "start": 81.6,
+    "end": 81.76,
+    "text": " we",
+    "conf": 0.9924212098121643
+  },
+  {
+    "start": 81.76,
+    "end": 81.98,
+    "text": " move",
+    "conf": 0.9679855108261108
+  },
+  {
+    "start": 81.98,
+    "end": 82.2,
+    "text": " 1",
+    "conf": 0.9752394556999207
+  },
+  {
+    "start": 82.2,
+    "end": 82.52,
+    "text": "%",
+    "conf": 0.9895296692848206
+  },
+  {
+    "start": 82.52,
+    "end": 82.64,
+    "text": " of",
+    "conf": 0.9970025420188904
+  },
+  {
+    "start": 82.64,
+    "end": 82.66,
+    "text": " the",
+    "conf": 0.9986114501953125
+  },
+  {
+    "start": 82.66,
+    "end": 82.82,
+    "text": " way",
+    "conf": 0.9971177577972412
+  },
+  {
+    "start": 82.82,
+    "end": 83.04,
+    "text": " down",
+    "conf": 0.9996234178543091
   },
   {
     "start": 83.04,
-    "end": 88.12,
-    "text": "thinking and this can be a simple discussion occasionally if I think students",
-    "conf": -0.14065964561756525
+    "end": 83.2,
+    "text": " the",
+    "conf": 0.9769288897514343
   },
   {
-    "start": 88.12,
-    "end": 93.0,
-    "text": "puzzling over something over a concept or an idea I might break it down for",
-    "conf": -0.14065964561756525
+    "start": 83.2,
+    "end": 83.46,
+    "text": " slope",
+    "conf": 0.9989894032478333
   },
   {
-    "start": 93.0,
-    "end": 96.56,
-    "text": "five minute discussion and then come back and then carry on my lecture or carry",
-    "conf": -0.14065964561756525
+    "start": 83.46,
+    "end": 83.78,
+    "text": " at",
+    "conf": 0.9940728545188904
   },
   {
-    "start": 96.56,
-    "end": 100.04,
-    "text": "on my discussion drawing on what students have been saying and I think that makes",
-    "conf": -0.14065964561756525
+    "start": 83.78,
+    "end": 83.98,
+    "text": " each",
+    "conf": 0.9993488192558289
   },
   {
-    "start": 100.04,
-    "end": 104.72,
-    "text": "it a much more two way kind of process of teaching. In lectures where you have",
-    "conf": -0.14065964561756525
+    "start": 83.98,
+    "end": 84.28,
+    "text": " iteration.",
+    "conf": 0.9996191263198853
   },
   {
-    "start": 104.72,
-    "end": 110.16000000000001,
-    "text": "say 200 students in a room I've used post-it notes quite effectively I did",
-    "conf": -0.14065964561756525
+    "start": 84.72,
+    "end": 85.08,
+    "text": " For",
+    "conf": 0.995835542678833
   },
   {
-    "start": 110.16,
-    "end": 114.2,
-    "text": "then have to go through 400 post-it notes after the lecture but in the session",
-    "conf": -0.13537083018539298
+    "start": 85.8,
+    "end": 86.2,
+    "text": " example,",
+    "conf": 0.9995318651199341
   },
   {
-    "start": 114.2,
-    "end": 117.92,
-    "text": "itself students really seemed to appreciate that and that was a way to get",
-    "conf": -0.13537083018539298
+    "start": 86.34,
+    "end": 86.6,
+    "text": " if",
+    "conf": 0.9973662495613098
   },
   {
-    "start": 117.92,
+    "start": 86.6,
+    "end": 86.68,
+    "text": " the",
+    "conf": 0.98997962474823
+  },
+  {
+    "start": 86.68,
+    "end": 86.96,
+    "text": " derivative",
+    "conf": 0.9991210103034973
+  },
+  {
+    "start": 86.96,
+    "end": 87.26,
+    "text": " at",
+    "conf": 0.9958925247192383
+  },
+  {
+    "start": 87.26,
+    "end": 87.38,
+    "text": " the",
+    "conf": 0.9985987544059753
+  },
+  {
+    "start": 87.38,
+    "end": 87.54,
+    "text": " current",
+    "conf": 0.9249492287635803
+  },
+  {
+    "start": 87.54,
+    "end": 87.9,
+    "text": " point",
+    "conf": 0.9972600936889648
+  },
+  {
+    "start": 87.9,
+    "end": 88.34,
+    "text": " is",
+    "conf": 0.9948391318321228
+  },
+  {
+    "start": 88.34,
+    "end": 88.58,
+    "text": " 5,",
+    "conf": 0.9853776693344116
+  },
+  {
+    "start": 88.86,
+    "end": 89.38,
+    "text": " we",
+    "conf": 0.997788667678833
+  },
+  {
+    "start": 89.38,
+    "end": 89.6,
+    "text": " subtract",
+    "conf": 0.999177873134613
+  },
+  {
+    "start": 89.6,
+    "end": 90.0,
+    "text": " 0",
+    "conf": 0.9974368810653687
+  },
+  {
+    "start": 90.0,
+    "end": 90.58,
+    "text": ".05",
+    "conf": 0.9997279942035675
+  },
+  {
+    "start": 90.58,
+    "end": 91.02,
+    "text": " from",
+    "conf": 0.9983141422271729
+  },
+  {
+    "start": 91.02,
+    "end": 91.14,
+    "text": " our",
+    "conf": 0.9991850256919861
+  },
+  {
+    "start": 91.14,
+    "end": 91.48,
+    "text": " parameter.",
+    "conf": 0.9962615370750427
+  },
+  {
+    "start": 92.07,
+    "end": 92.63,
+    "text": " That's",
+    "conf": 0.9967955350875854
+  },
+  {
+    "start": 92.63,
+    "end": 92.75,
+    "text": " why",
+    "conf": 0.9995787739753723
+  },
+  {
+    "start": 92.75,
+    "end": 92.97,
+    "text": " the",
+    "conf": 0.9972182512283325
+  },
+  {
+    "start": 92.97,
+    "end": 93.17,
+    "text": " update",
+    "conf": 0.4231809377670288
+  },
+  {
+    "start": 93.17,
+    "end": 93.43,
+    "text": " rule",
+    "conf": 0.9987614154815674
+  },
+  {
+    "start": 93.43,
+    "end": 93.81,
+    "text": " is",
+    "conf": 0.9991607666015625
+  },
+  {
+    "start": 93.81,
+    "end": 94.01,
+    "text": " written",
+    "conf": 0.9961652755737305
+  },
+  {
+    "start": 94.01,
+    "end": 94.37,
+    "text": " as",
+    "conf": 0.9993776679039001
+  },
+  {
+    "start": 94.37,
+    "end": 94.89,
+    "text": " theta",
+    "conf": 0.9414897561073303
+  },
+  {
+    "start": 94.89,
+    "end": 95.51,
+    "text": " equal",
+    "conf": 0.8905622959136963
+  },
+  {
+    "start": 95.51,
+    "end": 95.73,
+    "text": " to",
+    "conf": 0.9975090026855469
+  },
+  {
+    "start": 95.73,
+    "end": 95.95,
+    "text": " theta",
+    "conf": 0.9970544576644897
+  },
+  {
+    "start": 95.95,
+    "end": 96.31,
+    "text": " minus",
+    "conf": 0.9929525256156921
+  },
+  {
+    "start": 96.31,
+    "end": 96.75,
+    "text": " alpha",
+    "conf": 0.9996029734611511
+  },
+  {
+    "start": 96.75,
+    "end": 97.59,
+    "text": " delta",
+    "conf": 0.8372596502304077
+  },
+  {
+    "start": 97.83,
+    "end": 98.11,
+    "text": " j",
+    "conf": 0.8803828954696655
+  },
+  {
+    "start": 98.11,
+    "end": 98.39,
+    "text": " theta.",
+    "conf": 0.9785870909690857
+  },
+  {
+    "start": 98.39,
+    "end": 98.77,
+    "text": " Now,",
+    "conf": 0.15282993018627167
+  },
+  {
+    "start": 100.54,
+    "end": 100.86,
+    "text": " sometimes",
+    "conf": 0.9795039296150208
+  },
+  {
+    "start": 100.86,
+    "end": 101.26,
+    "text": " people",
+    "conf": 0.9726285338401794
+  },
+  {
+    "start": 101.26,
+    "end": 101.54,
+    "text": " pick",
+    "conf": 0.9809540510177612
+  },
+  {
+    "start": 101.54,
+    "end": 101.7,
+    "text": " a",
+    "conf": 0.9822090864181519
+  },
+  {
+    "start": 101.7,
+    "end": 101.9,
+    "text": " learning",
+    "conf": 0.9893946051597595
+  },
+  {
+    "start": 101.9,
+    "end": 102.22,
+    "text": " rate",
+    "conf": 0.9963793158531189
+  },
+  {
+    "start": 102.22,
+    "end": 102.56,
+    "text": " that's",
+    "conf": 0.9362354874610901
+  },
+  {
+    "start": 102.56,
+    "end": 102.72,
+    "text": " too",
+    "conf": 0.9941282272338867
+  },
+  {
+    "start": 102.72,
+    "end": 103.06,
+    "text": " large,",
+    "conf": 0.996594250202179
+  },
+  {
+    "start": 103.22,
+    "end": 103.72,
+    "text": " and",
+    "conf": 0.9585650563240051
+  },
+  {
+    "start": 103.86,
+    "end": 104.04,
+    "text": " the",
+    "conf": 0.7418237328529358
+  },
+  {
+    "start": 104.04,
+    "end": 104.44,
+    "text": " updates",
+    "conf": 0.9816687703132629
+  },
+  {
+    "start": 104.44,
+    "end": 104.98,
+    "text": " overshoot",
+    "conf": 0.9918957948684692
+  },
+  {
+    "start": 104.98,
+    "end": 105.14,
+    "text": " the",
+    "conf": 0.9902673363685608
+  },
+  {
+    "start": 105.14,
+    "end": 105.4,
+    "text": " minimum.",
+    "conf": 0.9919447302818298
+  },
+  {
+    "start": 106.16,
+    "end": 106.6,
+    "text": " If",
+    "conf": 0.9874324798583984
+  },
+  {
+    "start": 106.6,
+    "end": 106.74,
+    "text": " you've",
+    "conf": 0.9907823503017426
+  },
+  {
+    "start": 106.74,
+    "end": 106.92,
+    "text": " ever",
+    "conf": 0.9871976971626282
+  },
+  {
+    "start": 106.92,
+    "end": 107.16,
+    "text": " seen",
+    "conf": 0.9965656399726868
+  },
+  {
+    "start": 107.16,
+    "end": 107.28,
+    "text": " a",
+    "conf": 0.9938232898712158
+  },
+  {
+    "start": 107.28,
+    "end": 107.52,
+    "text": " loss",
+    "conf": 0.9399884343147278
+  },
+  {
+    "start": 107.52,
+    "end": 107.8,
+    "text": " curve",
+    "conf": 0.9949150085449219
+  },
+  {
+    "start": 107.8,
+    "end": 108.2,
+    "text": " bouncing",
+    "conf": 0.9877932667732239
+  },
+  {
+    "start": 108.2,
+    "end": 108.54,
+    "text": " up",
+    "conf": 0.9966787099838257
+  },
+  {
+    "start": 108.54,
+    "end": 108.7,
+    "text": " and",
+    "conf": 0.9817573428153992
+  },
+  {
+    "start": 108.7,
+    "end": 108.98,
+    "text": " down,",
+    "conf": 0.998629093170166
+  },
+  {
+    "start": 109.1,
+    "end": 109.58,
+    "text": " that's",
+    "conf": 0.9938100278377533
+  },
+  {
+    "start": 109.58,
+    "end": 109.76,
+    "text": " what's",
+    "conf": 0.9890703856945038
+  },
+  {
+    "start": 109.76,
+    "end": 110.06,
+    "text": " happening.",
+    "conf": 0.9959271550178528
+  },
+  {
+    "start": 110.87,
+    "end": 111.15,
+    "text": " On",
+    "conf": 0.9920973777770996
+  },
+  {
+    "start": 111.15,
+    "end": 111.27,
+    "text": " the",
+    "conf": 0.9996610879898071
+  },
+  {
+    "start": 111.27,
+    "end": 111.41,
+    "text": " other",
+    "conf": 0.9995688796043396
+  },
+  {
+    "start": 111.41,
+    "end": 111.75,
+    "text": " hand,",
+    "conf": 0.9982434511184692
+  },
+  {
+    "start": 111.81,
+    "end": 112.13,
+    "text": " if",
+    "conf": 0.9906678795814514
+  },
+  {
+    "start": 112.13,
+    "end": 112.39,
+    "text": " alpha",
+    "conf": 0.8596836924552917
+  },
+  {
+    "start": 112.39,
+    "end": 112.53,
+    "text": " is",
+    "conf": 0.9851074814796448
+  },
+  {
+    "start": 112.53,
+    "end": 112.67,
+    "text": " too",
+    "conf": 0.9972334504127502
+  },
+  {
+    "start": 112.67,
+    "end": 113.01,
+    "text": " small,",
+    "conf": 0.9984869956970215
+  },
+  {
+    "start": 113.21,
+    "end": 113.69,
+    "text": " training",
+    "conf": 0.9871701002120972
+  },
+  {
+    "start": 113.69,
+    "end": 113.93,
+    "text": " becomes",
+    "conf": 0.9948891401290894
+  },
+  {
+    "start": 113.93,
+    "end": 114.53,
+    "text": " painfully",
+    "conf": 0.9989688396453857
+  },
+  {
+    "start": 114.53,
+    "end": 114.83,
+    "text": " slow.",
+    "conf": 0.9988511800765991
+  },
+  {
+    "start": 115.09,
+    "end": 115.55,
+    "text": " So",
+    "conf": 0.9881453514099121
+  },
+  {
+    "start": 116.3,
+    "end": 116.54,
+    "text": " there's",
+    "conf": 0.9299613535404205
+  },
+  {
+    "start": 116.54,
+    "end": 116.64,
+    "text": " a",
+    "conf": 0.7105481028556824
+  },
+  {
+    "start": 116.64,
+    "end": 116.78,
+    "text": " straight",
+    "conf": 0.798516035079956
+  },
+  {
+    "start": 116.78,
+    "end": 117.0,
+    "text": "-off",
+    "conf": 0.7310282438993454
+  },
+  {
+    "start": 117.0,
+    "end": 117.32,
+    "text": " between",
+    "conf": 0.9603137969970703
+  },
+  {
+    "start": 117.32,
+    "end": 117.72,
+    "text": " speed",
+    "conf": 0.9941551089286804
+  },
+  {
+    "start": 117.72,
+    "end": 117.94,
+    "text": " and",
+    "conf": 0.9940881729125977
+  },
+  {
+    "start": 117.94,
+    "end": 118.26,
+    "text": " stability,",
+    "conf": 0.9414646029472351
+  },
+  {
+    "start": 118.66,
+    "end": 119.02,
+    "text": " and",
+    "conf": 0.9879313111305237
+  },
+  {
+    "start": 119.02,
+    "end": 119.16,
+    "text": " that",
+    "conf": 0.9928681254386902
+  },
+  {
+    "start": 119.16,
+    "end": 119.3,
+    "text": " can",
+    "conf": 0.9898210763931274
+  },
+  {
+    "start": 119.3,
+    "end": 120.3,
+    "text": " confuse",
+    "conf": 0.6732079982757568
+  },
+  {
+    "start": 120.3,
+    "end": 120.68,
+    "text": " new",
+    "conf": 0.9827380776405334
+  },
+  {
+    "start": 120.68,
+    "end": 121.04,
+    "text": " learners.",
+    "conf": 0.9962367415428162
+  },
+  {
+    "start": 121.36,
     "end": 121.88,
-    "text": "students doing something actively when you're in a large scenario where that",
-    "conf": -0.13537083018539298
+    "text": " We",
+    "conf": 0.9895848631858826
   },
   {
-    "start": 121.88,
-    "end": 126.4,
-    "text": "might feel more difficult. So ways that I engage students in being active and",
-    "conf": -0.13537083018539298
+    "start": 122.16,
+    "end": 122.42,
+    "text": " often",
+    "conf": 0.9926256537437439
   },
   {
-    "start": 126.4,
-    "end": 130.68,
-    "text": "in trying new things I like to offer students a variety of learning tasks and",
-    "conf": -0.13537083018539298
+    "start": 122.42,
+    "end": 122.66,
+    "text": " just",
+    "conf": 0.9927819967269897
   },
   {
-    "start": 130.68,
-    "end": 135.8,
-    "text": "learning activities so for example in a typical session I might spend a few",
-    "conf": -0.13537083018539298
+    "start": 122.66,
+    "end": 122.9,
+    "text": " tune",
+    "conf": 0.9825635552406311
   },
   {
-    "start": 135.8,
-    "end": 139.48,
-    "text": "minutes introducing things then I might ask students to do a discussion activity",
-    "conf": -0.13537083018539298
+    "start": 122.9,
+    "end": 123.54,
+    "text": " it",
+    "conf": 0.9211567640304565
   },
   {
-    "start": 139.48,
-    "end": 143.0,
-    "text": "and then I would move to trying something different I very much think that",
-    "conf": -0.1408714938719394
+    "start": 123.54,
+    "end": 123.7,
+    "text": " by",
+    "conf": 0.9953428506851196
   },
   {
-    "start": 143.0,
-    "end": 146.64,
-    "text": "students learn in different ways and so I like to offer a range of different",
-    "conf": -0.1408714938719394
+    "start": 123.7,
+    "end": 123.96,
+    "text": " trial",
+    "conf": 0.9940587282180786
   },
   {
-    "start": 146.64,
-    "end": 150.95999999999998,
-    "text": "things that allow each student a chance to perhaps engage so some students",
-    "conf": -0.1408714938719394
+    "start": 123.96,
+    "end": 124.14,
+    "text": " and",
+    "conf": 0.9652526378631592
   },
   {
-    "start": 150.95999999999998,
-    "end": 154.76,
-    "text": "might prefer discussion some students might prefer writing some students might",
-    "conf": -0.1408714938719394
+    "start": 124.14,
+    "end": 124.32,
+    "text": " error.",
+    "conf": 0.9985014200210571
   },
   {
-    "start": 154.76,
-    "end": 158.44,
-    "text": "prefer just some quite time to think about stuff so I'd like to kind of offer a",
-    "conf": -0.1408714938719394
+    "start": 125.57,
+    "end": 125.93,
+    "text": " There",
+    "conf": 0.9960067868232727
   },
   {
-    "start": 158.44,
-    "end": 163.28,
-    "text": "variety and engaging students I like to think I make my class from quite an",
-    "conf": -0.1408714938719394
+    "start": 125.93,
+    "end": 126.07,
+    "text": " are",
+    "conf": 0.9738321900367737
   },
   {
-    "start": 163.28,
-    "end": 168.35999999999999,
-    "text": "inclusive place so I would perhaps mix groups up if there's a group where there",
-    "conf": -0.1408714938719394
+    "start": 126.07,
+    "end": 126.45,
+    "text": " several",
+    "conf": 0.998225748538971
   },
   {
-    "start": 168.36,
-    "end": 171.72000000000003,
-    "text": "are some particularly quiet people and try and make sure that everyone feels",
-    "conf": -0.16807816573418677
+    "start": 126.45,
+    "end": 126.95,
+    "text": " variants",
+    "conf": 0.986591637134552
   },
   {
-    "start": 171.72000000000003,
-    "end": 175.96,
-    "text": "included but in a non-threatening way as much as possible so I don't like to",
-    "conf": -0.16807816573418677
+    "start": 126.95,
+    "end": 127.21,
+    "text": " of",
+    "conf": 0.9970473647117615
   },
   {
-    "start": 175.96,
-    "end": 180.88000000000002,
-    "text": "call students out and say you haven't added anything what do you think I",
-    "conf": -0.16807816573418677
+    "start": 127.21,
+    "end": 127.43,
+    "text": " gradient",
+    "conf": 0.736474871635437
   },
   {
-    "start": 180.88000000000002,
-    "end": 185.96,
-    "text": "like to it's almost having a bad day I wouldn't necessarily want to call them",
-    "conf": -0.16807816573418677
+    "start": 127.43,
+    "end": 127.73,
+    "text": " descent,",
+    "conf": 0.9966233968734741
   },
   {
-    "start": 185.96,
-    "end": 188.44000000000003,
-    "text": "out on it and make their day worse but I like to think my classroom is",
-    "conf": -0.16807816573418677
+    "start": 127.99,
+    "end": 128.45,
+    "text": " batch,",
+    "conf": 0.8005697131156921
   },
   {
-    "start": 188.44000000000003,
-    "end": 193.52,
-    "text": "supportive in a kind of caring nurturing way but one that's still rigorous. I",
-    "conf": -0.16807816573418677
+    "start": 128.61,
+    "end": 129.31,
+    "text": " stochastic,",
+    "conf": 0.9987470904986063
   },
   {
-    "start": 193.52,
-    "end": 197.76000000000002,
-    "text": "think my teaching values and practices have changed a lot in the five five or",
-    "conf": -0.16807816573418677
+    "start": 129.53,
+    "end": 129.69,
+    "text": " and",
+    "conf": 0.9993808269500732
   },
   {
-    "start": 197.76,
-    "end": 202.44,
-    "text": "six years I've been teaching at a university level I started being quite",
-    "conf": -0.1250933116627118
+    "start": 129.69,
+    "end": 129.91,
+    "text": " mini",
+    "conf": 0.7651254534721375
   },
   {
-    "start": 202.44,
-    "end": 207.04,
-    "text": "nervous and thinking quite a lot about how I needed to fill the time and myself",
-    "conf": -0.1250933116627118
+    "start": 129.91,
+    "end": 130.25,
+    "text": "-batch.",
+    "conf": 0.9889280200004578
   },
   {
-    "start": 207.04,
-    "end": 210.64,
-    "text": "as the holder of all knowledge and students would test me and if I didn't know",
-    "conf": -0.1250933116627118
+    "start": 131.11,
+    "end": 131.65,
+    "text": " Batch",
+    "conf": 0.9852621555328369
   },
   {
-    "start": 210.64,
-    "end": 213.35999999999999,
-    "text": "the right answer to a question it would be the worst thing that could ever",
-    "conf": -0.1250933116627118
+    "start": 131.65,
+    "end": 131.93,
+    "text": " uses",
+    "conf": 0.994952917098999
   },
   {
-    "start": 213.35999999999999,
-    "end": 217.72,
-    "text": "happen I'd spend hours preparing classes and thinking very much about what I",
-    "conf": -0.1250933116627118
+    "start": 131.93,
+    "end": 132.21,
+    "text": " the",
+    "conf": 0.9995118379592896
   },
   {
-    "start": 217.72,
-    "end": 221.0,
-    "text": "needed to do to fill the time I didn't really think about the students at all",
-    "conf": -0.1250933116627118
+    "start": 132.21,
+    "end": 132.49,
+    "text": " entire",
+    "conf": 0.9994912147521973
   },
   {
-    "start": 221.0,
-    "end": 226.44,
-    "text": "and that as I've become more confident and got to know my material better I've",
-    "conf": -0.1250933116627118
+    "start": 132.49,
+    "end": 132.85,
+    "text": " data",
+    "conf": 0.36671778559684753
   },
   {
-    "start": 226.44,
-    "end": 230.6,
-    "text": "thought a bit more about what the students are doing and I think my exposure to",
-    "conf": -0.1349023167164095
+    "start": 132.85,
+    "end": 133.15,
+    "text": " set",
+    "conf": 0.9825185537338257
   },
   {
-    "start": 230.6,
-    "end": 235.52,
-    "text": "different ways of teaching observing other people teaching and also working in",
-    "conf": -0.1349023167164095
+    "start": 133.15,
+    "end": 133.45,
+    "text": " to",
+    "conf": 0.9902709722518921
   },
   {
-    "start": 235.52,
-    "end": 239.64,
-    "text": "the IED and my role supporting tutors and demonstrators it's exposed me to",
-    "conf": -0.1349023167164095
+    "start": 133.45,
+    "end": 133.65,
+    "text": " compute",
+    "conf": 0.944200873374939
   },
   {
-    "start": 239.64,
-    "end": 244.52,
-    "text": "lots of new ways of thinking some of it informed by education theory and that",
-    "conf": -0.1349023167164095
+    "start": 133.65,
+    "end": 133.65,
+    "text": " the",
+    "conf": 0.7033584117889404
   },
   {
-    "start": 244.52,
-    "end": 248.4,
-    "text": "very much has made me think more about what students do in the classroom which",
-    "conf": -0.1349023167164095
+    "start": 133.65,
+    "end": 133.65,
+    "text": " gradient",
+    "conf": 0.004492684733122587
   },
   {
-    "start": 248.4,
-    "end": 251.28,
-    "text": "has also helped to make me feel less nervous about what I'm doing because if",
-    "conf": -0.1349023167164095
+    "start": 133.65,
+    "end": 133.65,
+    "text": " of",
+    "conf": 0.07223081588745117
   },
   {
-    "start": 251.28,
-    "end": 253.68,
-    "text": "I'm not thinking about what I'm doing if I'm getting students to do stuff",
-    "conf": -0.1349023167164095
+    "start": 133.65,
+    "end": 133.65,
+    "text": " the",
+    "conf": 0.3193958103656769
   },
   {
-    "start": 253.68,
-    "end": 259.64,
-    "text": "then the pressures of me it's on the students to engage and to do things so I",
-    "conf": -0.17957866922020913
+    "start": 133.65,
+    "end": 133.65,
+    "text": " loss",
+    "conf": 0.06203075870871544
   },
   {
-    "start": 259.64,
-    "end": 264.72,
-    "text": "think my my values in general in terms of students being active and learning in",
-    "conf": -0.17957866922020913
+    "start": 133.65,
+    "end": 133.65,
+    "text": " curve.",
+    "conf": 0.7321782112121582
   },
   {
-    "start": 264.72,
-    "end": 268.68,
-    "text": "an active way hasn't necessarily shifted but it's become more clearly defined",
-    "conf": -0.17957866922020913
+    "start": 133.65,
+    "end": 133.65,
+    "text": " So,",
+    "conf": 0.10212969779968262
   },
   {
-    "start": 268.68,
-    "end": 273.52,
-    "text": "more clearly articulated and I think my practices have become much more",
-    "conf": -0.17957866922020913
+    "start": 133.65,
+    "end": 133.65,
+    "text": " we",
+    "conf": 0.0388011671602726
   },
   {
-    "start": 273.52,
-    "end": 276.8,
-    "text": "obvious in reflecting that so changing the way I've structured my courses",
-    "conf": -0.17957866922020913
+    "start": 133.65,
+    "end": 133.65,
+    "text": " can",
+    "conf": 0.38146501779556274
   },
   {
-    "start": 276.8,
-    "end": 281.12,
-    "text": "changing the kinds of environments I try and teach in so taking students out",
-    "conf": -0.17957866922020913
+    "start": 133.65,
+    "end": 133.65,
+    "text": " use",
+    "conf": 0.15224549174308777
   },
   {
-    "start": 281.12,
-    "end": 284.68,
-    "text": "with the classroom trying to find rooms where I can move the tables around",
-    "conf": -0.17933496530167758
+    "start": 133.65,
+    "end": 133.65,
+    "text": " the",
+    "conf": 0.1846521943807602
   },
   {
-    "start": 284.68,
-    "end": 287.56,
-    "text": "and group students in small groups rather than having them all facing a",
-    "conf": -0.17933496530167758
+    "start": 133.65,
+    "end": 133.65,
+    "text": " data",
+    "conf": 0.08278333395719528
   },
   {
-    "start": 287.56,
-    "end": 291.88,
-    "text": "particular direction I've become more purposeful in doing that because it's",
-    "conf": -0.17933496530167758
+    "start": 133.65,
+    "end": 133.65,
+    "text": " set",
+    "conf": 0.9352176785469055
   },
   {
-    "start": 291.88,
-    "end": 297.12,
-    "text": "much more aligned now with a kind of clearer articulation of my values",
-    "conf": -0.17933496530167758
+    "start": 133.65,
+    "end": 133.65,
+    "text": " to",
+    "conf": 0.8434281349182129
+  },
+  {
+    "start": 133.65,
+    "end": 133.65,
+    "text": " compute",
+    "conf": 0.8186630010604858
+  },
+  {
+    "start": 133.65,
+    "end": 133.65,
+    "text": " the",
+    "conf": 0.9367991089820862
+  },
+  {
+    "start": 133.65,
+    "end": 133.65,
+    "text": " gradient",
+    "conf": 0.5996724963188171
+  },
+  {
+    "start": 133.67,
+    "end": 133.99,
+    "text": " which",
+    "conf": 0.006639299914240837
+  },
+  {
+    "start": 133.99,
+    "end": 134.67,
+    "text": " is",
+    "conf": 0.9879200458526611
+  },
+  {
+    "start": 134.67,
+    "end": 135.03,
+    "text": " accurate",
+    "conf": 0.9874410629272461
+  },
+  {
+    "start": 135.03,
+    "end": 135.27,
+    "text": " but",
+    "conf": 0.9169870018959045
+  },
+  {
+    "start": 135.27,
+    "end": 135.55,
+    "text": " slow.",
+    "conf": 0.9989907145500183
+  },
+  {
+    "start": 136.61,
+    "end": 137.21,
+    "text": " Stochastic",
+    "conf": 0.9947005112965902
+  },
+  {
+    "start": 137.21,
+    "end": 137.61,
+    "text": " updates",
+    "conf": 0.9926493763923645
+  },
+  {
+    "start": 137.61,
+    "end": 137.99,
+    "text": " after",
+    "conf": 0.9867222309112549
+  },
+  {
+    "start": 137.99,
+    "end": 138.29,
+    "text": " every",
+    "conf": 0.9977467656135559
+  },
+  {
+    "start": 138.29,
+    "end": 138.53,
+    "text": " single",
+    "conf": 0.9962010979652405
+  },
+  {
+    "start": 138.53,
+    "end": 139.03,
+    "text": " example,",
+    "conf": 0.9980983138084412
+  },
+  {
+    "start": 139.17,
+    "end": 139.75,
+    "text": " which",
+    "conf": 0.9980913996696472
+  },
+  {
+    "start": 140.31,
+    "end": 140.53,
+    "text": " make",
+    "conf": 0.9713547825813293
+  },
+  {
+    "start": 140.53,
+    "end": 140.69,
+    "text": " it",
+    "conf": 0.9979898929595947
+  },
+  {
+    "start": 140.69,
+    "end": 140.83,
+    "text": " noisy",
+    "conf": 0.9960505366325378
+  },
+  {
+    "start": 140.83,
+    "end": 141.27,
+    "text": " but",
+    "conf": 0.9618011116981506
+  },
+  {
+    "start": 141.27,
+    "end": 141.71,
+    "text": " faster.",
+    "conf": 0.9987938404083252
+  },
+  {
+    "start": 142.45,
+    "end": 142.91,
+    "text": " Mini",
+    "conf": 0.7450520992279053
+  },
+  {
+    "start": 142.91,
+    "end": 143.33,
+    "text": "-batch",
+    "conf": 0.7264927128950754
+  },
+  {
+    "start": 143.33,
+    "end": 143.63,
+    "text": " is",
+    "conf": 0.9856652021408081
+  },
+  {
+    "start": 143.63,
+    "end": 144.11,
+    "text": " like",
+    "conf": 0.9680917263031006
+  },
+  {
+    "start": 144.11,
+    "end": 144.31,
+    "text": " the",
+    "conf": 0.989206075668335
+  },
+  {
+    "start": 144.31,
+    "end": 144.75,
+    "text": " practical",
+    "conf": 0.9765371084213257
+  },
+  {
+    "start": 144.75,
+    "end": 145.25,
+    "text": " compromise",
+    "conf": 0.7550144791603088
+  },
+  {
+    "start": 145.25,
+    "end": 145.55,
+    "text": " and",
+    "conf": 0.8858233690261841
+  },
+  {
+    "start": 145.55,
+    "end": 145.67,
+    "text": " is",
+    "conf": 0.9990492463111877
+  },
+  {
+    "start": 145.67,
+    "end": 145.89,
+    "text": " used",
+    "conf": 0.9996871948242188
+  },
+  {
+    "start": 145.89,
+    "end": 146.03,
+    "text": " in",
+    "conf": 0.9999572038650513
+  },
+  {
+    "start": 146.03,
+    "end": 146.25,
+    "text": " modern",
+    "conf": 0.9981163740158081
+  },
+  {
+    "start": 146.25,
+    "end": 146.73,
+    "text": " models.",
+    "conf": 0.9992352724075317
+  },
+  {
+    "start": 148.02,
+    "end": 148.48,
+    "text": " Hmm,",
+    "conf": 0.7299087047576904
+  },
+  {
+    "start": 148.76,
+    "end": 149.3,
+    "text": " speaking",
+    "conf": 0.9990559220314026
+  },
+  {
+    "start": 149.3,
+    "end": 149.52,
+    "text": " of",
+    "conf": 0.9999765157699585
+  },
+  {
+    "start": 149.52,
+    "end": 149.88,
+    "text": " models,",
+    "conf": 0.9997885823249817
+  },
+  {
+    "start": 150.02,
+    "end": 150.2,
+    "text": " I",
+    "conf": 0.9996433258056641
+  },
+  {
+    "start": 150.2,
+    "end": 150.48,
+    "text": " recently",
+    "conf": 0.9998784065246582
+  },
+  {
+    "start": 150.48,
+    "end": 150.82,
+    "text": " saw",
+    "conf": 0.99994957447052
+  },
+  {
+    "start": 150.82,
+    "end": 150.98,
+    "text": " an",
+    "conf": 0.9997329115867615
+  },
+  {
+    "start": 150.98,
+    "end": 151.26,
+    "text": " AI",
+    "conf": 0.9994729161262512
+  },
+  {
+    "start": 151.26,
+    "end": 151.68,
+    "text": " generating",
+    "conf": 0.9987340569496155
+  },
+  {
+    "start": 151.68,
+    "end": 152.12,
+    "text": " jazz",
+    "conf": 0.9983479976654053
+  },
+  {
+    "start": 152.12,
+    "end": 152.52,
+    "text": " music.",
+    "conf": 0.9998997449874878
+  },
+  {
+    "start": 152.74,
+    "end": 153.02,
+    "text": " It's",
+    "conf": 0.9994871318340302
+  },
+  {
+    "start": 153.02,
+    "end": 153.18,
+    "text": " wild",
+    "conf": 0.9942758679389954
+  },
+  {
+    "start": 153.18,
+    "end": 153.4,
+    "text": " how",
+    "conf": 0.9999315738677979
+  },
+  {
+    "start": 153.4,
+    "end": 153.82,
+    "text": " optimization",
+    "conf": 0.9991574287414551
+  },
+  {
+    "start": 153.82,
+    "end": 154.58,
+    "text": " principles",
+    "conf": 0.9991673231124878
+  },
+  {
+    "start": 154.58,
+    "end": 154.94,
+    "text": " apply",
+    "conf": 0.9998000264167786
+  },
+  {
+    "start": 154.94,
+    "end": 155.14,
+    "text": " there",
+    "conf": 0.9774770140647888
+  },
+  {
+    "start": 155.14,
+    "end": 155.32,
+    "text": " too.",
+    "conf": 0.9822418689727783
+  },
+  {
+    "start": 156.59,
+    "end": 157.19,
+    "text": " Anyway,",
+    "conf": 0.9997132420539856
+  },
+  {
+    "start": 157.45,
+    "end": 158.17,
+    "text": " let's",
+    "conf": 0.9998718202114105
+  },
+  {
+    "start": 159.82,
+    "end": 159.9,
+    "text": " get",
+    "conf": 0.9998360872268677
+  },
+  {
+    "start": 159.9,
+    "end": 160.08,
+    "text": " back",
+    "conf": 0.9999669790267944
+  },
+  {
+    "start": 160.08,
+    "end": 160.24,
+    "text": " to",
+    "conf": 0.9999853372573853
+  },
+  {
+    "start": 160.24,
+    "end": 160.28,
+    "text": " the",
+    "conf": 0.999933123588562
+  },
+  {
+    "start": 160.28,
+    "end": 160.58,
+    "text": " topic.",
+    "conf": 0.9997428059577942
+  },
+  {
+    "start": 160.74,
+    "end": 161.1,
+    "text": " To",
+    "conf": 0.999790370464325
+  },
+  {
+    "start": 162.3,
+    "end": 162.52,
+    "text": " wrap",
+    "conf": 0.9999613761901855
+  },
+  {
+    "start": 162.52,
+    "end": 162.86,
+    "text": " up,",
+    "conf": 0.9999361038208008
+  },
+  {
+    "start": 162.94,
+    "end": 163.52,
+    "text": " gradient",
+    "conf": 0.12958844006061554
+  },
+  {
+    "start": 163.52,
+    "end": 163.88,
+    "text": " descent",
+    "conf": 0.9990098476409912
+  },
+  {
+    "start": 163.88,
+    "end": 164.24,
+    "text": " is",
+    "conf": 0.999922513961792
+  },
+  {
+    "start": 164.24,
+    "end": 164.4,
+    "text": " all",
+    "conf": 0.999923825263977
+  },
+  {
+    "start": 164.4,
+    "end": 164.6,
+    "text": " about",
+    "conf": 0.9998217225074768
+  },
+  {
+    "start": 164.6,
+    "end": 165.02,
+    "text": " iterative",
+    "conf": 0.9986165463924408
+  },
+  {
+    "start": 165.02,
+    "end": 165.66,
+    "text": " improvement.",
+    "conf": 0.9994088411331177
+  },
+  {
+    "start": 166.49,
+    "end": 166.89,
+    "text": " Take",
+    "conf": 0.9997017979621887
+  },
+  {
+    "start": 166.89,
+    "end": 167.21,
+    "text": " small",
+    "conf": 0.999883770942688
+  },
+  {
+    "start": 167.21,
+    "end": 167.61,
+    "text": " steps",
+    "conf": 0.9999068975448608
+  },
+  {
+    "start": 167.61,
+    "end": 167.87,
+    "text": " in",
+    "conf": 0.9999126195907593
+  },
+  {
+    "start": 167.87,
+    "end": 167.95,
+    "text": " the",
+    "conf": 0.9992528557777405
+  },
+  {
+    "start": 167.95,
+    "end": 168.31,
+    "text": " direction",
+    "conf": 0.9996936321258545
+  },
+  {
+    "start": 168.31,
+    "end": 168.61,
+    "text": " that",
+    "conf": 0.9999569654464722
+  },
+  {
+    "start": 168.61,
+    "end": 168.89,
+    "text": " reduces",
+    "conf": 0.9985514283180237
+  },
+  {
+    "start": 168.89,
+    "end": 169.23,
+    "text": " error.",
+    "conf": 0.9979966282844543
+  },
+  {
+    "start": 171.3,
+    "end": 171.3,
+    "text": " Let's",
+    "conf": 0.4693003724387381
+  },
+  {
+    "start": 171.3,
+    "end": 171.3,
+    "text": " look",
+    "conf": 0.6571056246757507
+  },
+  {
+    "start": 171.3,
+    "end": 171.4,
+    "text": " at",
+    "conf": 0.9964652061462402
+  },
+  {
+    "start": 171.4,
+    "end": 171.76,
+    "text": " momentum",
+    "conf": 0.8995413184165955
+  },
+  {
+    "start": 171.76,
+    "end": 172.02,
+    "text": " and",
+    "conf": 0.9875349998474121
+  },
+  {
+    "start": 172.02,
+    "end": 172.34,
+    "text": " adaptive",
+    "conf": 0.9909191131591797
+  },
+  {
+    "start": 172.34,
+    "end": 172.68,
+    "text": " learning",
+    "conf": 0.9977510571479797
+  },
+  {
+    "start": 172.68,
+    "end": 173.08,
+    "text": " rates,",
+    "conf": 0.9895598888397217
+  },
+  {
+    "start": 173.2,
+    "end": 173.54,
+    "text": " which",
+    "conf": 0.9945927262306213
+  },
+  {
+    "start": 173.54,
+    "end": 173.72,
+    "text": " help",
+    "conf": 0.9220762252807617
+  },
+  {
+    "start": 173.72,
+    "end": 173.9,
+    "text": " make",
+    "conf": 0.9951674938201904
+  },
+  {
+    "start": 173.9,
+    "end": 174.18,
+    "text": " gradient",
+    "conf": 0.7321261167526245
+  },
+  {
+    "start": 174.18,
+    "end": 174.52,
+    "text": " descent",
+    "conf": 0.9961650371551514
+  },
+  {
+    "start": 174.52,
+    "end": 174.88,
+    "text": " even",
+    "conf": 0.9236841201782227
+  },
+  {
+    "start": 174.88,
+    "end": 175.34,
+    "text": " faster",
+    "conf": 0.9943203926086426
+  },
+  {
+    "start": 175.34,
+    "end": 175.5,
+    "text": " and",
+    "conf": 0.9902424216270447
+  },
+  {
+    "start": 175.5,
+    "end": 175.62,
+    "text": " more",
+    "conf": 0.9972473978996277
+  },
+  {
+    "start": 175.62,
+    "end": 175.98,
+    "text": " stable.",
+    "conf": 0.999314546585083
+  },
+  {
+    "start": 176.4,
+    "end": 176.94,
+    "text": " Thanks",
+    "conf": 0.9866551160812378
+  },
+  {
+    "start": 176.94,
+    "end": 177.08,
+    "text": " for",
+    "conf": 0.9985449314117432
+  },
+  {
+    "start": 177.08,
+    "end": 177.38,
+    "text": " listening.",
+    "conf": 0.9946411848068237
   }
 ]
