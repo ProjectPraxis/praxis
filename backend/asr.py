@@ -11,7 +11,7 @@ from faster_whisper import WhisperModel
 import json, argparse
 
 def transcribe(audio_path: str, out_path: str):
-    model = WhisperModel("small")   # Using "base" for speed; "small"/"medium" for better fillers
+    model = WhisperModel("base")   # Using "base" for speed; "small"/"medium" for better fillers
     segments, info = model.transcribe(
         audio_path, 
         beam_size=5,
