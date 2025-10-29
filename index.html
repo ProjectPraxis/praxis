@@ -463,7 +463,7 @@
                                             </span>
                                             <div>
                                                 <h3 class="text-lg font-semibold text-gray-900">Critical: Deferred Content</h3>
-                                                <p class="text-gray-600 mb-3">Lecture 3 ran long, deferring critical topics: **Data Preparation, Understanding, and Documentation**. This is a gap for student projects.</p>
+                                                <p class="text-gray-600 mb-3">Lecture 3 ran long, deferring critical topics: <strong>Data Preparation, Understanding, and Documentation</strong>. This is a gap for student projects.</p>
                                                 <div class="flex gap-2">
                                                     <button onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses'))" class="text-sm font-medium text-white py-1.5 px-3 rounded-md primary-gradient hover:opacity-90">See Lecture 3</button>
                                                 </div>
@@ -503,10 +503,22 @@
                                         <div class="flex justify-between text-xs text-gray-600 mt-1 px-1"><span>Strong</span><span>Developing</span><span>Struggling</span></div>
                                     </div>
                                     <div class="flex flex-wrap gap-4 items-center">
-                                        <div class="py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Data Access Rights</div>
-                                        <div class="py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Sample Bias</div>
-                                        <div class="py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Piracy</div>
-                                        <div class="py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Shift Definitions</div>
+                                        <button onclick="showTopicDetail('Justifying AI Necessity', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Justifying AI Necessity</button><button onclick="showTopicDetail('Defining Subjective ML Outputs', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Defining Subjective ML Outputs</button><button onclick="showTopicDetail('Appropriate ML Model Selection', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Appropriate ML Model Selection</button><button onclick="showTopicDetail('Appropriate Data Source Selection', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Appropriate Data Source Selection</button><button onclick="showTopicDetail('Data Shift Concepts', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Shift Concepts</button><button onclick="showTopicDetail('Data Preparation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Preparation</button>
+                                        <button onclick="showTopicDetail('Data Understanding', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Understanding</button>
+                                        <button onclick="showTopicDetail('Data Documentation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Documentation</button><button onclick="showTopicDetail('Data Rights & Licensing', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Rights & Licensing</button><button onclick="showTopicDetail('Fairness Definitions & Trade-offs', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Fairness Definitions & Trade-offs</button><button onclick="showTopicDetail('Evaluating the Overall System', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluating the Overall System</button><button onclick="showTopicDetail('Applying HCD Process Rigorously', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Applying HCD Process Rigorously</button>
+                                        <button onclick="showTopicDetail('Data Representation & Bias', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Representation & Bias</button>
+                                        <button onclick="showTopicDetail('Human-AI Collaboration Models', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Human-AI Collaboration Models</button>
+                                        <button onclick="showTopicDetail('Human-Centered Design (HCD) Principles', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">HCD Principles</button>
+                                        <button onclick="showTopicDetail('Design Thinking Process', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Design Thinking Process</button>
+                                        <button onclick="showTopicDetail('Data Labeling & Annotation', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Labeling & Annotation</button>
+                                        <button onclick="showTopicDetail('Evaluation Goals & Planning', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluation Goals & Planning</button>
+                                        <button onclick="showTopicDetail('System Evaluation Methods', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">System Evaluation Methods</button>
+                                        <button onclick="showTopicDetail('Evaluating Uncertainty', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluating Uncertainty</button>
+                                        <button onclick="showTopicDetail('Evaluating Interpretability', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluating Interpretability</button><button onclick="showTopicDetail('Problem Definition & Need Finding', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Problem Definition & Need Finding</button><button onclick="showTopicDetail('AI Task Formalization', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">AI Task Formalization</button><button onclick="showTopicDetail('ML Algorithm Evaluation Metrics', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">ML Algorithm Evaluation Metrics</button>
+                                        <button onclick="showTopicDetail('Data Collection & Access', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Data Collection & Access</button>
+                                        <button onclick="showTopicDetail('ML Algorithm Evaluation', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">ML Algorithm Evaluation</button>
+                                        <button onclick="showTopicDetail('Project Proposal Development', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Project Proposal Development</button>
+                                        <button onclick="showTopicDetail('Defining Implications', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Defining Implications</button>
                                     </div>
                                 </div>
                                 
@@ -530,10 +542,7 @@
                                     <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-gray-200 border border-gray-300"></div><span>Planned</span></div>
                                 </div>
                                 <div class="flex flex-wrap gap-4 items-center">
-                                    <div class="py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Problem Definition</div>
-                                    <div class="py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">User-Centered Design</div>
-                                    <div class="py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data</div>
-                                    <div class="py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Project Proposals</div>
+                                    <button onclick="showTopicDetail('Problem Definition & Need Finding', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Problem Definition & Need Finding</button><button onclick="showTopicDetail('AI Task Formalization', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">AI Task Formalization</button><button onclick="showTopicDetail('Human-AI Collaboration Models', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Human-AI Collaboration Models</button><button onclick="showTopicDetail('Human-Centered Design (HCD) Principles', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">HCD Principles</button><button onclick="showTopicDetail('Design Thinking Process', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Design Thinking Process</button><button onclick="showTopicDetail('Data Collection & Access', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data Collection & Access</button><button onclick="showTopicDetail('Data Representation & Bias', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data Representation & Bias</button><button onclick="showTopicDetail('Data Shift', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data Shift</button><button onclick="showTopicDetail('Data Preparation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Preparation</button><button onclick="showTopicDetail('Data Labeling & Annotation', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Labeling & Annotation</button><button onclick="showTopicDetail('Data Understanding', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Understanding</button><button onclick="showTopicDetail('Data Documentation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Documentation</button><button onclick="showTopicDetail('Evaluation Goals & Planning', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluation Goals & Planning</button><button onclick="showTopicDetail('System Evaluation Methods', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">System Evaluation Methods</button><button onclick="showTopicDetail('ML Algorithm Evaluation', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">ML Algorithm Evaluation</button><button onclick="showTopicDetail('Evaluating Uncertainty', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluating Uncertainty</button><button onclick="showTopicDetail('Evaluating Fairness', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluating Fairness</button><button onclick="showTopicDetail('Evaluating Interpretability', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluating Interpretability</button><button onclick="showTopicDetail('Project Proposal Development', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Project Proposal Development</button><button onclick="showTopicDetail('Defining Implications', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Defining Implications</button>
                                 </div>
                             </section>
                         </div>
@@ -751,32 +760,110 @@
 
                     <div id="screen-assignments-hub" class="screen hidden space-y-8">
                         <div class="text-sm text-gray-600">
-                            <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
-                            <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
-                            <span class="font-medium text-gray-800">Assignments</span>
-                        </div>
-                        <h1 class="text-4xl font-bold text-gray-900">Assignments & Assessments</h1>
-                        <p class="text-gray-600">Connect student performance to course topics. Data is imported from your LMS.</p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+                             <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+                             <span class="font-medium text-gray-800">Assignments</span>
+                         </div>
+                         <h1 class="text-4xl font-bold text-gray-900">Assignments & Assessments</h1>
+                         <p class="text-gray-600">Connect student performance to course topics. Data can be imported or linked from your LMS.</p>
+                    
+                         <div class="space-y-6">
                             <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-2">Assignment 1</h3>
-                                <p class="text-sm text-gray-500 mb-4">Overall Avg. Score: TBD</p>
-                                <div class="flex gap-4">
-                                    <button class="font-medium text-gray-500 cursor-not-allowed">Analyze Topics</button>
-                                    <button onclick="showPdfModal('hw1_mock.pdf')" class="font-semibold text-gray-600 hover:text-black">View PDF</button>
-                                </div>
-                            </div>
-                            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-2">Project Proposal</h3>
-                                <p class="text-sm text-gray-500 mb-4">Overall Avg. Score: TBD</p>
-                                <div class="flex gap-4">
-                                    <button class="font-medium text-gray-500 cursor-not-allowed">Analyze Topics</button>
-                                    <button class="font-medium text-gray-500 cursor-not-allowed">View PDF</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                 <div class="flex justify-between items-start">
+                                     <div>
+                                         <h3 class="text-xl font-semibold text-gray-800 mb-1">Assignment 1: Project Idea</h3>
+                                         <p class="text-sm text-gray-500 mb-4">Status: Graded | Overall Avg. Score: TBD</p>
+                                    </div>
+                                     <div class="flex gap-2 items-center">
+                                         <button onclick="showPdfModal('Assignment_1_Placeholder.pdf')" class="text-sm font-semibold text-gray-600 hover:text-black">View PDF</button>
+                                         <button class="text-sm font-medium text-gray-400 cursor-not-allowed" title="Feedback not available">View Feedback</button>
+                                     </div>
+                                 </div>
+                                 <button onclick="toggleVisibility('a1-topic-analysis')" class="mt-4 text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90 w-full md:w-auto">Analyze Topic Performance</button>
+                                 <div id="a1-topic-analysis" class="hidden mt-4 space-y-3">
+                                     <p class="text-sm text-gray-500 italic">Topic analysis for Assignment 1 is not yet available.</p>
+                                     </div>
+                             </div>
+                    
+                             <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                                 <div class="flex justify-between items-start">
+                                     <div>
+                                         <h3 class="text-xl font-semibold text-gray-800 mb-1">Assignment 2: Full Proposal</h3>
+                                         <p class="text-sm text-gray-500 mb-4">Status: Graded | Overall Avg. Score: ~87% (131/150 + Deliverables)</p>
+                                    </div>
+                                     <div class="flex gap-2 items-center">
+                                         <button onclick="showPdfModal('Assignment_2-_Full_Proposal (1).pdf')" class="text-sm font-semibold text-gray-600 hover:text-black">View PDF</button>
+                                         <button onclick="showPdfModal('A2_Praxis.docx.pdf')" class="text-sm font-semibold text-gray-600 hover:text-black">View Example Feedback</button>
+                                     </div>
+                                 </div>
+                                 <button onclick="toggleVisibility('a2-topic-analysis')" class="mt-4 text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90 w-full md:w-auto">Analyze Topic Performance</button>
+                                 <div id="a2-topic-analysis" class="hidden mt-4 space-y-4">
+                                     <h4 class="font-semibold text-gray-700">Performance by Topic (Based on Proposal Sections):</h4>
+                                     <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Introduction (Problem/Need)</span>
+                                             <span class="font-semibold text-green-600">Avg: 9.5/10</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: Problem Definition & Need Finding</p>
+                                     </div>
+                                      <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Justification for AI</span>
+                                             <span class="font-semibold text-red-600">Avg: 2.5/5</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: Justifying AI Necessity</p>
+                                         <p class="text-xs text-red-700 mt-1"><strong>Insight:</strong> Many struggled to articulate why ML was essential over simpler methods.</p>
+                                     </div>
+                                     <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Design Section</span>
+                                             <span class="font-semibold text-yellow-600">Avg: 18/20</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: HCD Principles, Design Thinking Process</p>
+                                          <p class="text-xs text-yellow-700 mt-1"><strong>Insight:</strong> Generally good, but some empathy phases lacked diverse perspectives.</p>
+                                     </div>
+                                     <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">ML Backend Section</span>
+                                             <span class="font-semibold text-red-600">Avg: 14/20</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: AI Task Formalization, Defining Subjective ML Outputs, Appropriate ML Model Selection</p>
+                                         <p class="text-xs text-red-700 mt-1"><strong>Insight:</strong> Significant issues defining subjective outputs ('clarity') and choosing suitable models/data sizes (DistilBERT critique).</p>
+                                     </div>
+                                    <div class="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Data Section</span>
+                                             <span class="font-semibold text-yellow-600">Avg: 12/20</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: Appropriate Data Source Selection, Data Bias</p>
+                                         <p class="text-xs text-yellow-700 mt-1"><strong>Insight:</strong> Data source mismatch was common. Discussion on potential bias/misuse needs more depth.</p>
+                                     </div>
+                                      <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Evaluation Section</span>
+                                             <span class="font-semibold text-green-600">Avg: 20/20</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: ML Algorithm Evaluation, System Evaluation Methods</p>
+                                     </div>
+                                     <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Implications Section</span>
+                                             <span class="font-semibold text-green-600">Avg: 10/10</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: Defining Implications</p>
+                                     </div>
+                                      <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                         <div class="flex items-center justify-between">
+                                             <span class="font-medium text-gray-700">Milestones & Timelines</span>
+                                             <span class="font-semibold text-green-600">Avg: 5/5</span>
+                                         </div>
+                                         <p class="text-xs text-gray-500 mt-1">Linked Topics: Project Planning</p>
+                                     </div>
+                                     </div>
+                             </div>
+                    
+                             </div>
+                     </div>
                     
                     <div id="screen-student-trends" class="screen hidden space-y-8">
                         <div class="text-sm text-gray-600">
@@ -1002,7 +1089,7 @@
                          <div class="relative rewind-timeline-item pb-10">
                             <div class="flex items-start">
                                 <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
-                                    <svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" /></svg>
+                                    <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" /></svg>
                                 </div>
                                 <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
                                     <span class="font-semibold text-sm text-green-600">[00:33:45] - Engagement</span>
@@ -1043,7 +1130,7 @@
                                 <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
                                     <span class="font-semibold text-sm text-red-600">[01:08:15] - Critical Insight</span>
                                     <h4 class="text-lg font-semibold text-gray-900 mt-1">Abrupt End / Missed Content</h4>
-                                    <p class="text-gray-600">The lecture ran out of time and ended abruptly. This forced you to defer three critical, practical topics: **Data Preparation, Data Understanding, and Data Documentation**, which are essential for student projects.</p>
+                                    <p class="text-gray-600">The lecture ran out of time and ended abruptly. This forced you to defer three critical, practical topics: <strong>Data Preparation, Data Understanding, and Data Documentation</strong>, which are essential for student projects.</p>
                                 </div>
                             </div>
                         </div>
@@ -1091,7 +1178,17 @@
                 
             </div>
         </div>
+    </div>
+
+    <div id="modal-topic-detail" class="modal-screen hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="hideModal('modal-topic-detail')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 no-print">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div id="topic-detail-content" class="space-y-4">
+                </div>
         </div>
+    </div>
 
     <script>
         const appContainer = document.getElementById('app-container');
@@ -1309,6 +1406,98 @@
         function printRewindReport() {
             window.print();
         }
+
+        // --- NEW: Function to toggle visibility for assignment analysis (Task 6) ---
+        function toggleVisibility(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.classList.toggle('hidden');
+            }
+        }
+
+        // --- NEW: Function for interactive topic pills (Task 4) ---
+        function showTopicDetail(topicName, status, buttonElement) {
+            const modal = document.getElementById('modal-topic-detail');
+            const content = document.getElementById('topic-detail-content');
+            
+            let statusColorClass = '';
+            switch (status) {
+                case 'Strong':
+                    statusColorClass = 'bg-green-500';
+                    break;
+                case 'Developing':
+                    statusColorClass = 'bg-yellow-500';
+                    break;
+                case 'Struggling':
+                    statusColorClass = 'bg-red-500';
+                    break;
+                default:
+                    statusColorClass = 'bg-gray-500';
+            }
+
+            // --- Build dynamic content based on topicName ---
+
+            // Placeholders
+            let keyConcepts = "AI should fetch brief definition from lecture notes/summary for this topic.";
+            let examples = "AI should fetch examples related to this topic from lectures, e.g., COMPAS for Fairness.";
+            let lectureMoments = "AI should list relevant slides/timestamps. E.g., Lecture 4, Slides 47-51 for Data Shift.";
+            let assignmentConnections = "AI should list connections to assignments. E.g., A2 Data Section for Data Source Selection.";
+            let aiReflection = "AI add brief note on common student misconceptions or teaching tips for this topic.";
+
+            // Specific Examples from Prompt
+            if (topicName.includes('Data Shift')) {
+                lectureMoments = "Lecture 4, Slides 47-51. <br><strong>Note:</strong> This section was identified as rushed in the lecture analysis, potentially impacting comprehension.";
+                aiReflection = "<strong>Common confusion:</strong> Differentiating when P(x) changes (covariate) vs. when P(y) changes (label) vs. when P(y|x) changes (concept).";
+            }
+            
+            if (topicName.includes('Data Preparation') || topicName.includes('Data Understanding') || topicName.includes('Data Documentation')) {
+                 lectureMoments = "Lecture 4. <br><strong>Note:</strong> This topic was deferred due to time constraints in Lecture 4. Ensure coverage in Lecture 5.";
+            }
+            
+            if (topicName.includes('Appropriate Data Source Selection')) {
+                assignmentConnections = "<strong>Assignment 2: Full Proposal, Section 4 (Data).</strong> <br><strong>Feedback Insight:</strong> Average score was 6/10. Common issue: Selected data sources (e.g., YouTube) didn't match the target context (small interactive courses).";
+            }
+            
+            if (topicName.includes('Justifying AI')) {
+                 assignmentConnections = "<strong>Assignment 2: Full Proposal, Introduction.</strong> <br><strong>Feedback Insight:</strong> Average score was 2.5/5. Common issue: Weak justification for why AI/ML was necessary compared to simpler alternatives.";
+            }
+
+            // --- Construct HTML ---
+            let html = `
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-5 h-5 rounded-full ${statusColorClass}"></span>
+                    <h3 class="text-2xl font-bold text-gray-900">${topicName}</h3>
+                    <span class="text-sm font-medium text-gray-500">(${status})</span>
+                </div>
+                
+                <div class="space-y-5">
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Key Concepts</h4>
+                        <p class="text-gray-600 text-sm mt-1">${keyConcepts}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Examples</h4>
+                        <p class="text-gray-600 text-sm mt-1">${examples}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Relevant Lecture Moments</h4>
+                        <p class="text-gray-600 text-sm mt-1">${lectureMoments}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Assignment Connections</h4>
+                        <p class="text-gray-600 text-sm mt-1">${assignmentConnections}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-700">AI Reflection</h4>
+                        <p class="text-gray-600 text-sm mt-1">${aiReflection}</p>
+                    </div>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+            showModal('modal-topic-detail');
+        }
+
     </script>
 </body>
 </html>
