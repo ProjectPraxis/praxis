@@ -1,0 +1,66 @@
+{
+  "lecture_id": "demo_lecture",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 43.28,
+      "text": "Hi  everyone,  my  name  is  Jason  and  today  I  want  to  give  you  a  quick  overview  of  gradient  descent,  which  is  one  of  the  core  optimization  algorithms  in  machine  learning.  It  helps  models  learn  by  gradually  adjusting  parameters  to  minimize  a  loss  function,  basically  to  make  predictions  more  accurate  over  time.  Imagine  you're  standing  on  top  of  a  hill  and  you  want  to  reach  the  bottom.  The  shape  of  the  hill  represents  the  lost  surface  and  your  position  represents  the  model  parameters.  Gradient  descent  tells  you  which  direction  is  downhill,  the  direction  of  steepest  decrease,  and  how  big  a  step  to  take.  We  repeat  this  again  and  again  until  we  get  close  to  the  minimum.",
+      "speech_rate": 2.657116451016636,
+      "lexical_diversity": 0.6724137931034483,
+      "silence_ratio": 0.15804066543438078,
+      "asr_confidence": 0.9776820641496907,
+      "label": "Clear",
+      "reason": "The segment is well-structured and presents the concept of gradient descent in a straightforward manner. The use of an analogy (standing on top of a hill) effectively aids understanding, and the speech rate is appropriate for comprehension. There are no noticeable disfluencies or hesitations, making it easy to follow."
+    },
+    {
+      "start": 45.5,
+      "end": 65.85,
+      "text": "Before  I  go  deeper,  I  just  want  to  like  quickly  mention  that  this  isn't  only  for  neural  networks.  It  also  works  for  linear  regression,  logistic  regression,  and  many  others.  Also,  I  was  reading  this  article  about  someone  using  gradient  descent  to  optimize  their  coffee  brewing  temperature.  Okay,  so  let's  get  started.  Okay,",
+      "speech_rate": 2.555282555282556,
+      "lexical_diversity": 0.8518518518518519,
+      "silence_ratio": 0.1321867321867328,
+      "asr_confidence": 0.9037645409832924,
+      "label": "Unclear",
+      "reason": "The segment contains several disfluencies such as \"just want to like quickly mention\" and repeated phrases like \"Okay, so let's get started. Okay,\" which disrupt the flow and clarity of the message. These hesitations make it harder for the audience to follow the speaker's main points."
+    },
+    {
+      "start": 68.42,
+      "end": 127.73,
+      "text": "back  to  the  actual  math.  At  each  step,  we  compute  the  gradient  of  the  loss  function  with  respect  to  each  parameter.  If  our  learning  rate,  often  written  as  alpha,  is  0 .01,  that  means  we  move  1 %  of  the  way  down  the  slope  at  each  iteration.  For  example,  if  the  derivative  at  the  current  point  is  5,  we  subtract  0 .05  from  our  parameter.  That's  why  the  update  rule  is  written  as  theta  equal  to  theta  minus  alpha  delta  j  theta.  Now,  sometimes  people  pick  a  learning  rate  that's  too  large,  and  the  updates  overshoot  the  minimum.  If  you've  ever  seen  a  loss  curve  bouncing  up  and  down,  that's  what's  happening.  On  the  other  hand,  if  alpha  is  too  small,  training  becomes  painfully  slow.  So  there's  a  straight -off  between  speed  and  stability,  and  that  can  confuse  new  learners.  We  often  just  tune  it  by  trial  and  error.  There  are  several  variants  of  gradient  descent,",
+      "speech_rate": 2.630247850278199,
+      "lexical_diversity": 0.639751552795031,
+      "silence_ratio": 0.2112628561793952,
+      "asr_confidence": 0.9649648070335388,
+      "label": "Clear",
+      "reason": "The segment is well-structured and presents the concepts of gradient descent and learning rates in a logical manner. The speaker uses clear examples and explanations, making it easy to understand the relationship between the learning rate and the updates to parameters. The speech rate is moderate, and while there is a slight silence ratio, it does not detract from the overall clarity of the message."
+    },
+    {
+      "start": 127.99,
+      "end": 169.23,
+      "text": "batch,  stochastic,  and  mini -batch.  Batch  uses  the  entire  data  set  to  compute  the  gradient  of  the  loss  curve.  So,  we  can  use  the  data  set  to  compute  the  gradient  which  is  accurate  but  slow.  Stochastic  updates  after  every  single  example,  which  make  it  noisy  but  faster.  Mini -batch  is  like  the  practical  compromise  and  is  used  in  modern  models.  Hmm,  speaking  of  models,  I  recently  saw  an  AI  generating  jazz  music.  It's  wild  how  optimization  principles  apply  there  too.  Anyway,  let's  get  back  to  the  topic.  To  wrap  up,  gradient  descent  is  all  about  iterative  improvement.  Take  small  steps  in  the  direction  that  reduces  error.",
+      "speech_rate": 2.5703200775945687,
+      "lexical_diversity": 0.7129629629629629,
+      "silence_ratio": 0.2701260911736189,
+      "asr_confidence": 0.8622371693560561,
+      "label": "Clear",
+      "reason": "The segment is well-structured and presents concepts in a logical sequence, making it easy to follow. The speaker effectively explains the differences between batch, stochastic, and mini-batch gradient descent, while also connecting the topic to a relevant example of AI in music. The speech rate is moderate, and the lexical diversity indicates a rich vocabulary, contributing to clarity. Although there is a slight pause (\"Hmm\"), it does not detract from overall understanding."
+    },
+    {
+      "start": 171.3,
+      "end": 177.38,
+      "text": "Let's  look  at  momentum  and  adaptive  learning  rates,  which  help  make  gradient  descent  even  faster  and  more  stable.  Thanks  for  listening.",
+      "speech_rate": 3.4539473684210615,
+      "lexical_diversity": 0.9545454545454546,
+      "silence_ratio": 0.08881578947368314,
+      "asr_confidence": 0.9291883471956853,
+      "label": "Clear",
+      "reason": "The segment is well-structured and fluent, with a coherent flow of ideas. The speech rate is moderate, allowing for easy comprehension, and the high lexical diversity indicates a rich vocabulary, enhancing clarity."
+    }
+  ],
+  "summary": {
+    "counts": {
+      "Clear": 4,
+      "Unclear": 1
+    }
+  }
+}
