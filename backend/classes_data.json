@@ -1,0 +1,12 @@
+[
+  {
+    "id": "0970162b-8f52-4589-a370-6cb51d2a1842",
+    "code": "123",
+    "name": "test",
+    "totalLectures": 12,
+    "currentLecture": 0,
+    "semester": "Fall 2025",
+    "description": "",
+    "createdAt": "2025-11-11T18:24:32.396614"
+  }
+]

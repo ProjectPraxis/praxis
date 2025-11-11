@@ -1,2 +1,5 @@
 faster-whisper
 openai
+fastapi
+uvicorn[standard]
+pydantic

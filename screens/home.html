@@ -2,8 +2,16 @@
     <h1 class="text-4xl font-bold text-gray-900">Good Afternoon, Professor Dredze!</h1>
     
     <section>
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Classes</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-semibold text-gray-800">Your Classes</h2>
+            <button onclick="addNewClass()" class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add Class
+            </button>
+        </div>
+        <div id="classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <div onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1">
                 <div class="flex justify-between items-start mb-4">

@@ -23,7 +23,8 @@ const modalFileMap = {
     'modal-hw1': 'hw1.html',
     'modal-pdf-viewer': 'pdf-viewer.html',
     'modal-lecture-rewind': 'lecture-rewind.html',
-    'modal-topic-detail': 'topic-detail.html'
+    'modal-topic-detail': 'topic-detail.html',
+    'modal-add-class': 'add-class.html'
 };
 
 // --- DOMContentLoaded (Initialization) ---
@@ -391,4 +392,147 @@ async function showTopicDetail(topicName, status, buttonElement) {
     
     content.innerHTML = html;
     modal.classList.remove('hidden');
+}
+
+function addNewClass() {
+    showModal('modal-add-class');
+}
+
+async function handleAddClass(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    
+    // Disable submit button and show loading state
+    submitButton.disabled = true;
+    submitButton.textContent = 'Adding...';
+    
+    const courseData = {
+        code: formData.get('course-code'),
+        name: formData.get('course-name'),
+        totalLectures: parseInt(formData.get('total-lectures')),
+        semester: formData.get('semester'),
+        description: formData.get('description') || ''
+    };
+    
+    try {
+        // API endpoint - update this to match your backend
+        const API_BASE_URL = 'http://localhost:8001/api'; // FastAPI port
+        const response = await fetch(`${API_BASE_URL}/classes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(courseData)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        const newClass = await response.json();
+        
+        // Add the new class card immediately to the UI
+        const classesGrid = document.getElementById('classes-grid');
+        if (classesGrid) {
+            const classCard = createClassCard(newClass);
+            classesGrid.appendChild(classCard);
+        }
+        
+        // Show success message
+        alert(`Class "${courseData.name}" (${courseData.code}) has been added!`);
+        
+        // Reset form and close modal
+        form.reset();
+        hideModal('modal-add-class');
+        
+    } catch (error) {
+        console.error('Error adding class:', error);
+        
+        // Show error message
+        alert(`Failed to add class: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`);
+        
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+    }
+}
+
+// Fetch all classes from the API
+async function fetchClasses() {
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const response = await fetch(`${API_BASE_URL}/classes`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const classes = await response.json();
+        return classes;
+    } catch (error) {
+        console.error('Error fetching classes:', error);
+        // Return empty array if API fails (for development)
+        return [];
+    }
+}
+
+// Refresh the class list on the home screen
+async function refreshClassList() {
+    const classesGrid = document.getElementById('classes-grid');
+    if (!classesGrid) return; // Not on home screen
+    
+    try {
+        const classes = await fetchClasses();
+        
+        // Only update if we got classes from the API
+        if (classes.length > 0) {
+            // Clear existing classes
+            classesGrid.innerHTML = '';
+            
+            // Render all classes from API
+            classes.forEach(classItem => {
+                const classCard = createClassCard(classItem);
+                classesGrid.appendChild(classCard);
+            });
+        }
+        // If API returns empty array or fails, keep existing classes
+    } catch (error) {
+        console.error('Error refreshing class list:', error);
+        // Keep existing classes on error
+    }
+}
+
+// Create a class card element
+function createClassCard(classData) {
+    const card = document.createElement('div');
+    card.className = 'bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1';
+    card.onclick = () => showScreen('screen-course-hub', document.getElementById('nav-courses'));
+    
+    // Calculate progress (assuming currentLecture is 0 for new classes)
+    const currentLecture = classData.currentLecture || 0;
+    const totalLectures = classData.totalLectures || 1;
+    const progress = totalLectures > 0 ? (currentLecture / totalLectures) * 100 : 0;
+    
+    card.innerHTML = `
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <div class="text-xs text-gray-500">${classData.code || ''}</div>
+                <div class="text-lg font-semibold text-gray-900">${classData.name || ''}</div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+        </div>
+        <div class="text-sm text-gray-600 mb-1">Lecture ${currentLecture} of ${totalLectures}</div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="primary-gradient h-2.5 rounded-full" style="width: ${progress}%"></div>
+        </div>
+    `;
+    
+    return card;
 }
