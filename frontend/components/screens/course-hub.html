@@ -1,0 +1,80 @@
+<div id="screen-course-hub" class="screen hidden space-y-8">
+    <h1 class="text-4xl font-bold text-gray-900">601.486/686 - ML: AI System Design</h1>
+    
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+            <button id="tab-btn-overview" class="tab-button active" onclick="window.Router.showTab('tab-overview', this)">Overview</button>
+            <button id="tab-btn-lectures" class="tab-button" onclick="window.Router.showTab('tab-lectures', this)">Lectures</button>
+            <button id="tab-btn-assignments" class="tab-button" onclick="window.Router.navigateTo('screen-assignments-hub', document.getElementById('nav-courses'))">Assignments</button>
+            <button id="tab-btn-trends" class="tab-button" onclick="window.Router.navigateTo('screen-student-trends', document.getElementById('nav-courses'))">Student Trends</button>
+        </nav>
+    </div>
+
+    <div id="tab-overview" class="tab-content space-y-8">
+        
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Priority Action Items</h2>
+            <div id="priority-actions-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Priority actions will be dynamically loaded here -->
+            </div>
+        </section>
+        
+        <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Student Understanding (Overall)</h2>
+                <div class="bg-gray-100 p-1 rounded-lg flex">
+                    <button id="view-btn-pill" class="view-toggle-btn active" onclick="window.AppState.toggleView('pill')">Pill View</button>
+                    <button id="view-btn-graph" class="view-toggle-btn" onclick="window.AppState.toggleView('graph')">Graph View</button>
+                </div>
+            </div>
+
+            <div id="pill-view">
+                <div class="mb-4">
+                    <div class="w-full h-3 rounded-full student-understanding-gradient"></div>
+                    <div class="flex justify-between text-xs text-gray-600 mt-1 px-1"><span>Strong</span><span>Developing</span><span>Struggling</span></div>
+                </div>
+                <div id="understanding-topics-container" class="flex flex-wrap gap-4 items-center">
+                    <!-- Student understanding topics will be dynamically loaded here -->
+                </div>
+            </div>
+            
+            <div id="knowledge-graph-view" class="hidden relative h-72">
+                <p class="text-sm text-gray-600 mb-4">Mock knowledge graph showing topic dependencies and student understanding.</p>
+                <div class="kg-node is-covered" style="top: 2rem; left: 2rem;">1. Problem Definition</div>
+                <div class="kg-node is-covered" style="top: 8rem; left: 10rem;">2. User-Centered Design</div>
+                <div class="kg-node is-covered" style="top: 2rem; left: 18rem;">3. Data Access</div>
+                <div class="kg-node is-struggling" style="top: 8rem; left: 26rem;">4. Data Shift Theory</div>
+                <div class="kg-connector" style="top: 4.5rem; left: 8.5rem; width: 3rem; height: 2px; transform: rotate(20deg);"></div>
+                <div class="kg-connector" style="top: 4.5rem; left: 16.5rem; width: 3rem; height: 2px; transform: rotate(-20deg);"></div>
+                <div class="kg-connector" style="top: 7.5rem; left: 18rem; width: 8rem; height: 2px;"></div>
+            </div>
+
+        </section>
+
+        <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Course Coverage</h2>
+            <div class="flex items-center gap-4 mb-4 text-sm">
+                <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full course-coverage-gradient"></div><span>Covered</span></div>
+                <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-gray-200 border border-gray-300"></div><span>Planned</span></div>
+            </div>
+            <div id="coverage-topics-container" class="flex flex-wrap gap-4 items-center">
+                <!-- Course coverage topics will be dynamically loaded here -->
+            </div>
+        </section>
+    </div>
+    
+    <div id="tab-lectures" class="tab-content hidden space-y-6">
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Past Lectures</h3>
+            <ul id="past-lectures-container" class="space-y-2">
+                <!-- Past lectures will be dynamically loaded here -->
+            </ul>
+            </div>
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Upcoming Lectures</h3>
+            <ul id="upcoming-lectures-container" class="space-y-2">
+                <!-- Upcoming lectures will be dynamically loaded here -->
+            </ul>
+        </div>
+    </div>
+</div>

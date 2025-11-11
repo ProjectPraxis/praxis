@@ -1,0 +1,40 @@
+{
+  "lectures": [
+    {
+      "id": "lecture_1",
+      "number": 1,
+      "title": "Introduction to ML Systems",
+      "date": "2024-09-15",
+      "status": "analyzed",
+      "clarity_score": 85,
+      "has_analysis": true
+    },
+    {
+      "id": "lecture_2",
+      "number": 2,
+      "title": "GLMs and Foundations",
+      "date": "2024-09-22",
+      "status": "processing",
+      "clarity_score": null,
+      "has_analysis": false
+    },
+    {
+      "id": "lecture_3",
+      "number": 3,
+      "title": "Gradient Descent Deep Dive",
+      "date": "2024-10-15",
+      "status": "analyzed",
+      "clarity_score": 72,
+      "has_analysis": true
+    },
+    {
+      "id": "lecture_4",
+      "number": 4,
+      "title": "Project Proposals",
+      "date": "2024-10-22",
+      "status": "upcoming",
+      "clarity_score": null,
+      "has_analysis": false
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "assignment_id": "hw1",
+  "title": "Problem Set 1: Linear Models",
+  "course_id": "601.486/686",
+  "due_date": "2024-10-01",
+  "total_submissions": 45,
+  "graded": 45,
+  "average_score": 82,
+  "questions": [
+    {
+      "question_number": 1,
+      "title": "Linear Regression Derivation",
+      "max_points": 20,
+      "average_score": 18,
+      "difficulty": "medium",
+      "common_mistakes": [
+        "Incorrect matrix dimensions",
+        "Sign errors in gradient"
+      ]
+    },
+    {
+      "question_number": 2,
+      "title": "Gradient Descent Implementation",
+      "max_points": 30,
+      "average_score": 24,
+      "difficulty": "hard",
+      "common_mistakes": [
+        "Learning rate too large",
+        "Not vectorizing operations"
+      ]
+    },
+    {
+      "question_number": 3,
+      "title": "Regularization Analysis",
+      "max_points": 25,
+      "average_score": 20,
+      "difficulty": "medium",
+      "common_mistakes": [
+        "Confusion between L1 and L2",
+        "Improper cross-validation"
+      ]
+    },
+    {
+      "question_number": 4,
+      "title": "Conceptual Questions",
+      "max_points": 25,
+      "average_score": 22,
+      "difficulty": "easy",
+      "common_mistakes": []
+    }
+  ],
+  "topic_alignment": [
+    {
+      "topic": "Linear Models",
+      "lecture_coverage": ["lecture_1", "lecture_2"],
+      "alignment_score": 90
+    },
+    {
+      "topic": "Gradient Descent",
+      "lecture_coverage": ["lecture_3"],
+      "alignment_score": 65
+    }
+  ],
+  "feedback_summary": "Students struggled with gradient descent implementation, suggesting lecture 3 could use more code examples."
+}

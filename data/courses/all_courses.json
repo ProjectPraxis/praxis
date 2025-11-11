@@ -1,0 +1,31 @@
+{
+  "courses": [
+    {
+      "id": "601.486/686",
+      "code": "JHU 601.486/686",
+      "name": "ML: AI System Design",
+      "current_lecture": 3,
+      "total_lectures": 12,
+      "progress_percentage": 25,
+      "is_active": true
+    },
+    {
+      "id": "60.441",
+      "code": "JHU 60.441",
+      "name": "Computer Networks",
+      "current_lecture": 8,
+      "total_lectures": 10,
+      "progress_percentage": 80,
+      "is_active": false
+    },
+    {
+      "id": "60.320",
+      "code": "JHU 60.320",
+      "name": "Cognitive Science",
+      "current_lecture": 5,
+      "total_lectures": 14,
+      "progress_percentage": 35,
+      "is_active": false
+    }
+  ]
+}

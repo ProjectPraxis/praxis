@@ -1,0 +1,28 @@
+{
+  "assignments": [
+    {
+      "id": "hw1",
+      "title": "Problem Set 1: Linear Models",
+      "due_date": "2024-10-01",
+      "status": "graded",
+      "submissions": 45,
+      "average_score": 82
+    },
+    {
+      "id": "hw2",
+      "title": "Problem Set 2: Neural Networks",
+      "due_date": "2024-10-15",
+      "status": "grading",
+      "submissions": 42,
+      "average_score": null
+    },
+    {
+      "id": "project1",
+      "title": "Midterm Project Proposal",
+      "due_date": "2024-10-29",
+      "status": "open",
+      "submissions": 0,
+      "average_score": null
+    }
+  ]
+}

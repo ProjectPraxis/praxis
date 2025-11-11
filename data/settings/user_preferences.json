@@ -1,0 +1,39 @@
+{
+  "user": {
+    "name": "Professor Dredze",
+    "email": "dredze@jhu.edu",
+    "institution": "Johns Hopkins University"
+  },
+  "preferences": {
+    "theme": "spring",
+    "notifications_enabled": true,
+    "auto_analyze_lectures": true,
+    "weekly_summary_email": true
+  },
+  "available_themes": [
+    {
+      "id": "spring",
+      "name": "Spring",
+      "colors": {
+        "primary": "#10B981",
+        "secondary": "#F59E0B"
+      }
+    },
+    {
+      "id": "ocean",
+      "name": "Ocean",
+      "colors": {
+        "primary": "#0EA5E9",
+        "secondary": "#3B82F6"
+      }
+    },
+    {
+      "id": "twilight",
+      "name": "Twilight",
+      "colors": {
+        "primary": "#6366F1",
+        "secondary": "#A855F7"
+      }
+    }
+  ]
+}

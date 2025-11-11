@@ -1,0 +1,55 @@
+{
+  "course_id": "601.486/686",
+  "overall_understanding": {
+    "average_score": 72,
+    "trend": "stable",
+    "last_updated": "2024-10-15"
+  },
+  "topics": [
+    {
+      "name": "Supervised Learning",
+      "understanding_score": 85,
+      "status": "strong",
+      "lectures_covered": ["lecture_1", "lecture_2"]
+    },
+    {
+      "name": "Neural Networks",
+      "understanding_score": 72,
+      "status": "moderate",
+      "lectures_covered": ["lecture_2"]
+    },
+    {
+      "name": "Optimization",
+      "understanding_score": 68,
+      "status": "moderate",
+      "lectures_covered": ["lecture_3"]
+    },
+    {
+      "name": "Regularization",
+      "understanding_score": 55,
+      "status": "struggling",
+      "lectures_covered": ["lecture_2", "lecture_3"]
+    },
+    {
+      "name": "Model Evaluation",
+      "understanding_score": 45,
+      "status": "struggling",
+      "lectures_covered": ["lecture_1"]
+    }
+  ],
+  "graph_data": {
+    "labels": ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"],
+    "datasets": [
+      {
+        "label": "Overall Understanding",
+        "data": [65, 70, 72, 68, 72],
+        "color": "#10B981"
+      },
+      {
+        "label": "Engagement",
+        "data": [75, 78, 68, 70, 75],
+        "color": "#3B82F6"
+      }
+    ]
+  }
+}
