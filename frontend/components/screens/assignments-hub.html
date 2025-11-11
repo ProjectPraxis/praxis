@@ -1,0 +1,14 @@
+<div id="screen-assignments-hub" class="screen hidden space-y-8">
+    <div class="text-sm text-gray-600">
+        <span onclick="window.Router.navigateTo('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+        <span onclick="window.Router.navigateTo('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+        <span class="font-medium text-gray-800">Assignments</span>
+    </div>
+    <h1 class="text-4xl font-bold text-gray-900">Assignments Hub</h1>
+    <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">All Assignments</h3>
+        <ul id="assignments-container" class="space-y-2">
+            <!-- Assignments will be dynamically loaded here -->
+        </ul>
+    </div>
+</div>

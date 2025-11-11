@@ -1,0 +1,61 @@
+<div id="screen-lecture-analysis" class="screen hidden space-y-6">
+    <div class="text-sm text-gray-600">
+        <span onclick="window.Router.navigateTo('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+        <span onclick="window.Router.navigateTo('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+        <span class="font-medium text-gray-800">Lecture 3: Analysis</span>
+    </div>
+    
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-900">Lecture 3: The Data Dilemma</h1>
+        <button onclick="window.ModalManager.show('modal-lecture-rewind')" class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" /></svg>
+            Launch Lecture Rewind
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-gray-900 rounded-xl shadow-md aspect-video flex items-center justify-center">
+                <span class="text-gray-400 text-lg font-medium">Mock Video Player</span>
+            </div>
+            
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md overflow-x-auto">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Analysis Timeline</h3>
+                <div id="lecture-insights-container" class="space-y-2 min-w-[800px]">
+                    <!-- Insights timeline will be dynamically loaded here -->
+                </div>
+            </div>
+            
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md h-96 overflow-y-auto">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Transcript</h3>
+                <div id="lecture-transcript-container" class="space-y-3 text-gray-700">
+                    <!-- Transcript will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <aside class="space-y-6">
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Lecture Quality Score</h3>
+                <div class="text-6xl font-bold text-gray-900 mb-3"><span id="clarity-score">88</span><span class="text-4xl text-gray-500">/100</span></div>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="clarity-score-bar" class="h-4 rounded-full bg-gradient-to-r from-green-500 to-yellow-500" style="width: 88%"></div>
+                </div>
+            </div>
+            
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Topic Coverage</h3>
+                <div id="lecture-topics-container" class="space-y-3">
+                    <!-- Topics covered will be dynamically loaded here -->
+                </div>
+            </div>
+            
+            <div id="dynamic-insight-panel" class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <h3 id="dynamic-insight-panel-title" class="text-xl font-semibold text-gray-800 mb-4">AI Reflections & Actions</h3>
+                <div id="insight-content">
+                    <!-- AI reflections will be dynamically loaded here -->
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

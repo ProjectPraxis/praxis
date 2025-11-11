@@ -1,0 +1,53 @@
+{
+  "course_id": "601.486/686",
+  "course_name": "ML: AI System Design",
+  "institution": "JHU",
+  "instructor": "Professor Dredze",
+  "total_lectures": 12,
+  "current_lecture": 3,
+  "progress_percentage": 25,
+  "priority_actions": [
+    {
+      "id": "action_1",
+      "type": "critical",
+      "title": "Critical: Deferred Content",
+      "description": "Lecture 3 ran long, deferring critical topics: Data Preparation, Understanding, and Documentation. This is a gap for student projects.",
+      "related_lecture": "lecture_3",
+      "actions": [
+        {
+          "label": "See Lecture 3",
+          "action": "navigate",
+          "target": "lecture_analysis"
+        }
+      ]
+    },
+    {
+      "id": "action_2",
+      "type": "warning",
+      "title": "Plan: Lecture 4",
+      "description": "Your next lecture, 'Project Proposals', is upcoming. Don't forget to upload your slides for analysis.",
+      "related_lecture": "lecture_4",
+      "actions": [
+        {
+          "label": "Plan Lecture",
+          "action": "navigate",
+          "target": "lecture_planning"
+        },
+        {
+          "label": "Dismiss",
+          "action": "dismiss"
+        }
+      ]
+    }
+  ],
+  "general_feedback": {
+    "sustains": [
+      "Students love when you pause mid-lecture to check for understanding.",
+      "Real-world examples for 'GLMs' were highly effective across all classes."
+    ],
+    "improves": [
+      "Connection between lecture topics and assignment questions could be clearer.",
+      "Pacing at the end of lectures tends to accelerate."
+    ]
+  }
+}
