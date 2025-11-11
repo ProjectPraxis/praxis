@@ -14,6 +14,7 @@ const screenFileMap = {
     'screen-course-hub': 'course-hub.html',
     'screen-lecture-analysis': 'lecture-analysis.html',
     'screen-lecture-planning': 'lecture-planning.html',
+    'screen-lecture-edit': 'lecture-edit.html',
     'screen-assignments-hub': 'assignments-hub.html',
     'screen-student-trends': 'student-trends.html',
     'screen-settings': 'settings.html'
@@ -190,6 +191,11 @@ function showTab(tabId, tabElement) {
     document.getElementById(tabId).classList.remove('hidden');
     tabElement.classList.add('active');
     activeTabButton = tabElement;
+    
+    // Refresh lectures list when lectures tab is shown
+    if (tabId === 'tab-lectures') {
+        refreshLecturesList();
+    }
 }
 
 function hideModal(modalId) {
@@ -535,4 +541,282 @@ function createClassCard(classData) {
     `;
     
     return card;
+}
+
+// Lecture management functions
+let currentLectureId = null;
+let uploadedFile = null;
+
+function addNewLecture() {
+    // Create a new blank lecture
+    currentLectureId = 'lecture-' + Date.now(); // Generate a temporary ID
+    uploadedFile = null;
+    
+    // Navigate to the edit screen
+    showScreen('screen-lecture-edit', document.getElementById('nav-courses'));
+    
+    // Reset the form
+    setTimeout(() => {
+        const titleInput = document.getElementById('lecture-title-input');
+        const topicList = document.getElementById('lecture-topic-list');
+        const fileInfo = document.getElementById('uploaded-file-info');
+        
+        if (titleInput) titleInput.value = 'New Lecture';
+        if (topicList) topicList.innerHTML = '';
+        if (fileInfo) {
+            fileInfo.classList.add('hidden');
+            document.getElementById('uploaded-file-name').textContent = '';
+        }
+    }, 100);
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        processUploadedFile(file);
+    }
+}
+
+function handleFileDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const uploadArea = event.currentTarget;
+    uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        // Check if it's a valid file type
+        const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-powerpoint'];
+        if (validTypes.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
+            processUploadedFile(file);
+            // Update the file input
+            const fileInput = document.getElementById('lecture-slides-upload');
+            if (fileInput) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+            }
+        } else {
+            alert('Please upload a PDF or PowerPoint file (.pdf, .ppt, .pptx)');
+        }
+    }
+}
+
+function processUploadedFile(file) {
+    uploadedFile = file;
+    const fileInfo = document.getElementById('uploaded-file-info');
+    const fileName = document.getElementById('uploaded-file-name');
+    
+    if (fileInfo && fileName) {
+        fileName.textContent = file.name;
+        fileInfo.classList.remove('hidden');
+    }
+}
+
+function removeUploadedFile() {
+    uploadedFile = null;
+    const fileInput = document.getElementById('lecture-slides-upload');
+    const fileInfo = document.getElementById('uploaded-file-info');
+    
+    if (fileInput) fileInput.value = '';
+    if (fileInfo) {
+        fileInfo.classList.add('hidden');
+        document.getElementById('uploaded-file-name').textContent = '';
+    }
+}
+
+function addLectureTopic() {
+    const input = document.getElementById('lecture-topic-input');
+    const topicList = document.getElementById('lecture-topic-list');
+    
+    if (input && topicList) {
+        const topicName = input.value.trim();
+        if (topicName) {
+            // Check if topic already exists
+            const existingTopics = Array.from(topicList.children).map(el => el.textContent.trim());
+            if (existingTopics.includes(topicName)) {
+                alert('This topic is already added.');
+                return;
+            }
+            
+            const topicPill = document.createElement('div');
+            topicPill.className = 'py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 flex items-center gap-2';
+            topicPill.innerHTML = `
+                <span>${topicName}</span>
+                <button onclick="removeLectureTopic(this)" class="text-red-600 hover:text-red-800 ml-1">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+            topicList.appendChild(topicPill);
+            input.value = '';
+        }
+    }
+}
+
+function removeLectureTopic(button) {
+    if (button && button.parentElement) {
+        button.parentElement.remove();
+    }
+}
+
+function addPriorityTopic(topicName) {
+    const input = document.getElementById('lecture-topic-input');
+    if (input) {
+        input.value = topicName;
+        addLectureTopic();
+    }
+}
+
+async function saveLecture() {
+    const titleInput = document.getElementById('lecture-title-input');
+    const topicList = document.getElementById('lecture-topic-list');
+    
+    if (!titleInput) return;
+    
+    const title = titleInput.value.trim();
+    if (!title) {
+        alert('Please enter a lecture title.');
+        return;
+    }
+    
+    // Collect topics
+    const topics = Array.from(topicList.children).map(el => {
+        const textNode = el.querySelector('span');
+        return textNode ? textNode.textContent.trim() : '';
+    }).filter(t => t);
+    
+    // Prepare lecture data
+    const lectureData = {
+        id: currentLectureId,
+        title: title,
+        topics: topics,
+        hasSlides: uploadedFile !== null,
+        fileName: uploadedFile ? uploadedFile.name : null,
+        createdAt: new Date().toISOString()
+    };
+    
+    // If file is uploaded, you would upload it to the server here
+    if (uploadedFile) {
+        // In a real implementation, you would upload the file to the server
+        console.log('File to upload:', uploadedFile.name);
+        // Example: await uploadFile(uploadedFile, currentLectureId);
+    }
+    
+    // Save lecture data (in a real app, this would be an API call)
+    console.log('Saving lecture:', lectureData);
+    
+    // Store in localStorage for now (in a real app, this would be an API call)
+    let lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
+    const existingIndex = lectures.findIndex(l => l.id === currentLectureId);
+    if (existingIndex >= 0) {
+        lectures[existingIndex] = lectureData;
+    } else {
+        lectures.push(lectureData);
+    }
+    localStorage.setItem('lectures', JSON.stringify(lectures));
+    
+    // Show success message
+    alert(`Lecture "${title}" has been saved!`);
+    
+    // Navigate back to course hub
+    showScreen('screen-course-hub', document.getElementById('nav-courses'));
+    showTab('tab-lectures', document.getElementById('tab-btn-lectures'));
+    
+    // Refresh the lectures list
+    refreshLecturesList();
+}
+
+function editLecture(lectureId) {
+    // Load lecture data from localStorage (in a real app, this would be an API call)
+    const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
+    const lecture = lectures.find(l => l.id === lectureId);
+    
+    if (!lecture) {
+        alert('Lecture not found');
+        return;
+    }
+    
+    currentLectureId = lectureId;
+    
+    // Navigate to edit screen
+    showScreen('screen-lecture-edit', document.getElementById('nav-courses'));
+    
+    // Populate the form
+    setTimeout(() => {
+        const titleInput = document.getElementById('lecture-title-input');
+        const topicList = document.getElementById('lecture-topic-list');
+        
+        if (titleInput) titleInput.value = lecture.title || 'New Lecture';
+        if (topicList) {
+            topicList.innerHTML = '';
+            if (lecture.topics && lecture.topics.length > 0) {
+                lecture.topics.forEach(topic => {
+                    const topicPill = document.createElement('div');
+                    topicPill.className = 'py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 flex items-center gap-2';
+                    topicPill.innerHTML = `
+                        <span>${topic}</span>
+                        <button onclick="removeLectureTopic(this)" class="text-red-600 hover:text-red-800 ml-1">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
+                    topicList.appendChild(topicPill);
+                });
+            }
+        }
+        
+        // Show file info if slides were uploaded
+        if (lecture.hasSlides && lecture.fileName) {
+            const fileInfo = document.getElementById('uploaded-file-info');
+            const fileName = document.getElementById('uploaded-file-name');
+            if (fileInfo && fileName) {
+                fileName.textContent = lecture.fileName;
+                fileInfo.classList.remove('hidden');
+            }
+        }
+    }, 100);
+}
+
+function refreshLecturesList() {
+    // Load lectures from localStorage (in a real app, this would be an API call)
+    const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
+    
+    // Find the "Upcoming Lectures" section - look for the ul inside the last bg-white/80 div in tab-lectures
+    const tabLectures = document.getElementById('tab-lectures');
+    if (!tabLectures) return;
+    
+    const upcomingSection = tabLectures.querySelectorAll('.bg-white\\/80');
+    if (upcomingSection.length < 2) return;
+    
+    const upcomingUl = upcomingSection[1].querySelector('ul');
+    if (!upcomingUl) return;
+    
+    // Clear existing dynamic lectures (keep the first one which is the mock "Project Proposals")
+    const existingItems = Array.from(upcomingUl.children);
+    existingItems.forEach(item => {
+        const onclick = item.querySelector('a')?.getAttribute('onclick');
+        // Only remove items that have editLecture onclick
+        if (onclick && onclick.includes('editLecture')) {
+            item.remove();
+        }
+    });
+    
+    // Add saved lectures
+    lectures.forEach(lecture => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <a onclick="editLecture('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                <span class="font-medium text-gray-700">${lecture.title}</span>
+                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+            </a>
+        `;
+        upcomingUl.appendChild(li);
+    });
 }
