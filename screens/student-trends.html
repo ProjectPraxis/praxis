@@ -1,0 +1,68 @@
+<div id="screen-student-trends" class="screen space-y-8">
+    <div class="text-sm text-gray-600">
+        <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+        <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+        <span class="font-medium text-gray-800">Student Trends</span>
+    </div>
+    <h1 class="text-4xl font-bold text-gray-900">Student Insights & Trends</h1>
+    <p class="text-gray-600">Diagnose systemic knowledge gaps over the semester.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Topic Deficiency Graph</h3>
+            <div class="w-full h-96">
+                <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                    <text x="10" y="95" font-size="5" fill="#6B7280">A1</text>
+                    <text x="110" y="95" font-size="5" fill="#6B7280">Proposal</text>
+                    <text x="210" y="95" font-size="5" fill="#6B7280">A2</text>
+                    
+                    <line x1="0" y1="10" x2="300" y2="10" stroke="#E5E7EB" stroke-width="0.5" />
+                    <line x1="0" y1="50" x2="300" y2="50" stroke="#E5E7EB" stroke-width="0.5" />
+                    <line x1="0" y1="90" x2="300" y2="90" stroke="#9CA3AF" stroke-width="0.5" />
+                    
+                    <path class="chart-line" stroke="#10B981" d="M 10 20 L 110 15 L 210 25" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: drawChart 1s 0s forwards;"></path>
+                    <text x="230" y="25" font-size="5" fill="#10B981">Data Access</text>
+
+                    <path class="chart-line" stroke="#EF4444" d="M 10 70 L 110 80 L 210 85" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: drawChart 1s 0.2s forwards;"></path>
+                    <text x="230" y="85" font-size="5" fill="#EF4444">Data Shift Theory</text>
+                </svg>
+                <style>@keyframes drawChart { to { stroke-dashoffset: 0; } }</style>
+            </div>
+        </div>
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">At-Risk Topics</h3>
+            <p class="text-sm text-gray-600 mb-4">Topics with consistently low performance.</p>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between font-semibold">
+                        <span>Data Shift Definitions</span>
+                        <span class="text-red-600">TBD</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Flagged in Lecture 3 for rushed pacing. Monitor in A1.</p>
+                </div>
+                <div>
+                    <div class="flex justify-between font-semibold">
+                        <span>Data Preparation</span>
+                        <span class="text-yellow-600">TBD</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Topic was deferred. Monitor in A1.</p>
+                </div>
+                <button onclick="showScreen('screen-assignments-hub', document.getElementById('nav-courses'))" class="mt-4 w-full text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                    Review Assignments
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Student Sentiment Trend</h3>
+        <p class="text-sm text-gray-600 mb-4">Mock data from polls and discussion forums.</p>
+        <div class="w-full h-48">
+            <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                <line x1="0" y1="50" x2="300" y2="50" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="2 2" />
+                <text x="5" y="5" font-size="5" fill="#6B7280">Positive</text>
+                <text x="5" y="95" font-size="5" fill="#6B7280">Negative</text>
+                <path class="chart-line" stroke="#3B82F6" d="M 10 40 L 50 30 L 110 55 L 150 45 L 210 35 L 290 40" style="stroke-dasharray: 300; stroke-dashoffset: 300; animation: drawChart 1s 0s forwards;"></path>
+            </svg>
+        </div>
+    </div>
+</div>

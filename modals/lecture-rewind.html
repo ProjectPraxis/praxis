@@ -1,0 +1,152 @@
+<div id="modal-lecture-rewind" class="modal-screen hidden fixed inset-0 z-40 bg-gray-50/90 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 lg:p-8">
+    <div class="bg-white w-full max-w-4xl mx-auto rounded-xl shadow-2xl border border-gray-200 p-6 sm:p-8 rewind-print-content">
+        <div class="flex justify-between items-center mb-6 no-print">
+            <h2 class="text-3xl font-bold text-gray-900">Lecture 3 Rewind</h2>
+            <div class="flex gap-2">
+                <button onclick="printRewindReport()" class="flex items-center gap-2 text-gray-700 font-semibold py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6 18.25m0-4.421l.24.03.72.096m-1.92 0l-.24.03-.72.096m1.92 0l.24.03.72.096M6 18.25l-.24.03-.72.096m1.92 0l.24.03.72.096m-1.92 0l.24.03.72.096M6 18.25l.24.03.72.096m-1.92 0l.24.03.72.096m0 0l.24.03.72.096m0 0l.24.03.72.096M6 18.25l.24.03.72.096m-1.92 0l.24.03.72.096M12 10.5c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m11.318 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025M7.5 6a4.5 4.5 0 014.5 4.5v.25m.001-4.75a4.5 4.5 0 004.5 4.5v.25m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025M12 10.5v9.75m0 0c-.178-.01-.357-.018-.538-.025m1.076 0c-.178-.01-.357-.018-.538-.025m1.076 0c-.178-.01-.357-.018-.538-.025m1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025m-1.076 0c-.178-.01-.357-.018-.538-.025M3 10.5c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m-1.076 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025m0 0c.178.01.357.018.538.025M3 10.5v9.75m0 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c.178-.01.357-.018.538-.025m-1.076 0c-.178-.01.357-.018-.538-.025m-1.076 0c-.178-.01.357-.018-.538-.025" /></svg>
+                    Export as Report
+                </button>
+                <button onclick="hideModal('modal-lecture-rewind')" class="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+        </div>
+        
+        <h1 class="text-xl font-bold text-gray-900">The Data Dilemma: Access, Representation, and Bias in AI Systems</h1>
+        <p class="text-gray-600 mb-6">This report provides a consolidated, moment-by-moment analysis of the lecture, merging AI reflections, student interactions, and topic coverage.</p>
+        
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="rewind-summary-card bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                <h4 class="text-sm font-semibold text-gray-500">Lecture Score</h4>
+                <p class="text-3xl font-bold text-gray-900">88<span class="text-xl text-gray-400">/100</span></p>
+            </div>
+            <div class="rewind-summary-card bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                <h4 class="text-sm font-semibold text-gray-500">Key Strength</h4>
+                <p class="text-2xl font-bold text-green-600">Strong Case Studies</p>
+            </div>
+            <div class="rewind-summary-card bg-white border border-gray-200 p-4 rounded-xl shadow-sm">
+                <h4 class="text-sm font-semibold text-gray-500">Key Opportunity</h4>
+                <p class="text-2xl font-bold text-red-600">Rushed Pacing</Fp>
+            </div>
+        </section>
+        
+        <section>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Master Timeline</h2>
+            <div class="max-w-3xl">
+                <div class="relative rewind-timeline-item pb-10">
+                    <div class="flex items-start">
+                        <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
+                            <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        </div>
+                        <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                            <span class="font-semibold text-sm text-green-600">[00:02:40] - Success</span>
+                            <h4 class="text-lg font-semibold text-gray-900 mt-1">Perfect Framing</h4>
+                            <p class="text-gray-600">Excellent start. Contrasting a typical ML class ("we would give you data") with this system design class ("none of these things can be taken for granted") immediately establishes the "why" for the entire topic.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative rewind-timeline-item pb-10">
+                    <div class="flex items-start">
+                        <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
+                            <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                        </div>
+                        <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                            <span class="font-semibold text-sm text-green-600">[00:10:59] - Success</span>
+                            <h4 class="text-lg font-semibold text-gray-900 mt-1">Socratic Interaction</h4>
+                            <p class="text-gray-600">You expertly fielded LaRue's suggestion ("how long it takes [to open]?"). Instead of just accepting it, you used a Socratic follow-up ("What's the obvious problem with that?"), which models critical thinking.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative rewind-timeline-item pb-10">
+                    <div class="flex items-start">
+                        <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
+                            <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" /></svg>
+                        </div>
+                        <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                            <span class="font-semibold text-sm text-green-600">[00:33:45] - Engagement</span>
+                            <h4 class="text-lg font-semibold text-gray-900 mt-1">A+ Case Study</h4>
+                            <p class="text-gray-600">Explaining the "The Pile" -> "Books 3" -> "Bibliotic" -> "pirated content" data supply chain is a cutting-edge, powerful illustration of data provenance issues.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative rewind-timeline-item pb-10">
+                    <div class="flex items-start">
+                        <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-yellow-500">
+                            <svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" /></svg>
+                        </div>
+                        <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                            <span class="font-semibold text-sm text-yellow-600">[00:50:07] - Opportunity</span>
+                            <h4 class="text-lg font-semibold text-gray-900 mt-1">Rushed Theory</h4>
+                            <p class="text-gray-600">This is the lecture's main weak point. The transition to pure theory was jarring, and the definitions of dataset shift, covariate shift, and label shift were presented *extremely* rapidly (under 3 minutes).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative rewind-timeline-item pb-10">
+                    <div class="flex items-start">
+                        <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-green-500">
+                            <svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" /></svg>
+                        </div>
+                        <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                            <span class="font-semibold text-sm text-green-600">[00:52:40] - Success</span>
+                            <h4 class="text-lg font-semibold text-gray-900 mt-1">Excellent Example</h4>
+                            <p class="text-gray-600">The "World Cup" search query is an excellent and intuitive example of concept drift. This example *saved* the rushed theory segment by making the idea concrete.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative rewind-timeline-item pb-10">
+                    <div class="flex items-start">
+                        <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 border-red-500">
+                            <svg class="w-5 h-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </div>
+                        <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                            <span class="font-semibold text-sm text-red-600">[01:08:15] - Critical Insight</span>
+                            <h4 class="text-lg font-semibold text-gray-900 mt-1">Abrupt End / Missed Content</h4>
+                            <p class="text-gray-600">The lecture ran out of time and ended abruptly. This forced you to defer three critical, practical topics: <strong>Data Preparation, Data Understanding, and Data Documentation</strong>, which are essential for student projects.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="mt-10 pt-8 border-t border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="rewind-report-section">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Key Strengths (Sustains)</h2>
+                    <ul class="space-y-4">
+                        <li class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-green-800">Case Studies as Primary Tool</h4>
+                            <p class="text-gray-700">Your core strength is your "case study" teaching (e.g., C4/Bibliotic, "soap and spices", "Robo-grader"). They are modern, concrete, and perfectly illustrate abstract concepts.</p>
+                        </li>
+                        <li class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-green-800">Masterful Socratic Interaction</h4>
+                            <p class="text-gray-700">Your handling of student questions (like LaRue's) was a model of Socratic teaching. You used the suggestion as a *starting point* for a deeper critique, which models critical thinking.</p>
+                        </li>
+                        <li class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-green-800">Humor as an Engagement Anchor</h4>
+                            <p class="text-gray-700">Your moments of humor (asking about TikTok, Boston geography) build strong rapport and create a "stickiness" for the surrounding technical content.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="rewind-report-section">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Actionable Opportunities (Improves)</h2>
+                    <ul class="space-y-4">
+                        <li class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-red-800">Deferring "Now What?" Content</h4>
+                            <p class="text-gray-700"><b>Must Do:</b> Deferring the final three topics (Preparation, Understanding, Documentation) is a critical gap. These practical skills *must* be covered at the start of the next lecture.</p>
+                        </li>
+                        <li class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-yellow-800">Theory vs. Example Pacing</h4>
+                            <p class="text-gray-700"><b>Should Do:</b> A critical mismatch occurred where you rushed dense, statistical definitions ("data shift") but excelled at examples ("World Cup"). Create a 5-min recap to visually define these terms and tie them to your examples.</p>
+                        </li>
+                        <li class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-yellow-800">Restructure for Next Year</h4>
+                            <p class="text-gray-700">This topic is too large. Consider splitting it into two lectures: (1) Data Ethics & Representation and (2) Data Curation & Practice.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+    </div>
+</div>

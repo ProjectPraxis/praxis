@@ -1,0 +1,106 @@
+<div id="screen-assignments-hub" class="screen space-y-8">
+     <div class="text-sm text-gray-600">
+         <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+         <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+         <span class="font-medium text-gray-800">Assignments</span>
+     </div>
+     <h1 class="text-4xl font-bold text-gray-900">Assignments & Assessments</h1>
+     <p class="text-gray-600">Connect student performance to course topics. Data can be imported or linked from your LMS.</p>
+ 
+     <div class="space-y-6">
+         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+             <div class="flex justify-between items-start">
+                 <div>
+                     <h3 class="text-xl font-semibold text-gray-800 mb-1">Assignment 1: Project Idea</h3>
+                     <p class="text-sm text-gray-500 mb-4">Status: Graded | Overall Avg. Score: TBD</p>
+                 </div>
+                 <div class="flex gap-2 items-center">
+                     <button onclick="showPdfModal('Assignment_1_Placeholder.pdf')" class="text-sm font-semibold text-gray-600 hover:text-black">View PDF</button>
+                     <button class="text-sm font-medium text-gray-400 cursor-not-allowed" title="Feedback not available">View Feedback</button>
+                 </div>
+             </div>
+             <button onclick="toggleVisibility('a1-topic-analysis')" class="mt-4 text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90 w-full md:w-auto">Analyze Topic Performance</button>
+             <div id="a1-topic-analysis" class="hidden mt-4 space-y-3">
+                 <p class="text-sm text-gray-500 italic">Topic analysis for Assignment 1 is not yet available.</p>
+                 </div>
+         </div>
+         
+         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+             <div class="flex justify-between items-start">
+                 <div>
+                     <h3 class="text-xl font-semibold text-gray-800 mb-1">Assignment 2: Full Proposal</h3>
+                     <p class="text-sm text-gray-500 mb-4">Status: Graded | Overall Avg. Score: ~87% (131/150 + Deliverables)</p>
+                 </div>
+                 <div class="flex gap-2 items-center">
+                     <button onclick="showPdfModal('Assignment_2-_Full_Proposal (1).pdf')" class="text-sm font-semibold text-gray-600 hover:text-black">View PDF</button>
+                     <button onclick="showPdfModal('A2_Praxis.docx.pdf')" class="text-sm font-semibold text-gray-600 hover:text-black">View Example Feedback</button>
+                 </div>
+             </div>
+             <button onclick="toggleVisibility('a2-topic-analysis')" class="mt-4 text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90 w-full md:w-auto">Analyze Topic Performance</button>
+             <div id="a2-topic-analysis" class="hidden mt-4 space-y-4">
+                 <h4 class="font-semibold text-gray-700">Performance by Topic (Based on Proposal Sections):</h4>
+                 <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Introduction (Problem/Need)</span>
+                         <span class="font-semibold text-green-600">Avg: 9.5/10</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: Problem Definition & Need Finding</p>
+                 </div>
+                 <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Justification for AI</span>
+                         <span class="font-semibold text-red-600">Avg: 2.5/5</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: Justifying AI Necessity</p>
+                     <p class="text-xs text-red-700 mt-1"><strong>Insight:</strong> Many struggled to articulate why ML was essential over simpler methods.</p>
+                 </div>
+                 <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Design Section</span>
+                         <span class="font-semibold text-yellow-600">Avg: 18/20</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: HCD Principles, Design Thinking Process</p>
+                     <p class="text-xs text-yellow-700 mt-1"><strong>Insight:</strong> Generally good, but some empathy phases lacked diverse perspectives.</p>
+                 </div>
+                 <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">ML Backend Section</span>
+                         <span class="font-semibold text-red-600">Avg: 14/20</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: AI Task Formalization, Defining Subjective ML Outputs, Appropriate ML Model Selection</p>
+                     <p class="text-xs text-red-700 mt-1"><strong>Insight:</strong> Significant issues defining subjective outputs ('clarity') and choosing suitable models/data sizes (DistilBERT critique).</p>
+                 </div>
+                 <div class="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Data Section</span>
+                         <span class="font-semibold text-yellow-600">Avg: 12/20</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: Appropriate Data Source Selection, Data Bias</p>
+                     <p class="text-xs text-yellow-700 mt-1"><strong>Insight:</strong> Data source mismatch was common. Discussion on potential bias/misuse needs more depth.</p>
+                 </div>
+                 <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Evaluation Section</span>
+                         <span class="font-semibold text-green-600">Avg: 20/20</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: ML Algorithm Evaluation, System Evaluation Methods</p>
+                 </div>
+                 <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Implications Section</span>
+                         <span class="font-semibold text-green-600">Avg: 10/10</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: Defining Implications</p>
+                 </div>
+                 <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div class="flex items-center justify-between">
+                         <span class="font-medium text-gray-700">Milestones & Timelines</span>
+                         <span class="font-semibold text-green-600">Avg: 5/5</span>
+                     </div>
+                     <p class="text-xs text-gray-500 mt-1">Linked Topics: Project Planning</p>
+                 </div>
+             </div>
+         </div>
+         
+     </div>
+ </div>

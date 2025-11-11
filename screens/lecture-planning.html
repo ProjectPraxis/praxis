@@ -1,0 +1,51 @@
+<div id="screen-lecture-planning" class="screen space-y-8">
+    <div class="text-sm text-gray-600">
+        <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+        <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+        <span class="font-medium text-gray-800">Plan: Project Proposals</span>
+    </div>
+    <h1 class="text-4xl font-bold text-gray-900">Plan Lecture 4: Project Proposals</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <section>
+                <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 bg-white/50 backdrop-blur-sm">
+                    <div class="text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+                        <div class="mt-4 flex text-sm leading-6 text-gray-600"><label for="file-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500"><span>Upload your slides</span><input id="file-upload" name="file-upload" type="file" class="sr-only"></label><p class="pl-1">or drag and drop</p></div>
+                        <p class="text-xs leading-5 text-gray-600">Praxis will analyze them to create a desired coverage graph.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Desired Coverage</h2>
+                <div id="manual-topic-list" class="flex flex-wrap gap-4 items-center">
+                    <div class="py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Proposal Structure</div>
+                    <div class="py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Plan</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <label for="manual-topic" class="text-sm font-medium text-gray-700">Add a topic manually</label>
+                    <div class="flex gap-2 mt-1">
+                        <input type="text" id="manual-topic-input" class="flex-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="e.g., Defining Scope">
+                        <button onclick="addManualTopic()" class="text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90">Add</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <aside>
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Course Delta: Priority Topics</h3>
+                <p class="text-sm text-gray-600 mb-4">Based on past lectures, consider including these missing topics.</p>
+                <div class="mb-4">
+                    <div class="w-full h-3 rounded-full priority-delta-gradient"></div>
+                    <div class="flex justify-between text-xs text-gray-600 mt-1 px-1"><span>Low Priority</span><span>High Priority</span></div>
+                </div>
+                <div class="space-y-3">
+                    <div class="py-2 px-4 rounded-lg text-white font-medium shadow-sm bg-purple-600">1. Data Preparation</div>
+                    <div class="py-2 px-4 rounded-lg text-white font-medium shadow-sm bg-orange-500">2. Data Documentation</div>
+                    <div class="py-2 px-4 rounded-lg text-white font-medium shadow-sm bg-yellow-500">3. Data Shift Definitions</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

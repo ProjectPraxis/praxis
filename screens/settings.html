@@ -1,0 +1,37 @@
+<div id="screen-settings" class="screen space-y-8">
+    <h1 class="text-4xl font-bold text-gray-900">Settings</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md space-y-4">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Appearance</h3>
+            <p class="text-sm text-gray-600">Choose your app theme.</p>
+            <div class="flex gap-4">
+                <button onclick="setTheme('theme-spring')" class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-amber-500 text-white shadow-md">Spring</button>
+                <button onclick="setTheme('theme-ocean')" class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md">Ocean</button>
+                <button onclick="setTheme('theme-twilight')" class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">Twilight</button>
+            </div>
+        </div>
+        
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md space-y-4">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">API Integrations</h3>
+            <div class="flex items-center justify-between">
+                <span class="font-medium text-gray-700">Canvas LMS</span>
+                <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="font-medium text-gray-700">Zoom Cloud Recordings</span>
+                <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="font-medium text-gray-700">Google Calendar</span>
+                <div class="w-10 h-6 bg-gray-200 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md"></div></div>
+            </div>
+        </div>
+        
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Privacy & Data</h3>
+            <p class="text-gray-600 mb-4">Your data is private and is never used for performance reviews. You are in full control.</p>
+            <button class="font-medium primary-gradient-text">Manage My Data</button>
+        </div>
+    </div>
+</div>
