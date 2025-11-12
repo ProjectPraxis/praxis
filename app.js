@@ -108,10 +108,16 @@ async function showScreen(screenId, navElement, courseData = null) {
         </div>`;
                 }
                 
-                // Remove the hardcoded "Past Lectures" section
-                const pastLectures = tempDiv.querySelector('.bg-white\\/80[data-original-content="true"]');
-                if (pastLectures) {
-                    pastLectures.remove();
+                // Don't remove the "Past Lectures" section - we need it for dynamic content
+                // Just remove the hardcoded items inside it, but keep the section structure
+                const pastLecturesSection = tempDiv.querySelector('#past-lectures-list')?.parentElement;
+                if (pastLecturesSection) {
+                    const pastLecturesList = pastLecturesSection.querySelector('ul');
+                    if (pastLecturesList) {
+                        // Remove only the hardcoded list items, but keep the empty list
+                        const hardcodedItems = pastLecturesList.querySelectorAll('li[data-original-content="true"]');
+                        hardcodedItems.forEach(item => item.remove());
+                    }
                 }
                 
                 // Remove the hardcoded "Project Proposals" from upcoming lectures
@@ -152,6 +158,7 @@ async function showScreen(screenId, navElement, courseData = null) {
                     showTab('tab-overview', overviewTab);
                 }
                 // Refresh lectures list when course hub loads to show updated status
+                // This ensures lectures with completed analysis appear in Past Lectures
                 refreshLecturesList();
             }, 100);
         }
@@ -1101,25 +1108,43 @@ async function editLecture(lectureId) {
 async function refreshLecturesList() {
     // Find the "Lectures" tab
     const tabLectures = document.getElementById('tab-lectures');
-    if (!tabLectures) return;
+    if (!tabLectures) {
+        return;
+    }
     
     // Find Past Lectures and Upcoming Lectures sections
-    const sections = tabLectures.querySelectorAll('.bg-white\\/80');
-    let pastLecturesUl = null;
+    // Use getElementById for more reliable element finding
+    let pastLecturesUl = document.getElementById('past-lectures-list');
     let upcomingUl = document.getElementById('upcoming-lectures-list');
     
-    // Find Past Lectures list (first section with ul)
-    if (sections.length > 0) {
-        const pastSection = sections[0];
-        pastLecturesUl = pastSection.querySelector('ul');
+    // Fallback: if IDs don't exist, try finding by sections and headings
+    if (!pastLecturesUl || !upcomingUl) {
+        const sections = tabLectures.querySelectorAll('.bg-white\\/80');
+        for (const section of sections) {
+            const heading = section.querySelector('h3');
+            if (heading) {
+                const headingText = heading.textContent.trim();
+                const ul = section.querySelector('ul');
+                if (headingText.includes('Past Lectures') && !pastLecturesUl && ul) {
+                    pastLecturesUl = ul;
+                } else if (headingText.includes('Upcoming Lectures') && !upcomingUl && ul) {
+                    upcomingUl = ul;
+                }
+            }
+        }
     }
     
-    // Fallback to finding upcoming lectures the old way
-    if (!upcomingUl && sections.length >= 2) {
-        upcomingUl = sections[1].querySelector('ul');
+    // If still not found, try finding by ID attribute directly in the tab
+    if (!pastLecturesUl) {
+        pastLecturesUl = tabLectures.querySelector('#past-lectures-list');
+    }
+    if (!upcomingUl) {
+        upcomingUl = tabLectures.querySelector('#upcoming-lectures-list');
     }
     
-    if (!pastLecturesUl || !upcomingUl) return;
+    if (!pastLecturesUl || !upcomingUl) {
+        return;
+    }
     
     try {
         const API_BASE_URL = 'http://localhost:8001/api';
@@ -1137,22 +1162,25 @@ async function refreshLecturesList() {
         const lectures = await response.json();
         
         // Separate analyzed (past) and non-analyzed (upcoming) lectures
-        const pastLectures = lectures.filter(l => l.hasAnalysis === true);
-        const upcomingLectures = lectures.filter(l => !l.hasAnalysis);
+        // A lecture is considered "past" if it has analysis completed
+        const pastLectures = lectures.filter(l => {
+            const hasAnalysis = l.hasAnalysis === true || l.hasAnalysis === "true" || l.hasAnalysis === 1;
+            const hasAnalysisPath = l.analysisPath && l.analysisPath.length > 0;
+            return hasAnalysis || hasAnalysisPath;
+        });
+        const upcomingLectures = lectures.filter(l => {
+            const hasAnalysis = l.hasAnalysis === true || l.hasAnalysis === "true" || l.hasAnalysis === 1;
+            const hasAnalysisPath = l.analysisPath && l.analysisPath.length > 0;
+            return !hasAnalysis && !hasAnalysisPath;
+        });
         
         // Clear existing dynamic lectures from both lists
         // Keep only items with data-original-content="true"
-        Array.from(pastLecturesUl.children).forEach(item => {
-            if (!item.hasAttribute('data-original-content')) {
-                item.remove();
-            }
-        });
+        const pastToRemove = Array.from(pastLecturesUl.children).filter(item => !item.hasAttribute('data-original-content'));
+        pastToRemove.forEach(item => item.remove());
         
-        Array.from(upcomingUl.children).forEach(item => {
-            if (!item.hasAttribute('data-original-content')) {
-                item.remove();
-            }
-        });
+        const upcomingToRemove = Array.from(upcomingUl.children).filter(item => !item.hasAttribute('data-original-content'));
+        upcomingToRemove.forEach(item => item.remove());
         
         // Add past lectures (analyzed)
         pastLectures.forEach(lecture => {
@@ -1506,20 +1534,52 @@ async function submitForAnalysis() {
         // Show success message
         alert('Analysis complete! The lecture has been analyzed with AI-powered insights.');
         
-        // Refresh the lectures list to show the lecture in Past Lectures
-        if (currentCourseId) {
-            // Refresh lectures list in the course hub
-            setTimeout(() => {
-                refreshLecturesList();
-            }, 500);
-        }
-        
-        // Navigate to analysis page with the lecture data
-        await showLectureAnalysis(currentLectureId);
-        
-        // Re-enable button
+        // Re-enable button first
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
+        
+        // Small delay to ensure backend has saved the lecture update
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Navigate back to course hub to show the lecture has moved to Past Lectures
+        if (currentCourseId) {
+            try {
+                const API_BASE_URL = 'http://localhost:8001/api';
+                const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
+                if (courseResponse.ok) {
+                    const courseData = await courseResponse.json();
+                    const navCourses = document.getElementById('nav-courses');
+                    await showScreen('screen-course-hub', navCourses, courseData);
+                    
+                    // Wait for screen to fully load, then switch to lectures tab
+                    // The showScreen function already calls refreshLecturesList when course hub loads,
+                    // but we need to make sure we're on the lectures tab to see it
+                    setTimeout(() => {
+                        const tabBtnLectures = document.getElementById('tab-btn-lectures');
+                        if (tabBtnLectures) {
+                            showTab('tab-lectures', tabBtnLectures);
+                            // Force a refresh after switching to lectures tab to ensure we have latest data
+                            // Add a small delay to ensure the tab is fully visible
+                            setTimeout(() => {
+                                refreshLecturesList();
+                            }, 200);
+                        } else {
+                            console.error('Could not find tab-btn-lectures button');
+                        }
+                    }, 400);
+                } else {
+                    // If course fetch fails, just navigate to analysis page
+                    await showLectureAnalysis(currentLectureId);
+                }
+            } catch (error) {
+                console.error('Error fetching course data:', error);
+                // If error, navigate to analysis page
+                await showLectureAnalysis(currentLectureId);
+            }
+        } else {
+            // No course ID, just navigate to analysis page
+            await showLectureAnalysis(currentLectureId);
+        }
         
     } catch (error) {
         console.error('Error submitting for analysis:', error);

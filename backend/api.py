@@ -6,7 +6,7 @@ Handles class management API endpoints
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 import json
 import uuid
@@ -64,6 +64,8 @@ class LectureCreate(BaseModel):
 
 
 class LectureResponse(BaseModel):
+    model_config = ConfigDict(extra='allow')  # Allow extra fields from JSON
+    
     id: str
     title: str
     topics: List[str]
@@ -75,6 +77,8 @@ class LectureResponse(BaseModel):
     videoPath: Optional[str] = None
     classId: Optional[str] = None
     createdAt: str
+    hasAnalysis: Optional[bool] = False
+    analysisPath: Optional[str] = None
 
 
 def load_classes() -> List[dict]:
@@ -189,7 +193,7 @@ def delete_class(class_id: str):
 
 
 # Lecture endpoints
-@app.get("/api/lectures", response_model=List[LectureResponse])
+@app.get("/api/lectures", response_model=List[LectureResponse], response_model_exclude_unset=False, response_model_exclude_none=False)
 def get_lectures(class_id: Optional[str] = None):
     """Get all lectures, optionally filtered by class_id"""
     lectures = load_lectures()
@@ -197,15 +201,26 @@ def get_lectures(class_id: Optional[str] = None):
         lectures = [l for l in lectures if l.get("classId") == class_id]
     # Sort by creation date, newest first
     lectures.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    # Ensure all lectures have hasAnalysis and analysisPath fields, even if None
+    for lecture in lectures:
+        if "hasAnalysis" not in lecture:
+            lecture["hasAnalysis"] = False
+        if "analysisPath" not in lecture:
+            lecture["analysisPath"] = None
     return lectures
 
 
-@app.get("/api/lectures/{lecture_id}", response_model=LectureResponse)
+@app.get("/api/lectures/{lecture_id}", response_model=LectureResponse, response_model_exclude_unset=False, response_model_exclude_none=False)
 def get_lecture(lecture_id: str):
     """Get a specific lecture by ID"""
     lectures = load_lectures()
     for lecture in lectures:
         if lecture["id"] == lecture_id:
+            # Ensure hasAnalysis and analysisPath fields are present
+            if "hasAnalysis" not in lecture:
+                lecture["hasAnalysis"] = False
+            if "analysisPath" not in lecture:
+                lecture["analysisPath"] = None
             return lecture
     raise HTTPException(status_code=404, detail="Lecture not found")
 
