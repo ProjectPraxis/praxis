@@ -3,7 +3,8 @@ Gemini API integration for lecture video analysis.
 Uses Google AI Studio Gemini 2.5 Pro to analyze lecture videos.
 """
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import json
 import base64
 from pathlib import Path
@@ -12,8 +13,11 @@ import os
 import time
 
 # Configure Gemini API
-GEMINI_API_KEY = "AIzaSyDHEw5W2fTsJjrp2XyICOAJURsI2m2GQP4"
-genai.configure(api_key=GEMINI_API_KEY)
+GEMINI_API_KEY = "AIzaSyCsbNr-wtbaM7HKcsY4K_ds9vE84vtmJSo"
+
+def get_client():
+    """Get the Gemini client"""
+    return genai.Client(api_key=GEMINI_API_KEY)
 
 def get_model():
     """Get the Gemini model, trying 2.5 Pro first, then falling back to 1.5 Pro"""
@@ -45,9 +49,12 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
     """
     
     try:
-        # Upload the file to Gemini
+        # Get the client
+        client = get_client()
+        
+        # Upload the file to Gemini using the new client API
         print(f"Uploading materials file: {file_path}")
-        materials_file = genai.upload_file(path=file_path)
+        materials_file = client.files.upload(file=file_path)
         
         # Wait for the file to be processed and become ACTIVE
         print(f"Uploaded file: {materials_file.name}, waiting for processing...")
@@ -55,28 +62,28 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
         wait_time = 0
         check_interval = 2  # Check every 2 seconds
         
-        while materials_file.state.name == "PROCESSING":
+        while materials_file.state == "PROCESSING":
             if wait_time >= max_wait_time:
-                raise Exception(f"File processing timeout after {max_wait_time} seconds. File state: {materials_file.state.name}")
+                raise Exception(f"File processing timeout after {max_wait_time} seconds. File state: {materials_file.state}")
             
-            print(f"File state: {materials_file.state.name}, waiting... ({wait_time}s)")
+            print(f"File state: {materials_file.state}, waiting... ({wait_time}s)")
             time.sleep(check_interval)
             wait_time += check_interval
-            materials_file = genai.get_file(materials_file.name)
+            materials_file = client.files.get(name=materials_file.name)
         
-        if materials_file.state.name != "ACTIVE":
-            raise Exception(f"File processing failed. State: {materials_file.state.name}")
+        if materials_file.state != "ACTIVE":
+            raise Exception(f"File processing failed. State: {materials_file.state}")
         
-        print(f"File is now {materials_file.state.name}, proceeding with analysis...")
+        print(f"File is now {materials_file.state}, proceeding with analysis...")
         
         # Prepare prompt for materials analysis
-        prompt = f"""Analyze these lecture materials (slides/presentation/document) and extract the key topics that are intended to be covered in this lecture.
+        prompt_text = f"""Analyze these lecture materials (slides/presentation/document) and extract the key topics that are intended to be covered in this lecture.
 
 Lecture Title: {lecture_title}
 
-Please provide a comprehensive analysis of the materials including:
+Please provide a super comprehensive analysis of the materials including:
 
-1. **Main Topics**: List all major topics/concepts that will be covered in this lecture
+1. **Main Topics**: List all major topics/concepts and subtopics that will be covered in this lecture. Be thorough here!
 2. **Subtopics**: For each main topic, identify important subtopics or specific concepts
 3. **Learning Objectives**: What should students learn from this lecture based on the materials?
 4. **Key Concepts**: Important terms, definitions, or concepts mentioned
@@ -104,12 +111,63 @@ Return the analysis in this exact JSON structure:
 Be thorough and extract all meaningful topics from the materials. Focus on educational content that would be taught in a lecture setting.
 """
 
-        # Get the model
-        model = get_model()
+        # Determine mime type from file extension
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if not mime_type:
+            # Default to common document formats if detection fails
+            extension = Path(file_path).suffix.lower()
+            mime_type_map = {
+                '.pdf': 'application/pdf',
+                '.ppt': 'application/vnd.ms-powerpoint',
+                '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                '.doc': 'application/msword',
+                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            }
+            mime_type = mime_type_map.get(extension, 'application/pdf')
+
+        # Configure generation
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
+        
+        # Create content with materials file and prompt
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_uri(file_uri=materials_file.uri, mime_type=mime_type),
+                    types.Part.from_text(text=prompt_text)
+                ]
+            )
+        ]
         
         # Generate content with the materials file
         print("Generating analysis with Gemini...")
-        response = model.generate_content([materials_file, prompt])
+        
+        # Retry logic for handling API overload (503 errors)
+        max_retries = 3
+        retry_delay = 5  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-pro",
+                    contents=contents,
+                    config=config
+                )
+                break  # Success, exit retry loop
+            except Exception as api_error:
+                error_msg = str(api_error)
+                if "503" in error_msg or "UNAVAILABLE" in error_msg or "overloaded" in error_msg.lower():
+                    if attempt < max_retries - 1:
+                        wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                        print(f"API is overloaded (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time} seconds...")
+                        time.sleep(wait_time)
+                    else:
+                        raise Exception(f"API is currently overloaded after {max_retries} attempts. Please try again in a few minutes.")
+                else:
+                    raise  # Re-raise if it's not a 503 error
         
         # Parse the response
         response_text = response.text
@@ -153,7 +211,7 @@ Be thorough and extract all meaningful topics from the materials. Focus on educa
     finally:
         # Clean up uploaded file
         try:
-            genai.delete_file(materials_file.name)
+            client.files.delete(name=materials_file.name)
             print("Cleaned up uploaded materials file")
         except:
             pass
@@ -161,7 +219,7 @@ Be thorough and extract all meaningful topics from the materials. Focus on educa
 
 def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str = "Lecture", topics: list = None, materials_analysis: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Analyze a lecture video using Gemini 2.5 Pro.
+    Analyze a lecture video using Gemini 2.5 Pro with low resolution to save tokens.
     
     Args:
         video_path: Path to the video file
@@ -174,42 +232,62 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         Dictionary containing analysis results in the format expected by lecture-analysis.html
     """
     
-    # Read video file and upload to Gemini
-    video_file = genai.upload_file(path=video_path)
-    
-    # Wait for the file to be processed and become ACTIVE
-    print(f"Uploaded file: {video_file.name}, waiting for processing...")
-    max_wait_time = 300  # Maximum 5 minutes
-    wait_time = 0
-    check_interval = 2  # Check every 2 seconds
-    
-    while video_file.state.name == "PROCESSING":
-        if wait_time >= max_wait_time:
-            raise Exception(f"File processing timeout after {max_wait_time} seconds. File state: {video_file.state.name}")
+    try:
+        # Get the client
+        client = get_client()
         
-        print(f"File state: {video_file.state.name}, waiting... ({wait_time}s)")
-        time.sleep(check_interval)
-        wait_time += check_interval
-        video_file = genai.get_file(video_file.name)
-    
-    if video_file.state.name != "ACTIVE":
-        raise Exception(f"File processing failed. State: {video_file.state.name}")
-    
-    print(f"File is now {video_file.state.name}, proceeding with analysis...")
-    
-    # Prepare prompt with materials context if available
-    topics_text = ", ".join(topics) if topics else "general lecture topics"
-    
-    materials_context = ""
-    if (materials_analysis and "topics" in materials_analysis):
-        materials_context = "\n\nThe following topics were identified from the lecture materials (slides/documents):\n"
-        for topic in materials_analysis["topics"]:
-            materials_context += f"- {topic['name']}: {topic.get('description', '')}\n"
-            if topic.get('subtopics'):
-                materials_context += f"  Subtopics: {', '.join(topic['subtopics'])}\n"
-        materials_context += "\nPlease compare the video content against these intended topics and identify which were covered and which were missed.\n"
-    
-    prompt = f"""Analyze this lecture video and provide a comprehensive analysis in JSON format.
+        # Determine mime type from file extension
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(video_path)
+        if not mime_type:
+            # Default to common video formats if detection fails
+            extension = Path(video_path).suffix.lower()
+            mime_type_map = {
+                '.mp4': 'video/mp4',
+                '.mov': 'video/quicktime',
+                '.avi': 'video/x-msvideo',
+                '.mkv': 'video/x-matroska',
+                '.webm': 'video/webm'
+            }
+            mime_type = mime_type_map.get(extension, 'video/mp4')
+        
+        # Upload video file (use 'file' parameter, not 'path')
+        print(f"Uploading video file: {video_path} (mime type: {mime_type})")
+        video_file = client.files.upload(file=video_path)
+        
+        # Wait for the file to be processed and become ACTIVE
+        print(f"Uploaded file: {video_file.name}, waiting for processing...")
+        max_wait_time = 300  # Maximum 5 minutes
+        wait_time = 0
+        check_interval = 2  # Check every 2 seconds
+        
+        while video_file.state == "PROCESSING":
+            if wait_time >= max_wait_time:
+                raise Exception(f"File processing timeout after {max_wait_time} seconds. File state: {video_file.state}")
+            
+            print(f"File state: {video_file.state}, waiting... ({wait_time}s)")
+            time.sleep(check_interval)
+            wait_time += check_interval
+            video_file = client.files.get(name=video_file.name)
+        
+        if video_file.state != "ACTIVE":
+            raise Exception(f"File processing failed. State: {video_file.state}")
+        
+        print(f"File is now {video_file.state}, proceeding with analysis using low resolution to save tokens...")
+        
+        # Prepare prompt with materials context if available
+        topics_text = ", ".join(topics) if topics else "general lecture topics"
+        
+        materials_context = ""
+        if (materials_analysis and "topics" in materials_analysis):
+            materials_context = "\n\nThe following topics were identified from the lecture materials (slides/documents):\n"
+            for topic in materials_analysis["topics"]:
+                materials_context += f"- {topic['name']}: {topic.get('description', '')}\n"
+                if topic.get('subtopics'):
+                    materials_context += f"  Subtopics: {', '.join(topic['subtopics'])}\n"
+            materials_context += "\nPlease compare the video content against these intended topics and identify which were covered and which were missed.\n"
+        
+        prompt_text = f"""Analyze this lecture video and provide a comprehensive analysis in JSON format.
 
 Lecture Title: {lecture_title}
 Expected Topics: {topics_text}
@@ -220,7 +298,12 @@ Please provide a detailed analysis including:
 1. **Transcript**: Generate a full transcript with timestamps in [MM:SS] format for key moments
 2. **Timeline Events**: Identify and categorize events:
    - Clarity issues (rushed explanations, unclear segments) - mark as yellow
-   - Student interactions (questions, answers) - mark as blue for questions, green for answers
+   - Student interactions - BE VERY CAREFUL HERE:
+     * ONLY mark as "question" if you hear a DIFFERENT VOICE asking a question (not the professor)
+     * Student questions are typically shorter, in a questioning tone, and from a different speaker
+     * If you hear "does anyone know..." or "what do you think..." from the professor, this is NOT a student question
+     * Mark as blue ONLY for actual student questions from students
+     * Mark professor responses to student questions as green "answer" type
    - Positive moments (good examples, jokes, engaging content) - mark as green or pink
 3. **Topic Coverage**: List which topics were covered and which were missed. {
     "If materials analysis was provided, compare against those topics and indicate whether each intended topic was covered in the video." if materials_context else ""
@@ -230,13 +313,20 @@ Please provide a detailed analysis including:
    - Successes to highlight
    - Action items for next lecture
 
+**CRITICAL GUIDELINES FOR INTERACTION DETECTION:**
+- Student questions: when you clearly hear a different speaker (not the professor) asking something
+- Look for voice changes, tone differences, and conversational patterns
+- When in heavy doubt, DO NOT mark it as a student question - it's better to miss a question than create false positives
+- Professor using Socratic method = NOT a student question
+- Only mark interactions when you're confident there are multiple speakers
+
 Return the analysis in this exact JSON structure:
 {{
     "transcript": [
         {{
             "timestamp": "[00:02:40]",
             "text": "transcript text here",
-            "type": "Success|Opportunity|Question|Answer",
+            "type": "Success|Opportunity|Normal",
             "speaker": "Professor|Student"
         }}
     ],
@@ -255,7 +345,8 @@ Return the analysis in this exact JSON structure:
                 "duration": 10,
                 "type": "question",
                 "title": "Student Question",
-                "description": "Question text"
+                "description": "Question text",
+                "student_name": "Student name if mentioned, or 'Student' if not"
             }},
             {{
                 "start_time": 669,
@@ -269,7 +360,7 @@ Return the analysis in this exact JSON structure:
             {{
                 "start_time": 800,
                 "duration": 25,
-                "title": "Good Joke",
+                "title": "Good Example|Engaging Story|Helpful Analogy",
                 "description": "Description"
             }}
         ]
@@ -278,22 +369,22 @@ Return the analysis in this exact JSON structure:
         {{
             "topic": "Topic Name",
             "covered": true,
-            "notes": "Brief notes"
+            "notes": "Brief notes on how well it was covered"
         }}
     ],
     "ai_reflections": {{
         "insights": [
             {{
                 "type": "opportunity|success|warning",
-                "title": "Title",
-                "description": "Description",
+                "title": "Specific, actionable title",
+                "description": "Detailed description with specific examples and timestamps when relevant",
                 "icon": "yellow|green|red"
             }}
         ],
         "action_items": [
             {{
                 "priority": "Must Do|Should Do|Continue Doing",
-                "item": "Action item text"
+                "item": "Concrete, actionable item with specific recommendations"
             }}
         ]
     }},
@@ -305,14 +396,54 @@ Important:
 - Calculate percentage positions for timeline events (left: X%, width: Y%)
 - Be specific and actionable in your analysis
 - Focus on teaching effectiveness and student engagement
+- For interaction events: Be conservative - only mark actual student questions
+- Include student names in interaction events when mentioned
+- Differentiate between different types of positive moments (examples, stories, analogies, humor)
 """
-
-    try:
-        # Get the model
-        model = get_model()
         
-        # Generate content with video
-        response = model.generate_content([video_file, prompt])
+        # Configure generation with low media resolution to save tokens
+        config = types.GenerateContentConfig(
+            media_resolution="MEDIA_RESOLUTION_LOW",
+            response_mime_type="application/json"
+        )
+        
+        # Create content with video file and prompt
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_uri(file_uri=video_file.uri, mime_type=mime_type),
+                    types.Part.from_text(text=prompt_text)
+                ]
+            )
+        ]
+        
+        # Generate content with video using low resolution
+        print("Generating analysis with Gemini using low resolution...")
+        
+        # Retry logic for handling API overload (503 errors)
+        max_retries = 3
+        retry_delay = 5  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-pro",
+                    contents=contents,
+                    config=config
+                )
+                break  # Success, exit retry loop
+            except Exception as api_error:
+                error_msg = str(api_error)
+                if "503" in error_msg or "UNAVAILABLE" in error_msg or "overloaded" in error_msg.lower():
+                    if attempt < max_retries - 1:
+                        wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                        print(f"API is overloaded (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time} seconds...")
+                        time.sleep(wait_time)
+                    else:
+                        raise Exception(f"API is currently overloaded after {max_retries} attempts. Please try again in a few minutes.")
+                else:
+                    raise  # Re-raise if it's not a 503 error
         
         # Parse the response
         response_text = response.text
@@ -360,7 +491,8 @@ Important:
     finally:
         # Clean up uploaded file
         try:
-            genai.delete_file(video_file.name)
+            client.files.delete(name=video_file.name)
+            print("Cleaned up uploaded video file")
         except:
             pass
 
@@ -405,6 +537,195 @@ def save_materials_analysis_result(analysis_data: Dict[str, Any], output_dir: Pa
     
     with open(output_file, 'w') as f:
         json.dump(analysis_data, f, indent=2)
+    
+    return str(output_file)
+
+
+def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Generate a student comprehension survey based on lecture analysis using Gemini.
+    
+    Args:
+        lecture_id: Unique identifier for the lecture
+        lecture_title: Title of the lecture
+        analysis_data: Optional lecture analysis data to provide context
+    
+    Returns:
+        Dictionary containing the generated survey with questions
+    """
+    
+    try:
+        # Get the client
+        client = get_client()
+        
+        # Prepare context from analysis data
+        topics_context = ""
+        if analysis_data:
+            # Extract covered and missed topics
+            if "topic_coverage" in analysis_data:
+                covered_topics = [t["topic"] for t in analysis_data["topic_coverage"] if t.get("covered")]
+                missed_topics = [t["topic"] for t in analysis_data["topic_coverage"] if not t.get("covered")]
+                
+                if covered_topics:
+                    topics_context += f"\n\nTopics covered in lecture: {', '.join(covered_topics)}"
+                if missed_topics:
+                    topics_context += f"\n\nTopics that were missed/rushed: {', '.join(missed_topics)}"
+            
+            # Extract insights about clarity issues
+            if "ai_reflections" in analysis_data and "insights" in analysis_data["ai_reflections"]:
+                clarity_issues = [
+                    insight["title"] for insight in analysis_data["ai_reflections"]["insights"]
+                    if insight.get("type") == "opportunity" or insight.get("icon") == "yellow"
+                ]
+                if clarity_issues:
+                    topics_context += f"\n\nAreas that may need clarification: {', '.join(clarity_issues)}"
+        
+        # Prepare prompt for Gemini
+        prompt_text = f"""Create a comprehensive student comprehension survey for the following lecture.
+
+Lecture Title: {lecture_title}
+{topics_context}
+
+The survey should help professors understand:
+1. Which concepts students understood well
+2. Which concepts need more explanation or review
+3. Whether students need additional help on specific topics
+
+Please generate a survey with the following structure:
+
+1. **Concept Understanding Questions**: For each major concept covered, create a Likert scale question (1-5) asking students to rate their understanding
+2. **Confidence Questions**: Ask students how confident they feel applying each concept
+3. **Help Needed Questions**: Ask students to identify which topics they need more help with (multiple choice)
+4. **Open-ended Feedback**: Include 1-2 open-ended questions for general feedback
+
+The survey should:
+- Be concise (8-12 questions total)
+- Focus on the most important concepts from the lecture
+- Use clear, student-friendly language
+- Help identify which concepts need reinforcement
+
+Return the survey in this exact JSON structure:
+{{
+    "survey_id": "unique_id",
+    "lecture_title": "{lecture_title}",
+    "lecture_id": "{lecture_id}",
+    "created_at": "timestamp",
+    "questions": [
+        {{
+            "id": "q1",
+            "type": "likert",
+            "question": "How well do you understand [concept]?",
+            "scale": {{"min": 1, "max": 5, "min_label": "Not at all", "max_label": "Very well"}},
+            "concept": "Concept name"
+        }},
+        {{
+            "id": "q2",
+            "type": "multiple_choice",
+            "question": "Which topics would you like more explanation on?",
+            "options": ["Option 1", "Option 2", "Option 3"],
+            "allow_multiple": true
+        }},
+        {{
+            "id": "q3",
+            "type": "open_ended",
+            "question": "What was the most confusing part of this lecture?"
+        }}
+    ],
+    "summary": "Brief summary of what this survey measures"
+}}
+
+Focus on practical, actionable questions that will help the professor improve future lectures and provide targeted support.
+"""
+
+        # Configure generation
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
+        
+        # Create content with prompt
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt_text)
+                ]
+            )
+        ]
+        
+        # Generate survey with Gemini
+        print("Generating student survey with Gemini...")
+        response = client.models.generate_content(
+            model="gemini-2.5-pro",
+            contents=contents,
+            config=config
+        )
+        
+        # Parse the response
+        response_text = response.text
+        
+        # Extract JSON from response
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        elif "```" in response_text:
+            json_start = response_text.find("```") + 3
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        
+        # Parse JSON
+        survey_data = json.loads(response_text)
+        
+        # Add metadata if not present
+        if "survey_id" not in survey_data or not survey_data["survey_id"]:
+            import uuid
+            survey_data["survey_id"] = str(uuid.uuid4())[:8]
+        
+        if "lecture_id" not in survey_data:
+            survey_data["lecture_id"] = lecture_id
+        
+        if "lecture_title" not in survey_data:
+            survey_data["lecture_title"] = lecture_title
+        
+        if "created_at" not in survey_data:
+            survey_data["created_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        
+        # Generate shareable link
+        survey_data["shareable_link"] = f"https://praxis.edu/survey/{survey_data['survey_id']}"
+        
+        print(f"Survey generated successfully with {len(survey_data.get('questions', []))} questions.")
+        
+        return survey_data
+        
+    except Exception as e:
+        print(f"Error generating survey: {str(e)}")
+        return {
+            "error": str(e),
+            "lecture_id": lecture_id,
+            "lecture_title": lecture_title
+        }
+
+
+def save_survey(survey_data: Dict[str, Any], output_dir: Path) -> str:
+    """
+    Save survey to a JSON file.
+    
+    Args:
+        survey_data: The survey data dictionary
+        output_dir: Directory to save the JSON file
+    
+    Returns:
+        Path to the saved JSON file
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    survey_id = survey_data.get("survey_id", "unknown")
+    lecture_id = survey_data.get("lecture_id", "unknown")
+    # Use consistent naming pattern: {lecture_id}_survey_{survey_id}.json
+    output_file = output_dir / f"{lecture_id}_survey_{survey_id}.json"
+    
+    with open(output_file, 'w') as f:
+        json.dump(survey_data, f, indent=2)
     
     return str(output_file)
 

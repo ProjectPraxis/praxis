@@ -24,41 +24,119 @@
   {
     "id": "95ab808d-ffb8-4a64-93a5-1d845ae5a526",
     "title": "New Lecture",
+    "topics": [
+      "Introduction to Organ Dysfunction in Critical Care",
+      "Project Methodology: Data Preparation & Feature Engineering",
+      "HTML Fundamentals",
+      "Basic CSS Styling",
+      "JavaScript Core Concepts",
+      "Model Evaluation and Interpretation",
+      "Dual-Ensemble Predictive Modeling Architecture",
+      "Introduction to Web Development",
+      "Project Assembly: The Quiz App"
+    ],
+    "hasSlides": true,
+    "fileName": "dbf1223e-6d49-4427-a62f-c8ce041175ae.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/dbf1223e-6d49-4427-a62f-c8ce041175ae.pdf",
+    "hasVideo": true,
+    "videoName": "1358f2cf-7634-4b54-b2dd-377b6a174f9a.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/1358f2cf-7634-4b54-b2dd-377b6a174f9a.MOV",
+    "classId": "0970162b-8f52-4589-a370-6cb51d2a1842",
+    "createdAt": "2025-11-11T21:14:35.467196",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/95ab808d-ffb8-4a64-93a5-1d845ae5a526_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/95ab808d-ffb8-4a64-93a5-1d845ae5a526_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "webdev_comprehension_survey_01",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/95ab808d-ffb8-4a64-93a5-1d845ae5a526_survey_webdev_comprehension_survey_01.json",
+        "created_at": "2023-10-27T10:00:00Z"
+      },
+      {
+        "survey_id": "comprehension_survey_webdev_01",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/95ab808d-ffb8-4a64-93a5-1d845ae5a526_survey_comprehension_survey_webdev_01.json",
+        "created_at": "2023-10-27T10:00:00Z"
+      }
+    ]
+  },
+  {
+    "id": "618b2709-553d-4586-9e9a-1ce12b6c5476",
+    "title": "TTTT",
     "topics": [],
     "hasSlides": false,
     "fileName": null,
     "filePath": null,
-    "hasVideo": false,
-    "videoName": null,
-    "videoPath": null,
-    "classId": "0970162b-8f52-4589-a370-6cb51d2a1842",
-    "createdAt": "2025-11-11T21:14:35.467196",
-    "hasAnalysis": false,
-    "analysisPath": null
+    "hasVideo": true,
+    "videoName": "cbb7c4cd-e546-4508-927b-f8abf5f28a00.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/cbb7c4cd-e546-4508-927b-f8abf5f28a00.MOV",
+    "classId": "e6e27c97-6e31-470e-999d-32bf79feb1a4",
+    "createdAt": "2025-11-12T04:23:35.236915",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/618b2709-553d-4586-9e9a-1ce12b6c5476_analysis.json",
+    "surveys": [
+      {
+        "survey_id": "comp_survey_8a1b4f2c",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/618b2709-553d-4586-9e9a-1ce12b6c5476_survey_comp_survey_8a1b4f2c.json",
+        "created_at": "2023-10-27T10:00:00Z"
+      }
+    ]
   },
   {
-    "id": "6cad1618-cfde-404e-aec4-3ed23363083e",
-    "title": "New Lecture",
+    "id": "c60dd3a0-fee6-46e5-9bdd-1e09e12920f6",
+    "title": "New Lecture 2",
     "topics": [
-      "Introduction and Project Motivation",
-      "Scientific Background: Retinal Biomarkers for Stroke",
-      "Methodology and Project Outline",
-      "Data and Processing Pipelines",
-      "A/V Ratio Calculation Methods",
-      "Generative AI Modeling",
-      "Preliminary Results and Next Steps"
+      "Legal and Ethical Implications of Dark Patterns",
+      "In-Class Activity: Designing and Analyzing Dark Interactions",
+      "The Psychology of Manipulation",
+      "Taxonomy of Dark Patterns",
+      "Designing Against Dark Patterns",
+      "Introduction to Dark Patterns and Deceptive Design",
+      "A Framework for Societal Implications of Design"
     ],
     "hasSlides": true,
-    "fileName": "3707819e-55d4-4ee8-89de-be83b31241c3.pdf",
-    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/3707819e-55d4-4ee8-89de-be83b31241c3.pdf",
+    "fileName": "be4d10dd-31d6-4d30-885c-260cb243aae3.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/be4d10dd-31d6-4d30-885c-260cb243aae3.pdf",
     "hasVideo": true,
-    "videoName": "4ea3a6c9-fb8a-433e-a0b2-c402f804942d.MOV",
-    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/4ea3a6c9-fb8a-433e-a0b2-c402f804942d.MOV",
-    "classId": "eff48547-8f6b-433f-bb47-693fdaf3226d",
-    "createdAt": "2025-11-11T21:15:30.708448",
+    "videoName": "6c5ac5c1-00b4-44e8-a11b-f0aee2ee6d9c.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/6c5ac5c1-00b4-44e8-a11b-f0aee2ee6d9c.MOV",
+    "classId": "e6e27c97-6e31-470e-999d-32bf79feb1a4",
+    "createdAt": "2025-11-12T05:33:16.839910",
     "hasAnalysis": true,
-    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/6cad1618-cfde-404e-aec4-3ed23363083e_analysis.json",
-    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/6cad1618-cfde-404e-aec4-3ed23363083e_materials_analysis.json",
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/c60dd3a0-fee6-46e5-9bdd-1e09e12920f6_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/c60dd3a0-fee6-46e5-9bdd-1e09e12920f6_materials_analysis.json",
     "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "c538fd4a-b645-418d-a19b-75dede8f4432",
+    "title": "Dark Patterns in HCI",
+    "topics": [
+      "Introduction to Deceptive Designs (Dark Patterns)",
+      "Class Activity: Designing and Countering Dark Interactions",
+      "Societal Implications and A Framework for Design Ethics",
+      "Legal Ramifications and Designing Against Dark Patterns",
+      "Course Administration and Housekeeping",
+      "A Taxonomy of Dark Patterns",
+      "The Psychology of Manipulation"
+    ],
+    "hasSlides": true,
+    "fileName": "24afce12-89f3-476a-9bfd-53673aef8def.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/24afce12-89f3-476a-9bfd-53673aef8def.pdf",
+    "hasVideo": true,
+    "videoName": "7fe88ad8-7112-4bbf-9134-49f2913c08b3.mp4",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/7fe88ad8-7112-4bbf-9134-49f2913c08b3.mp4",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-11-12T07:44:13.689154",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/c538fd4a-b645-418d-a19b-75dede8f4432_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/c538fd4a-b645-418d-a19b-75dede8f4432_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "dp_hci_comp_survey_v1",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/c538fd4a-b645-418d-a19b-75dede8f4432_survey_dp_hci_comp_survey_v1.json",
+        "created_at": "2023-10-27T10:00:00Z"
+      }
+    ]
   }
 ]

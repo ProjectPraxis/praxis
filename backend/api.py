@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import os
-from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result
+from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result, generate_student_survey, save_survey
 
 app = FastAPI(title="Praxis API", version="1.0.0")
 
@@ -426,25 +426,36 @@ def get_lecture_video(lecture_id: str):
     for lecture in lectures:
         if lecture["id"] == lecture_id:
             video_path = lecture.get("videoPath")
-            if video_path and Path(video_path).exists():
-                # Determine media type based on file extension
-                ext = Path(video_path).suffix.lower()
-                media_types = {
-                    '.mp4': 'video/mp4',
-                    '.mov': 'video/quicktime',
-                    '.avi': 'video/x-msvideo',
-                    '.mkv': 'video/x-matroska',
-                    '.webm': 'video/webm',
-                    '.flv': 'video/x-flv',
-                    '.wmv': 'video/x-ms-wmv'
-                }
-                media_type = media_types.get(ext, 'video/mp4')
+            if video_path:
+                # Handle both absolute and relative paths
+                video_file = Path(video_path)
                 
-                return FileResponse(
-                    video_path,
-                    filename=lecture.get("videoName", "video.mp4"),
-                    media_type=media_type
-                )
+                # If the path doesn't exist, try looking in the uploads directory
+                if not video_file.exists():
+                    # Try using just the filename in the uploads directory
+                    video_name = lecture.get("videoName")
+                    if video_name:
+                        video_file = UPLOAD_DIR / video_name
+                
+                if video_file.exists():
+                    # Determine media type based on file extension
+                    ext = video_file.suffix.lower()
+                    media_types = {
+                        '.mp4': 'video/mp4',
+                        '.mov': 'video/quicktime',
+                        '.avi': 'video/x-msvideo',
+                        '.mkv': 'video/x-matroska',
+                        '.webm': 'video/webm',
+                        '.flv': 'video/x-flv',
+                        '.wmv': 'video/x-ms-wmv'
+                    }
+                    media_type = media_types.get(ext, 'video/mp4')
+                    
+                    return FileResponse(
+                        str(video_file),
+                        filename=lecture.get("videoName", "video.mp4"),
+                        media_type=media_type
+                    )
             raise HTTPException(status_code=404, detail="Video not found")
     raise HTTPException(status_code=404, detail="Lecture not found")
 
@@ -677,6 +688,124 @@ def get_lecture_analysis(lecture_id: str):
         analysis_data = json.load(f)
     
     return analysis_data
+
+
+@app.post("/api/lectures/{lecture_id}/generate-survey/")
+async def generate_lecture_survey(lecture_id: str):
+    """
+    Generate a student comprehension survey for a lecture using Gemini AI.
+    The survey is based on the lecture analysis and helps identify concepts that need reinforcement.
+    """
+    lectures = load_lectures()
+    lecture = None
+    
+    # Find the lecture
+    for l in lectures:
+        if l["id"] == lecture_id:
+            lecture = l
+            break
+    
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    lecture_title = lecture.get("title", "Lecture")
+    
+    # Load the lecture analysis if available
+    analysis_data = None
+    analysis_path = lecture.get("analysisPath")
+    if analysis_path and Path(analysis_path).exists():
+        try:
+            with open(analysis_path, 'r') as f:
+                analysis_data = json.load(f)
+        except:
+            pass
+    
+    try:
+        # Generate survey using Gemini
+        survey_data = generate_student_survey(
+            lecture_id=lecture_id,
+            lecture_title=lecture_title,
+            analysis_data=analysis_data
+        )
+        
+        # Check for errors
+        if "error" in survey_data:
+            raise HTTPException(status_code=500, detail=f"Survey generation failed: {survey_data['error']}")
+        
+        # Save the survey to JSON file
+        survey_file_path = save_survey(survey_data, ANALYSIS_DIR)
+        
+        # Update lecture with survey file path
+        for i, l in enumerate(lectures):
+            if l["id"] == lecture_id:
+                if "surveys" not in lectures[i]:
+                    lectures[i]["surveys"] = []
+                lectures[i]["surveys"].append({
+                    "survey_id": survey_data.get("survey_id"),
+                    "path": survey_file_path,
+                    "created_at": survey_data.get("created_at")
+                })
+                save_lectures(lectures)
+                break
+        
+        return {
+            "status": "success",
+            "lecture_id": lecture_id,
+            "survey": survey_data,
+            "survey_file": survey_file_path
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating survey: {str(e)}")
+
+
+@app.get("/api/lectures/{lecture_id}/surveys")
+def get_lecture_surveys(lecture_id: str):
+    """Get all surveys for a lecture by scanning the analysis directory."""
+    
+    # We don't need to load the main lectures file, just scan the directory
+    # for survey files matching the lecture_id. This is more robust.
+    
+    survey_list = []
+    
+    if not ANALYSIS_DIR.exists():
+        # If the directory doesn't exist, no surveys can be found.
+        return []
+        
+    for survey_file in ANALYSIS_DIR.glob(f"{lecture_id}_survey_*.json"):
+        if survey_file.is_file():
+            try:
+                with open(survey_file, 'r') as f:
+                    survey_data = json.load(f)
+                    survey_list.append(survey_data)
+            except (json.JSONDecodeError, IOError):
+                # Ignore corrupted or unreadable files
+                pass
+    
+    # If no surveys are found, return an empty list.
+    # The frontend will correctly interpret this as "no surveys exist".
+    if not survey_list:
+        return []
+        
+    return survey_list
+
+
+@app.get("/api/surveys/{survey_id}")
+def get_survey_by_id(survey_id: str):
+    """Get a specific survey by its ID (for shareable links)"""
+    # Search through all lecture surveys
+    lectures = load_lectures()
+    
+    for lecture in lectures:
+        surveys = lecture.get("surveys", [])
+        for survey_info in surveys:
+            if survey_info.get("survey_id") == survey_id:
+                survey_path = survey_info.get("path")
+                if survey_path and Path(survey_path).exists():
+                    with open(survey_path, 'r') as f:
+                        return json.load(f)
+    
+    raise HTTPException(status_code=404, detail="Survey not found")
 
 
 if __name__ == "__main__":
