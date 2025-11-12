@@ -1241,8 +1241,9 @@ async function showLectureAnalysis(lectureId) {
         
         // Wait for the screen to be fully loaded before populating
         setTimeout(() => {
+            console.log('Populating analysis page for lecture:', lecture);
             populateAnalysisPage(lecture, analysis);
-        }, 100);
+        }, 300);
         
     } catch (error) {
         console.error('Error loading lecture analysis:', error);
@@ -1251,6 +1252,9 @@ async function showLectureAnalysis(lectureId) {
 }
 
 function populateAnalysisPage(lecture, analysis) {
+    console.log('populateAnalysisPage called with lecture:', lecture);
+    console.log('Lecture hasVideo:', lecture.hasVideo);
+    
     // Update title
     const titleElement = document.querySelector('#screen-lecture-analysis h1');
     if (titleElement) {
@@ -1263,44 +1267,110 @@ function populateAnalysisPage(lecture, analysis) {
         breadcrumbElement.textContent = `${lecture.title}: Analysis`;
     }
     
-    // Update video player
+    // Update video player - render similar to upload section
     const videoContainer = document.querySelector('#screen-lecture-analysis .bg-gray-900.rounded-xl');
+    console.log('Video container found:', !!videoContainer);
+    console.log('Video container element:', videoContainer);
+    
     if (videoContainer && lecture.hasVideo) {
-        const API_BASE_URL = 'http://localhost:8001/api';
-        // Determine video type based on file extension
-        const videoExt = lecture.videoName ? lecture.videoName.split('.').pop().toLowerCase() : 'mp4';
-        const videoTypes = {
-            'mp4': 'video/mp4',
-            'mov': 'video/quicktime',
-            'avi': 'video/x-msvideo',
-            'mkv': 'video/x-matroska',
-            'webm': 'video/webm',
-            'flv': 'video/x-flv',
-            'wmv': 'video/x-ms-wmv'
-        };
-        const videoType = videoTypes[videoExt] || 'video/mp4';
-        
-        const videoUrl = `${API_BASE_URL}/lectures/${lecture.id}/video`;
-        videoContainer.innerHTML = `
-            <video controls class="w-full h-full rounded-xl" style="max-height: 100%;" preload="metadata">
-                <source src="${videoUrl}" type="${videoType}">
-                Your browser does not support the video tag.
-            </video>
-        `;
-        
-        // Try to load the video after a short delay to ensure the element is in the DOM
-        setTimeout(() => {
-            const videoElement = videoContainer.querySelector('video');
-            if (videoElement) {
-                videoElement.load();
-                // Add error handler for debugging
-                videoElement.addEventListener('error', (e) => {
-                    console.error('Video load error:', e);
-                    console.error('Video URL:', videoUrl);
-                    console.error('Video type:', videoType);
-                });
-            }
-        }, 200);
+        console.log('Setting up video player...');
+        try {
+            const API_BASE_URL = 'http://localhost:8001/api';
+            // Determine video type based on file extension
+            const videoExt = lecture.videoName ? lecture.videoName.split('.').pop().toLowerCase() : 'mp4';
+            console.log('Video extension:', videoExt);
+            const videoTypes = {
+                'mp4': 'video/mp4',
+                'mov': 'video/quicktime',
+                'avi': 'video/x-msvideo',
+                'mkv': 'video/x-matroska',
+                'webm': 'video/webm',
+                'flv': 'video/x-flv',
+                'wmv': 'video/x-ms-wmv'
+            };
+            const videoType = videoTypes[videoExt] || 'video/mp4';
+            console.log('Video type:', videoType);
+            
+            const videoUrl = `${API_BASE_URL}/lectures/${lecture.id}/video`;
+            console.log('Video URL:', videoUrl);
+            
+            // Clear the container and create video element similar to upload section
+            videoContainer.innerHTML = '';
+            console.log('Container cleared');
+            // Remove flex centering - just use aspect-video for proper sizing
+            videoContainer.className = 'bg-gray-900 rounded-xl shadow-md aspect-video';
+            videoContainer.style.display = 'block';
+            videoContainer.style.position = 'relative';
+            videoContainer.style.overflow = 'hidden';
+            
+            // Create video element exactly like upload section
+            const videoElement = document.createElement('video');
+            videoElement.controls = true;
+            videoElement.className = 'w-full rounded-xl';
+            videoElement.style.display = 'block';
+            videoElement.style.width = '100%';
+            videoElement.style.height = 'auto';
+            videoElement.style.maxHeight = '100%';
+            videoElement.style.objectFit = 'contain';
+            videoElement.preload = 'metadata';
+            
+            // Set src directly on video element (more reliable than source element)
+            videoElement.src = videoUrl;
+            console.log('Video element created with src:', videoElement.src);
+            
+            videoContainer.appendChild(videoElement);
+            console.log('Video element added to container. Video URL:', videoUrl);
+            console.log('Video element:', videoElement);
+            console.log('Container children count:', videoContainer.children.length);
+            
+            // Add error handler before loading
+            videoElement.addEventListener('error', (e) => {
+                console.error('Video load error:', e);
+                console.error('Video URL:', videoUrl);
+                console.error('Video type:', videoType);
+                console.error('Video element error code:', videoElement.error?.code);
+                console.error('Video element error message:', videoElement.error?.message);
+                
+                // Show user-friendly error message
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'text-red-600 text-sm mt-2 p-2 bg-red-50 rounded';
+                errorMsg.textContent = `Failed to load video. Please check if the file exists.`;
+                videoContainer.appendChild(errorMsg);
+            });
+            
+            // Add loaded event to verify it's working
+            videoElement.addEventListener('loadedmetadata', () => {
+                console.log('Video metadata loaded successfully');
+            });
+            
+            // Make sure video is visible
+            videoElement.style.visibility = 'visible';
+            videoElement.style.opacity = '1';
+            
+            // Load the video
+            videoElement.load();
+            console.log('Video load() called');
+            
+            // Check if video is actually in the DOM after a moment
+            setTimeout(() => {
+                const checkVideo = videoContainer.querySelector('video');
+                console.log('Video element check after load:', checkVideo);
+                console.log('Video readyState:', checkVideo?.readyState);
+                console.log('Video networkState:', checkVideo?.networkState);
+                console.log('Video currentSrc:', checkVideo?.currentSrc);
+                if (checkVideo) {
+                    console.log('Video computed styles:', window.getComputedStyle(checkVideo));
+                    console.log('Video offsetWidth:', checkVideo.offsetWidth);
+                    console.log('Video offsetHeight:', checkVideo.offsetHeight);
+                }
+            }, 500);
+        } catch (error) {
+            console.error('Error setting up video player:', error);
+        }
+    } else if (!videoContainer) {
+        console.error('Video container not found in analysis page');
+    } else if (!lecture.hasVideo) {
+        console.log('Lecture has no video');
     }
     
     // Populate timeline

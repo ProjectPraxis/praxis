@@ -426,26 +426,47 @@ def get_lecture_video(lecture_id: str):
     for lecture in lectures:
         if lecture["id"] == lecture_id:
             video_path = lecture.get("videoPath")
-            if video_path and Path(video_path).exists():
-                # Determine media type based on file extension
-                ext = Path(video_path).suffix.lower()
-                media_types = {
-                    '.mp4': 'video/mp4',
-                    '.mov': 'video/quicktime',
-                    '.avi': 'video/x-msvideo',
-                    '.mkv': 'video/x-matroska',
-                    '.webm': 'video/webm',
-                    '.flv': 'video/x-flv',
-                    '.wmv': 'video/x-ms-wmv'
-                }
-                media_type = media_types.get(ext, 'video/mp4')
-                
-                return FileResponse(
-                    video_path,
-                    filename=lecture.get("videoName", "video.mp4"),
-                    media_type=media_type
-                )
-            raise HTTPException(status_code=404, detail="Video not found")
+            if not video_path:
+                raise HTTPException(status_code=404, detail=f"Video path not set for lecture {lecture_id}")
+            
+            video_path_obj = Path(video_path)
+            if not video_path_obj.exists():
+                # Try to find the file in the uploads directory as a fallback
+                video_name = lecture.get("videoName")
+                if video_name:
+                    fallback_path = UPLOAD_DIR / video_name
+                    if fallback_path.exists():
+                        video_path_obj = fallback_path
+                        video_path = str(fallback_path)
+                    else:
+                        raise HTTPException(
+                            status_code=404, 
+                            detail=f"Video file not found at {video_path} or {fallback_path}"
+                        )
+                else:
+                    raise HTTPException(
+                        status_code=404, 
+                        detail=f"Video file not found at {video_path}"
+                    )
+            
+            # Determine media type based on file extension
+            ext = video_path_obj.suffix.lower()
+            media_types = {
+                '.mp4': 'video/mp4',
+                '.mov': 'video/quicktime',
+                '.avi': 'video/x-msvideo',
+                '.mkv': 'video/x-matroska',
+                '.webm': 'video/webm',
+                '.flv': 'video/x-flv',
+                '.wmv': 'video/x-ms-wmv'
+            }
+            media_type = media_types.get(ext, 'video/mp4')
+            
+            return FileResponse(
+                str(video_path_obj),
+                filename=lecture.get("videoName", "video.mp4"),
+                media_type=media_type
+            )
     raise HTTPException(status_code=404, detail="Lecture not found")
 
 

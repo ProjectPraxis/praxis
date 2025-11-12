@@ -88,5 +88,20 @@
     "createdAt": "2025-11-11T21:05:59.205029",
     "hasAnalysis": true,
     "analysisPath": "/Users/jason/praxis/backend/data/analyses/6eeac9ef-3ebc-4a62-9bed-01066e70969e_analysis.json"
+  },
+  {
+    "id": "03aebb94-7300-47b5-9f49-15a855e79c23",
+    "title": "Siam",
+    "topics": [],
+    "hasSlides": false,
+    "fileName": null,
+    "filePath": null,
+    "hasVideo": false,
+    "videoName": null,
+    "videoPath": null,
+    "classId": "0970162b-8f52-4589-a370-6cb51d2a1842",
+    "createdAt": "2025-11-11T21:16:26.958012",
+    "hasAnalysis": false,
+    "analysisPath": null
   }
 ]
