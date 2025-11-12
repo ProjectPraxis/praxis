@@ -583,59 +583,59 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         # Prepare prompt for Gemini
         prompt_text = f"""Create a comprehensive student comprehension survey for the following lecture.
 
-Lecture Title: {lecture_title}
-{topics_context}
+        Lecture Title: {lecture_title}
+        {topics_context}
 
-The survey should help professors understand:
-1. Which concepts students understood well
-2. Which concepts need more explanation or review
-3. Whether students need additional help on specific topics
+        The survey should help professors understand:
+        1. Which concepts students understood well
+        2. Which concepts need more explanation or review
+        3. Whether students need additional help on specific topics
 
-Please generate a survey with the following structure:
+        Please generate a survey with the following structure:
 
-1. **Concept Understanding Questions**: For each major concept covered, create a Likert scale question (1-5) asking students to rate their understanding
-2. **Confidence Questions**: Ask students how confident they feel applying each concept
-3. **Help Needed Questions**: Ask students to identify which topics they need more help with (multiple choice)
-4. **Open-ended Feedback**: Include 1-2 open-ended questions for general feedback
+        1. **Concept Understanding Questions**: For each major concept covered, create a Likert scale question (1-5) asking students to rate their understanding
+        2. **Confidence Questions**: Ask students how confident they feel applying each concept
+        3. **Help Needed Questions**: Ask students to identify which topics they need more help with (multiple choice)
+        4. **Open-ended Feedback**: Include 1-2 open-ended questions for general feedback
 
-The survey should:
-- Be concise (8-12 questions total)
-- Focus on the most important concepts from the lecture
-- Use clear, student-friendly language
-- Help identify which concepts need reinforcement
+        The survey should:
+        - Be concise (8-12 questions total)
+        - Focus on the most important concepts from the lecture
+        - Use clear, student-friendly language
+        - Help identify which concepts need reinforcement
 
-Return the survey in this exact JSON structure:
-{{
-    "survey_id": "unique_id",
-    "lecture_title": "{lecture_title}",
-    "lecture_id": "{lecture_id}",
-    "created_at": "timestamp",
-    "questions": [
+        Return the survey in this exact JSON structure:
         {{
-            "id": "q1",
-            "type": "likert",
-            "question": "How well do you understand [concept]?",
-            "scale": {{"min": 1, "max": 5, "min_label": "Not at all", "max_label": "Very well"}},
-            "concept": "Concept name"
-        }},
-        {{
-            "id": "q2",
-            "type": "multiple_choice",
-            "question": "Which topics would you like more explanation on?",
-            "options": ["Option 1", "Option 2", "Option 3"],
-            "allow_multiple": true
-        }},
-        {{
-            "id": "q3",
-            "type": "open_ended",
-            "question": "What was the most confusing part of this lecture?"
+            "survey_id": "unique_id",
+            "lecture_title": "{lecture_title}",
+            "lecture_id": "{lecture_id}",
+            "created_at": "timestamp",
+            "questions": [
+                {{
+                    "id": "q1",
+                    "type": "likert",
+                    "question": "How well do you understand [concept]?",
+                    "scale": {{"min": 1, "max": 5, "min_label": "Not at all", "max_label": "Very well"}},
+                    "concept": "Concept name"
+                }},
+                {{
+                    "id": "q2",
+                    "type": "multiple_choice",
+                    "question": "Which topics would you like more explanation on?",
+                    "options": ["Option 1", "Option 2", "Option 3"],
+                    "allow_multiple": true
+                }},
+                {{
+                    "id": "q3",
+                    "type": "open_ended",
+                    "question": "What was the most confusing part of this lecture?"
+                }}
+            ],
+            "summary": "Brief summary of what this survey measures"
         }}
-    ],
-    "summary": "Brief summary of what this survey measures"
-}}
 
-Focus on practical, actionable questions that will help the professor improve future lectures and provide targeted support.
-"""
+        Focus on practical, actionable questions that will help the professor improve future lectures and provide targeted support.
+        """
 
         # Configure generation
         config = types.GenerateContentConfig(
@@ -690,8 +690,11 @@ Focus on practical, actionable questions that will help the professor improve fu
         if "created_at" not in survey_data:
             survey_data["created_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
         
-        # Generate shareable link
-        survey_data["shareable_link"] = f"https://praxis.edu/survey/{survey_data['survey_id']}"
+        # Generate shareable link - use current host or localhost for development
+        # In production, this would be the actual domain
+        import os
+        base_url = os.getenv("SURVEY_BASE_URL", "http://localhost:8000")
+        survey_data["shareable_link"] = f"{base_url}/?survey_id={survey_data['survey_id']}"
         
         print(f"Survey generated successfully with {len(survey_data.get('questions', []))} questions.")
         

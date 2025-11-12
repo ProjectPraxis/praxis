@@ -1,0 +1,69 @@
+<div id="screen-survey-take" class="screen space-y-6">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-8 text-white shadow-lg mb-6">
+            <h1 class="text-4xl font-bold mb-2" id="survey-take-title">Student Comprehension Survey</h1>
+            <p class="text-purple-100 text-lg" id="survey-take-subtitle">Help us understand how well you've grasped the lecture concepts</p>
+        </div>
+
+        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-md">
+            <form id="survey-take-form" class="space-y-8">
+                <div id="survey-take-questions-container">
+                    <!-- Questions will be dynamically inserted here -->
+                    <div class="text-center py-12">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-gray-500 mt-4">Loading survey questions...</p>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-200">
+                    <div class="mb-4">
+                        <label for="student-name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Your Name (Optional)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="student-name" 
+                            name="student_name"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="Enter your name (optional)"
+                        />
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:opacity-90 transition-opacity"
+                    >
+                        Submit Survey
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="survey-submit-success" class="hidden bg-green-50 border-l-4 border-green-400 p-6 rounded-r-lg mt-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <h3 class="font-semibold text-green-900 mb-1">Thank you for your feedback!</h3>
+                    <p class="text-sm text-green-800">Your survey response has been submitted successfully.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="survey-submit-error" class="hidden bg-red-50 border-l-4 border-red-400 p-6 rounded-r-lg mt-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <h3 class="font-semibold text-red-900 mb-1">Error submitting survey</h3>
+                    <p class="text-sm text-red-800" id="survey-error-message">Please try again later.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

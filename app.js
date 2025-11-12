@@ -22,6 +22,7 @@ const screenFileMap = {
   "screen-student-trends": "student-trends.html",
   "screen-settings": "settings.html",
   "screen-student-survey": "student-survey.html",
+  "screen-survey-take": "survey-take.html",
 };
 
 const modalFileMap = {
@@ -34,6 +35,16 @@ const modalFileMap = {
 
 // --- DOMContentLoaded (Initialization) ---
 document.addEventListener("DOMContentLoaded", () => {
+  // Check for survey_id in URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const surveyId = urlParams.get("survey_id");
+  
+  if (surveyId) {
+    // Load the survey-taking page
+    loadSurveyForStudent(surveyId);
+    return;
+  }
+
   // Set the initial active link
   activeSidebarLink = document.getElementById("nav-home");
 
@@ -44,12 +55,41 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add listener for the history back button
   const historyBackButton = document.getElementById("history-back-button");
   if (historyBackButton) {
-    historyBackButton.addEventListener("click", () => {
-      // For this demo, we'll just go "home"
-      showScreen("screen-home-dashboard", document.getElementById("nav-home"));
-    });
+    historyBackButton.addEventListener("click", handleBackButton);
   }
 });
+
+// --- Back Button Handler ---
+async function handleBackButton() {
+  if (currentScreen === "screen-lecture-analysis" && currentCourseId) {
+    // If we're on lecture analysis, go back to course hub with lectures tab
+    try {
+      const API_BASE_URL = "http://localhost:8001/api";
+      const courseResponse = await fetch(
+        `${API_BASE_URL}/classes/${currentCourseId}`
+      );
+      if (courseResponse.ok) {
+        const courseData = await courseResponse.json();
+        const navCourses = document.getElementById("nav-courses");
+        await showScreen("screen-course-hub", navCourses, courseData);
+        
+        // Wait for screen to fully load, then switch to lectures tab
+        setTimeout(() => {
+          const tabBtnLectures = document.getElementById("tab-btn-lectures");
+          if (tabBtnLectures) {
+            showTab("tab-lectures", tabBtnLectures);
+          }
+        }, 100);
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching course data for back navigation:", error);
+    }
+  }
+  
+  // Default: go to home screen
+  showScreen("screen-home-dashboard", document.getElementById("nav-home"));
+}
 
 // --- Caching Function ---
 function cacheOriginalInsights() {
@@ -72,6 +112,9 @@ function cacheOriginalInsights() {
  * @param {Object} courseData - Optional course data for course-specific screens.
  */
 async function showScreen(screenId, navElement, courseData = null) {
+  // Track current screen for back button navigation
+  currentScreen = screenId;
+  
   const screenFile = screenFileMap[screenId];
   if (!screenFile) {
     console.error("Unknown screen ID:", screenId);
@@ -168,6 +211,11 @@ async function showScreen(screenId, navElement, courseData = null) {
 
     // Reset to first tab if navigating to course hub
     if (screenId === "screen-course-hub") {
+      // Store course ID if courseData is provided
+      if (courseData && courseData.id) {
+        currentCourseId = courseData.id;
+      }
+      
       setTimeout(() => {
         const overviewTab = document.getElementById("tab-btn-overview");
         if (overviewTab) {
@@ -698,6 +746,7 @@ function createClassCard(classData) {
 // Course and lecture management
 let currentCourseId = null;
 let currentLectureId = null;
+let currentScreen = null; // Track current screen for back button navigation
 let uploadedFile = null;
 let uploadedVideoFile = null;
 let uploadedMaterialsFile = null;
@@ -1624,12 +1673,13 @@ async function showLectureAnalysis(lectureId) {
 
     const API_BASE_URL = "http://localhost:8001/api";
 
-    // Fetch lecture, analysis, and survey data
-    const [lectureResponse, analysisResponse, surveysResponse] =
+    // Fetch lecture, analysis, survey data, and survey responses
+    const [lectureResponse, analysisResponse, surveysResponse, responsesResponse] =
       await Promise.all([
         fetch(`${API_BASE_URL}/lectures/${lectureId}`),
         fetch(`${API_BASE_URL}/lectures/${lectureId}/analysis`),
         fetch(`${API_BASE_URL}/lectures/${lectureId}/surveys`), // Fetch existing surveys
+        fetch(`${API_BASE_URL}/lectures/${lectureId}/survey-responses`), // Fetch survey responses
       ]);
 
     if (!lectureResponse.ok) {
@@ -1640,11 +1690,19 @@ async function showLectureAnalysis(lectureId) {
       throw new Error(`Failed to load analysis: ${analysisResponse.status}`);
     }
 
-    // Surveys can be empty, so we don't throw an error if not found, just check if ok
+    // Surveys and responses can be empty, so we don't throw an error if not found
     const surveys = surveysResponse.ok ? await surveysResponse.json() : [];
+    const responses = responsesResponse.ok ? await responsesResponse.json() : [];
 
     const lecture = await lectureResponse.json();
     const analysis = await analysisResponse.json();
+
+    // Store the course ID from the lecture for back button navigation
+    if (lecture.classId) {
+      currentCourseId = lecture.classId;
+    } else if (lecture.class_id) {
+      currentCourseId = lecture.class_id;
+    }
 
     // Navigate to analysis screen
     await showScreen(
@@ -1654,7 +1712,7 @@ async function showLectureAnalysis(lectureId) {
 
     // Wait for the screen to be fully loaded before populating
     setTimeout(() => {
-      populateAnalysisPage(lecture, analysis, surveys); // Pass surveys to populate function
+      populateAnalysisPage(lecture, analysis, surveys, responses); // Pass surveys and responses
     }, 100);
   } catch (error) {
     console.error("Error loading lecture analysis:", error);
@@ -1662,7 +1720,7 @@ async function showLectureAnalysis(lectureId) {
   }
 }
 
-function populateAnalysisPage(lecture, analysis, surveys = []) {
+function populateAnalysisPage(lecture, analysis, surveys = [], responses = []) {
   // Update title
   const titleElement = document.querySelector("#screen-lecture-analysis h1");
   if (titleElement) {
@@ -1687,12 +1745,12 @@ function populateAnalysisPage(lecture, analysis, surveys = []) {
       // Survey exists, show "View" button
       // We'll pass the latest survey to the view function
       const latestSurvey = surveys.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
       )[0];
+      // Store survey_id for the onclick handler
+      const surveyId = latestSurvey.survey_id || latestSurvey.id;
       buttonHtml = `
-                <button onclick='viewStudentSurvey(${JSON.stringify(
-                  latestSurvey
-                )})' class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:opacity-90 transition-opacity">
+                <button onclick="viewStudentSurveyById('${surveyId}')" class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:opacity-90 transition-opacity">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1784,6 +1842,9 @@ function populateAnalysisPage(lecture, analysis, surveys = []) {
 
   // Populate AI reflections
   populateAIReflections(analysis.ai_reflections || {});
+  
+  // Populate student feedback
+  populateStudentFeedback(responses, surveys);
 }
 
 function populateTimeline(timeline, videoDuration) {
@@ -1997,6 +2058,122 @@ function populateAIReflections(reflections) {
   cacheOriginalInsights();
 }
 
+function populateStudentFeedback(responses, surveys) {
+  const feedbackContainer = document.getElementById("student-feedback-content");
+  if (!feedbackContainer) return;
+  
+  if (!responses || responses.length === 0) {
+    feedbackContainer.innerHTML = `
+      <div class="text-center py-8 text-gray-500">
+        <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+        </svg>
+        <p class="text-sm">No student feedback yet. Share the survey link with your students to collect responses.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Get survey questions for reference
+  const surveyMap = {};
+  surveys.forEach(survey => {
+    surveyMap[survey.survey_id] = survey;
+  });
+  
+  let html = `<div class="space-y-3">`;
+  html += `<div class="text-sm text-gray-600 mb-4">${responses.length} response${responses.length !== 1 ? 's' : ''} received</div>`;
+  
+  responses.forEach((response, index) => {
+    const survey = surveyMap[response.survey_id];
+    const submittedDate = new Date(response.submitted_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const responseId = `response-${index}`;
+    const isOpen = index === 0; // First one open by default
+    
+    html += `<div class="border border-gray-200 rounded-lg overflow-hidden">`;
+    // Dropdown header
+    html += `<button 
+      onclick="toggleFeedbackResponse('${responseId}')" 
+      class="w-full flex justify-between items-center p-4 hover:bg-gray-50 transition-colors text-left"
+    >`;
+    html += `<div class="flex-1">`;
+    html += `<div class="font-semibold text-gray-900">${response.student_name}</div>`;
+    html += `<div class="text-xs text-gray-500 mt-1">Submitted on ${submittedDate}</div>`;
+    html += `</div>`;
+    html += `<svg id="${responseId}-icon" class="w-5 h-5 text-gray-400 transform transition-transform ${isOpen ? 'rotate-180' : ''}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">`;
+    html += `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />`;
+    html += `</svg>`;
+    html += `</button>`;
+    
+    // Dropdown content
+    html += `<div id="${responseId}-content" class="${isOpen ? '' : 'hidden'} border-t border-gray-200 p-4 bg-gray-50">`;
+    html += `<div class="space-y-3">`;
+    
+    if (survey && survey.questions) {
+      survey.questions.forEach((question) => {
+        const questionId = `q${question.id}`;
+        const answer = response.responses[questionId];
+        
+        if (answer !== undefined && answer !== null && answer !== '') {
+          html += `<div class="border-l-2 border-purple-200 pl-3 py-2 bg-white rounded">`;
+          html += `<div class="text-sm font-medium text-gray-700 mb-1">${question.question}</div>`;
+          
+          if (question.type === "likert") {
+            html += `<div class="text-lg font-semibold text-purple-600">${answer} / ${question.scale.max}</div>`;
+          } else if (question.type === "multiple_choice") {
+            const answerArray = Array.isArray(answer) ? answer : [answer];
+            const selectedOptions = answerArray.map(idx => question.options[parseInt(idx)]).filter(Boolean);
+            html += `<div class="text-sm text-gray-700">${selectedOptions.join(', ')}</div>`;
+          } else if (question.type === "open_ended") {
+            html += `<div class="text-sm text-gray-700 whitespace-pre-wrap">${answer}</div>`;
+          }
+          
+          html += `</div>`;
+        }
+      });
+    } else {
+      // Fallback: display raw responses if survey not found
+      Object.entries(response.responses).forEach(([key, value]) => {
+        html += `<div class="border-l-2 border-purple-200 pl-3 py-2 bg-white rounded">`;
+        html += `<div class="text-sm font-medium text-gray-700 mb-1">${key}</div>`;
+        html += `<div class="text-sm text-gray-700">${Array.isArray(value) ? value.join(', ') : value}</div>`;
+        html += `</div>`;
+      });
+    }
+    
+    html += `</div>`;
+    html += `</div>`;
+    html += `</div>`;
+  });
+  
+  html += `</div>`;
+  feedbackContainer.innerHTML = html;
+}
+
+function toggleFeedbackResponse(responseId) {
+  const content = document.getElementById(`${responseId}-content`);
+  const icon = document.getElementById(`${responseId}-icon`);
+  
+  if (content && icon) {
+    const isHidden = content.classList.contains('hidden');
+    if (isHidden) {
+      content.classList.remove('hidden');
+      icon.classList.add('rotate-180');
+    } else {
+      content.classList.add('hidden');
+      icon.classList.remove('rotate-180');
+    }
+  }
+}
+
+// Make function globally accessible
+window.toggleFeedbackResponse = toggleFeedbackResponse;
+
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -2202,25 +2379,60 @@ async function generateStudentSurvey() {
 // Make the function globally accessible
 window.generateStudentSurvey = generateStudentSurvey;
 
+async function viewStudentSurveyById(surveyId) {
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}`);
+    if (!response.ok) {
+      throw new Error("Failed to load survey");
+    }
+    const survey = await response.json();
+    await viewStudentSurvey(survey);
+  } catch (error) {
+    console.error("Error loading survey:", error);
+    alert(`Failed to load survey: ${error.message}`);
+  }
+}
+
+// Make function globally accessible
+window.viewStudentSurveyById = viewStudentSurveyById;
+
 async function viewStudentSurvey(survey) {
   if (!survey) {
     alert("Survey data is missing.");
     return;
   }
 
-  // Store the survey
-  currentSurvey = survey;
+  try {
+    // If survey doesn't have questions, fetch the full survey data
+    let fullSurvey = survey;
+    if (!survey.questions && survey.survey_id) {
+      const API_BASE_URL = "http://localhost:8001/api";
+      const response = await fetch(`${API_BASE_URL}/surveys/${survey.survey_id}`);
+      if (response.ok) {
+        fullSurvey = await response.json();
+      } else {
+        throw new Error("Failed to load survey data");
+      }
+    }
 
-  // Navigate to survey screen
-  await showScreen(
-    "screen-student-survey",
-    document.getElementById("nav-courses")
-  );
+    // Store the survey
+    currentSurvey = fullSurvey;
 
-  // Populate the survey
-  setTimeout(() => {
-    populateSurveyScreen(currentSurvey);
-  }, 100);
+    // Navigate to survey screen
+    await showScreen(
+      "screen-student-survey",
+      document.getElementById("nav-courses")
+    );
+
+    // Populate the survey
+    setTimeout(() => {
+      populateSurveyScreen(currentSurvey);
+    }, 100);
+  } catch (error) {
+    console.error("Error loading survey:", error);
+    alert(`Failed to load survey: ${error.message}`);
+  }
 }
 
 function populateSurveyScreen(survey) {
@@ -2240,8 +2452,10 @@ function populateSurveyScreen(survey) {
   }
 
   if (linkElement) {
-    linkElement.textContent =
-      survey.shareable_link || `https://praxis.edu/survey/${survey.survey_id}`;
+    // Generate the actual working link
+    const baseUrl = window.location.origin + window.location.pathname;
+    const surveyLink = survey.shareable_link || `${baseUrl}?survey_id=${survey.survey_id}`;
+    linkElement.textContent = surveyLink;
   }
 
   // Populate questions
@@ -2342,4 +2556,200 @@ function copySurveyLink() {
       console.error("Failed to copy:", err);
       alert("Failed to copy link. Please copy it manually: " + link);
     });
+}
+
+// --- Survey Taking Functions ---
+
+async function loadSurveyForStudent(surveyId) {
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    
+    // Fetch the survey
+    const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load survey: ${response.status}`);
+    }
+    
+    const survey = await response.json();
+    
+    // Navigate to survey-taking screen
+    await showScreen("screen-survey-take", null);
+    
+    // Wait for screen to load, then populate
+    setTimeout(() => {
+      populateSurveyTakePage(survey);
+    }, 100);
+  } catch (error) {
+    console.error("Error loading survey:", error);
+    alert(`Failed to load survey: ${error.message}`);
+  }
+}
+
+function populateSurveyTakePage(survey) {
+  // Update title and subtitle
+  const titleElement = document.getElementById("survey-take-title");
+  const subtitleElement = document.getElementById("survey-take-subtitle");
+  
+  if (titleElement) {
+    titleElement.textContent = `${survey.lecture_title} - Comprehension Survey`;
+  }
+  
+  if (subtitleElement) {
+    subtitleElement.textContent =
+      survey.summary ||
+      "Help us understand how well you've grasped the lecture concepts";
+  }
+  
+  // Populate questions
+  const questionsContainer = document.getElementById("survey-take-questions-container");
+  if (!questionsContainer) return;
+  
+  let html = "";
+  
+  survey.questions.forEach((question, index) => {
+    html += `<div class="pb-6 ${
+      index < survey.questions.length - 1 ? "border-b border-gray-200" : ""
+    }">`;
+    html += `<h3 class="text-lg font-semibold text-gray-900 mb-3">${
+      index + 1
+    }. ${question.question}</h3>`;
+    
+    if (question.type === "likert") {
+      // Likert scale question
+      html += '<div class="space-y-2">';
+      html += '<div class="flex justify-between items-center gap-2">';
+      
+      for (let i = question.scale.min; i <= question.scale.max; i++) {
+        html += `
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="q${question.id}" value="${i}" required class="peer hidden">
+            <div class="text-center p-3 border-2 border-gray-300 rounded-lg peer-checked:border-purple-500 peer-checked:bg-purple-50 hover:border-purple-300 transition-colors">
+              <div class="text-2xl font-bold text-gray-700 peer-checked:text-purple-600">${i}</div>
+            </div>
+          </label>
+        `;
+      }
+      
+      html += "</div>";
+      html += `<div class="flex justify-between text-xs text-gray-500 mt-1">`;
+      html += `<span>${question.scale.min_label}</span>`;
+      html += `<span>${question.scale.max_label}</span>`;
+      html += `</div>`;
+      html += "</div>";
+    } else if (question.type === "multiple_choice") {
+      // Multiple choice question
+      html += '<div class="space-y-2">';
+      question.options.forEach((option, optIndex) => {
+        const inputType = question.allow_multiple ? "checkbox" : "radio";
+        const requiredAttr = question.allow_multiple ? "" : "required";
+        html += `
+          <label class="flex items-center gap-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+            <input type="${inputType}" name="q${question.id}" value="${optIndex}" ${requiredAttr} class="w-4 h-4 text-purple-600">
+            <span class="text-gray-700">${option}</span>
+          </label>
+        `;
+      });
+      html += "</div>";
+    } else if (question.type === "open_ended") {
+      // Open-ended question
+      html += `
+        <textarea 
+          name="q${question.id}" 
+          rows="4" 
+          required
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+          placeholder="Type your answer here..."
+        ></textarea>
+      `;
+    }
+    
+    html += "</div>";
+  });
+  
+  questionsContainer.innerHTML = html;
+  
+  // Add form submit handler
+  const form = document.getElementById("survey-take-form");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await submitSurveyResponse(survey.survey_id, survey.lecture_id);
+    });
+  }
+}
+
+async function submitSurveyResponse(surveyId, lectureId) {
+  try {
+    const surveyForm = document.getElementById("survey-take-form");
+    if (!surveyForm) return;
+    
+    const formData = new FormData(surveyForm);
+    const responses = {};
+    const studentName = formData.get("student_name") || "Anonymous";
+    
+    // Collect all responses
+    for (const [key, value] of formData.entries()) {
+      if (key === "student_name") continue;
+      
+      if (responses[key]) {
+        // Multiple values (checkboxes)
+        if (Array.isArray(responses[key])) {
+          responses[key].push(value);
+        } else {
+          responses[key] = [responses[key], value];
+        }
+      } else {
+        responses[key] = value;
+      }
+    }
+    
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        survey_id: surveyId,
+        lecture_id: lectureId,
+        student_name: studentName,
+        responses: responses,
+        submitted_at: new Date().toISOString(),
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to submit survey");
+    }
+    
+    // Show success message
+    const successDiv = document.getElementById("survey-submit-success");
+    const errorDiv = document.getElementById("survey-submit-error");
+    
+    if (successDiv) successDiv.classList.remove("hidden");
+    if (errorDiv) errorDiv.classList.add("hidden");
+    if (surveyForm) surveyForm.style.display = "none";
+    
+    // Scroll to success message
+    if (successDiv) {
+      successDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  } catch (error) {
+    console.error("Error submitting survey:", error);
+    
+    // Show error message
+    const successDiv = document.getElementById("survey-submit-success");
+    const errorDiv = document.getElementById("survey-submit-error");
+    const errorMessage = document.getElementById("survey-error-message");
+    
+    if (errorDiv) errorDiv.classList.remove("hidden");
+    if (successDiv) successDiv.classList.add("hidden");
+    if (errorMessage) errorMessage.textContent = error.message;
+    
+    // Scroll to error message
+    if (errorDiv) {
+      errorDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
 }

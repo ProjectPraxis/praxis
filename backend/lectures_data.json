@@ -144,5 +144,43 @@
     "createdAt": "2025-11-11T21:16:26.958012",
     "hasAnalysis": false,
     "analysisPath": null
+  },
+  {
+    "id": "dfb53498-9645-43e7-8b1a-89ce186499f8",
+    "title": "Test",
+    "topics": [],
+    "hasSlides": false,
+    "fileName": null,
+    "filePath": null,
+    "hasVideo": true,
+    "videoName": "2630b38b-8a63-43b2-a450-aa3700969399.MOV",
+    "videoPath": "/Users/jason/praxis/backend/uploads/2630b38b-8a63-43b2-a450-aa3700969399.MOV",
+    "classId": "38e8971c-712e-43a7-8651-8d558f809162",
+    "createdAt": "2025-11-12T10:10:26.729464",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/jason/praxis/backend/data/analyses/dfb53498-9645-43e7-8b1a-89ce186499f8_analysis.json",
+    "surveys": []
+  },
+  {
+    "id": "43f6832b-3393-46ff-8f92-72fa3c9450de",
+    "title": "Test2",
+    "topics": [],
+    "hasSlides": false,
+    "fileName": null,
+    "filePath": null,
+    "hasVideo": true,
+    "videoName": "3b076b08-3622-4365-8478-4a79102ea653.MOV",
+    "videoPath": "/Users/jason/praxis/backend/uploads/3b076b08-3622-4365-8478-4a79102ea653.MOV",
+    "classId": "38e8971c-712e-43a7-8651-8d558f809162",
+    "createdAt": "2025-11-12T10:21:32.790439",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/jason/praxis/backend/data/analyses/43f6832b-3393-46ff-8f92-72fa3c9450de_analysis.json",
+    "surveys": [
+      {
+        "survey_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+        "path": "/Users/jason/praxis/backend/data/analyses/43f6832b-3393-46ff-8f92-72fa3c9450de_survey_a1b2c3d4-e5f6-7890-1234-567890abcdef.json",
+        "created_at": "2024-05-15T14:30:00Z"
+      }
+    ]
   }
 ]

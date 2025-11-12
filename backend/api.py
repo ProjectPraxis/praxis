@@ -815,7 +815,140 @@ def get_survey_by_id(survey_id: str):
                     with open(survey_path, 'r') as f:
                         return json.load(f)
     
+    # Also check the analysis directory directly
+    for survey_file in ANALYSIS_DIR.glob(f"*_survey_{survey_id}.json"):
+        if survey_file.is_file():
+            try:
+                with open(survey_file, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+    
     raise HTTPException(status_code=404, detail="Survey not found")
+
+
+# Directory for survey responses
+SURVEY_RESPONSES_DIR = Path(__file__).parent / "data" / "survey_responses"
+SURVEY_RESPONSES_DIR.mkdir(parents=True, exist_ok=True)
+
+
+class SurveyResponse(BaseModel):
+    survey_id: str
+    lecture_id: str
+    student_name: str
+    responses: dict
+    submitted_at: str
+
+
+@app.post("/api/surveys/{survey_id}/submit")
+async def submit_survey_response(survey_id: str, response_data: SurveyResponse):
+    """Submit a survey response from a student"""
+    try:
+        # Verify the survey exists
+        survey = None
+        lectures = load_lectures()
+        
+        for lecture in lectures:
+            surveys = lecture.get("surveys", [])
+            for survey_info in surveys:
+                if survey_info.get("survey_id") == survey_id:
+                    survey_path = survey_info.get("path")
+                    if survey_path and Path(survey_path).exists():
+                        with open(survey_path, 'r') as f:
+                            survey = json.load(f)
+                        break
+            if survey:
+                break
+        
+        # Also check the analysis directory directly
+        if not survey:
+            for survey_file in ANALYSIS_DIR.glob(f"*_survey_{survey_id}.json"):
+                if survey_file.is_file():
+                    try:
+                        with open(survey_file, 'r') as f:
+                            survey = json.load(f)
+                        break
+                    except (json.JSONDecodeError, IOError):
+                        pass
+        
+        if not survey:
+            raise HTTPException(status_code=404, detail="Survey not found")
+        
+        # Create response data
+        response_id = str(uuid.uuid4())
+        response_record = {
+            "response_id": response_id,
+            "survey_id": survey_id,
+            "lecture_id": response_data.lecture_id,
+            "lecture_title": survey.get("lecture_title", "Unknown Lecture"),
+            "student_name": response_data.student_name,
+            "responses": response_data.responses,
+            "submitted_at": response_data.submitted_at,
+        }
+        
+        # Save response to file
+        response_file = SURVEY_RESPONSES_DIR / f"{survey_id}_{response_id}.json"
+        with open(response_file, 'w') as f:
+            json.dump(response_record, f, indent=2)
+        
+        return {
+            "status": "success",
+            "response_id": response_id,
+            "message": "Survey response submitted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error submitting survey response: {str(e)}")
+
+
+@app.get("/api/lectures/{lecture_id}/survey-responses")
+def get_lecture_survey_responses(lecture_id: str):
+    """Get all survey responses for a lecture"""
+    try:
+        responses = []
+        
+        # Find all surveys for this lecture
+        lectures = load_lectures()
+        survey_ids = set()
+        
+        for lecture in lectures:
+            if lecture.get("id") == lecture_id:
+                surveys = lecture.get("surveys", [])
+                for survey_info in surveys:
+                    survey_ids.add(survey_info.get("survey_id"))
+                break
+        
+        # Also check analysis directory for surveys
+        for survey_file in ANALYSIS_DIR.glob(f"{lecture_id}_survey_*.json"):
+            if survey_file.is_file():
+                try:
+                    with open(survey_file, 'r') as f:
+                        survey_data = json.load(f)
+                        survey_ids.add(survey_data.get("survey_id"))
+                except (json.JSONDecodeError, IOError):
+                    pass
+        
+        # Load all responses for these surveys
+        for survey_id in survey_ids:
+            for response_file in SURVEY_RESPONSES_DIR.glob(f"{survey_id}_*.json"):
+                if response_file.is_file():
+                    try:
+                        with open(response_file, 'r') as f:
+                            response_data = json.load(f)
+                            if response_data.get("lecture_id") == lecture_id:
+                                responses.append(response_data)
+                    except (json.JSONDecodeError, IOError):
+                        pass
+        
+        # Sort by submission time (newest first)
+        responses.sort(key=lambda x: x.get("submitted_at", ""), reverse=True)
+        
+        return responses
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading survey responses: {str(e)}")
 
 
 if __name__ == "__main__":
