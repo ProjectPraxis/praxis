@@ -67,6 +67,9 @@ class LectureResponse(BaseModel):
     hasSlides: bool
     fileName: Optional[str] = None
     filePath: Optional[str] = None
+    hasVideo: Optional[bool] = False
+    videoName: Optional[str] = None
+    videoPath: Optional[str] = None
     classId: Optional[str] = None
     createdAt: str
 
@@ -202,7 +205,8 @@ async def create_lecture(
     title: str = Form(...),
     topics: str = Form("[]"),  # JSON string of topics array
     classId: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None)
+    file: Optional[UploadFile] = File(None),
+    video: Optional[UploadFile] = File(None)
 ):
     """Create a new lecture with optional file upload"""
     lectures = load_lectures()
@@ -213,7 +217,7 @@ async def create_lecture(
     except:
         topics_list = []
     
-    # Handle file upload
+    # Handle slides file upload
     file_path = None
     file_name = None
     if file and file.filename:
@@ -226,6 +230,19 @@ async def create_lecture(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     
+    # Handle video file upload
+    video_path = None
+    video_name = None
+    if video and video.filename:
+        # Generate unique filename
+        video_ext = Path(video.filename).suffix
+        video_name = f"{uuid.uuid4()}{video_ext}"
+        video_path = str(UPLOAD_DIR / video_name)
+        
+        # Save video file
+        with open(video_path, "wb") as buffer:
+            shutil.copyfileobj(video.file, buffer)
+    
     # Create new lecture object
     new_lecture = {
         "id": str(uuid.uuid4()),
@@ -234,6 +251,9 @@ async def create_lecture(
         "hasSlides": file is not None and file.filename is not None,
         "fileName": file_name,
         "filePath": file_path,
+        "hasVideo": video is not None and video.filename is not None,
+        "videoName": video_name,
+        "videoPath": video_path,
         "classId": classId,
         "createdAt": datetime.now().isoformat()
     }
@@ -250,7 +270,8 @@ async def update_lecture(
     title: str = Form(...),
     topics: str = Form("[]"),  # JSON string of topics array
     classId: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None)
+    file: Optional[UploadFile] = File(None),
+    video: Optional[UploadFile] = File(None)
 ):
     """Update a lecture with optional file upload"""
     lectures = load_lectures()
@@ -263,7 +284,7 @@ async def update_lecture(
             except:
                 topics_list = []
             
-            # Handle file upload (if new file provided)
+            # Handle slides file upload (if new file provided)
             file_path = lecture.get("filePath")
             file_name = lecture.get("fileName")
             if file and file.filename:
@@ -282,6 +303,25 @@ async def update_lecture(
                 with open(file_path, "wb") as buffer:
                     shutil.copyfileobj(file.file, buffer)
             
+            # Handle video file upload (if new file provided)
+            video_path = lecture.get("videoPath")
+            video_name = lecture.get("videoName")
+            if video and video.filename:
+                # Delete old video if exists
+                if video_path and Path(video_path).exists():
+                    try:
+                        os.remove(video_path)
+                    except:
+                        pass
+                
+                # Save new video
+                video_ext = Path(video.filename).suffix
+                video_name = f"{uuid.uuid4()}{video_ext}"
+                video_path = str(UPLOAD_DIR / video_name)
+                
+                with open(video_path, "wb") as buffer:
+                    shutil.copyfileobj(video.file, buffer)
+            
             # Update lecture
             lectures[i].update({
                 "title": title,
@@ -289,6 +329,9 @@ async def update_lecture(
                 "hasSlides": file_path is not None,
                 "fileName": file_name,
                 "filePath": file_path,
+                "hasVideo": video_path is not None,
+                "videoName": video_name,
+                "videoPath": video_path,
                 "classId": classId
             })
             
@@ -300,15 +343,23 @@ async def update_lecture(
 
 @app.delete("/api/lectures/{lecture_id}", status_code=204)
 def delete_lecture(lecture_id: str):
-    """Delete a lecture and its associated file"""
+    """Delete a lecture and its associated files"""
     lectures = load_lectures()
     for i, lecture in enumerate(lectures):
         if lecture["id"] == lecture_id:
-            # Delete associated file if exists
+            # Delete associated slides file if exists
             file_path = lecture.get("filePath")
             if file_path and Path(file_path).exists():
                 try:
                     os.remove(file_path)
+                except:
+                    pass
+            
+            # Delete associated video file if exists
+            video_path = lecture.get("videoPath")
+            if video_path and Path(video_path).exists():
+                try:
+                    os.remove(video_path)
                 except:
                     pass
             

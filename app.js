@@ -637,6 +637,7 @@ function createClassCard(classData) {
 let currentCourseId = null;
 let currentLectureId = null;
 let uploadedFile = null;
+let uploadedVideoFile = null;
 
 function addNewLecture() {
     if (!currentCourseId) {
@@ -647,6 +648,7 @@ function addNewLecture() {
     // Create a new blank lecture
     currentLectureId = 'lecture-' + Date.now(); // Generate a temporary ID
     uploadedFile = null;
+    uploadedVideoFile = null;
     
     // Navigate to the edit screen
     showScreen('screen-lecture-edit', document.getElementById('nav-courses'));
@@ -656,12 +658,17 @@ function addNewLecture() {
         const titleInput = document.getElementById('lecture-title-input');
         const topicList = document.getElementById('lecture-topic-list');
         const fileInfo = document.getElementById('uploaded-file-info');
+        const videoInfo = document.getElementById('uploaded-video-info');
         
         if (titleInput) titleInput.value = 'New Lecture';
         if (topicList) topicList.innerHTML = '';
         if (fileInfo) {
             fileInfo.classList.add('hidden');
             document.getElementById('uploaded-file-name').textContent = '';
+        }
+        if (videoInfo) {
+            videoInfo.classList.add('hidden');
+            document.getElementById('uploaded-video-name').textContent = '';
         }
     }, 100);
 }
@@ -720,6 +727,88 @@ function removeUploadedFile() {
     if (fileInfo) {
         fileInfo.classList.add('hidden');
         document.getElementById('uploaded-file-name').textContent = '';
+    }
+}
+
+function handleVideoUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        processUploadedVideoFile(file);
+        // Also update the planning screen if it exists
+        const planningVideoInfo = document.getElementById('uploaded-video-info-planning');
+        const planningVideoName = document.getElementById('uploaded-video-name-planning');
+        if (planningVideoInfo && planningVideoName) {
+            planningVideoName.textContent = file.name;
+            planningVideoInfo.classList.remove('hidden');
+        }
+    }
+}
+
+function handleVideoDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const uploadArea = event.currentTarget;
+    uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        // Check if it's a video file
+        if (file.type.startsWith('video/') || file.name.match(/\.(mp4|mov|avi|mkv|webm|flv|wmv)$/i)) {
+            processUploadedVideoFile(file);
+            // Update the file inputs (both edit and planning screens)
+            const fileInput = document.getElementById('lecture-video-upload');
+            const planningFileInput = document.getElementById('lecture-video-upload-planning');
+            if (fileInput) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+            }
+            if (planningFileInput) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                planningFileInput.files = dataTransfer.files;
+            }
+        } else {
+            alert('Please upload a video file (.mp4, .mov, .avi, .mkv, .webm, .flv, .wmv)');
+        }
+    }
+}
+
+function processUploadedVideoFile(file) {
+    uploadedVideoFile = file;
+    const fileInfo = document.getElementById('uploaded-video-info');
+    const fileName = document.getElementById('uploaded-video-name');
+    const planningVideoInfo = document.getElementById('uploaded-video-info-planning');
+    const planningVideoName = document.getElementById('uploaded-video-name-planning');
+    
+    if (fileInfo && fileName) {
+        fileName.textContent = file.name;
+        fileInfo.classList.remove('hidden');
+    }
+    if (planningVideoInfo && planningVideoName) {
+        planningVideoName.textContent = file.name;
+        planningVideoInfo.classList.remove('hidden');
+    }
+}
+
+function removeUploadedVideoFile() {
+    uploadedVideoFile = null;
+    const fileInput = document.getElementById('lecture-video-upload');
+    const planningFileInput = document.getElementById('lecture-video-upload-planning');
+    const fileInfo = document.getElementById('uploaded-video-info');
+    const planningVideoInfo = document.getElementById('uploaded-video-info-planning');
+    
+    if (fileInput) fileInput.value = '';
+    if (planningFileInput) planningFileInput.value = '';
+    if (fileInfo) {
+        fileInfo.classList.add('hidden');
+        document.getElementById('uploaded-video-name').textContent = '';
+    }
+    if (planningVideoInfo) {
+        planningVideoInfo.classList.add('hidden');
+        document.getElementById('uploaded-video-name-planning').textContent = '';
     }
 }
 
@@ -801,9 +890,14 @@ async function saveLecture() {
                 formData.append('classId', currentCourseId);
             }
             
-            // Add file if uploaded
+            // Add slides file if uploaded
             if (uploadedFile) {
                 formData.append('file', uploadedFile);
+            }
+            
+            // Add video file if uploaded
+            if (uploadedVideoFile) {
+                formData.append('video', uploadedVideoFile);
             }
             
             let response;
@@ -932,6 +1026,17 @@ async function editLecture(lectureId) {
                 if (fileInfo && fileName) {
                     fileName.textContent = lecture.fileName;
                     fileInfo.classList.remove('hidden');
+                }
+            }
+            
+            // Show video info if video was uploaded
+            if (lecture.hasVideo && lecture.videoName) {
+                uploadedVideoFile = null; // Reset uploaded video since we're editing
+                const videoInfo = document.getElementById('uploaded-video-info');
+                const videoName = document.getElementById('uploaded-video-name');
+                if (videoInfo && videoName) {
+                    videoName.textContent = lecture.videoName;
+                    videoInfo.classList.remove('hidden');
                 }
             }
         }, 100);
