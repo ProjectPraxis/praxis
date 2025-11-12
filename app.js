@@ -151,7 +151,9 @@ async function showScreen(screenId, navElement, courseData = null) {
                 if (overviewTab) {
                     showTab('tab-overview', overviewTab);
                 }
-            }, 50);
+                // Refresh lectures list when course hub loads to show updated status
+                refreshLecturesList();
+            }, 100);
         }
         
         // Cache insights if we just loaded the lecture analysis screen
@@ -267,9 +269,11 @@ function showTab(tabId, tabElement) {
         }
     }
     
-    // Refresh lectures list when lectures tab is shown
+    // Refresh lectures list when lectures tab is shown to ensure latest data
     if (tabId === 'tab-lectures') {
-        refreshLecturesList();
+        setTimeout(() => {
+            refreshLecturesList();
+        }, 50);
     }
 }
 
@@ -786,6 +790,21 @@ function processUploadedVideoFile(file) {
     if (fileInfo && fileName) {
         fileName.textContent = file.name;
         fileInfo.classList.remove('hidden');
+        
+        // Show video preview
+        const videoPreviewContainer = document.getElementById('video-preview-container');
+        const videoPreview = document.getElementById('video-preview');
+        const submitBtn = document.getElementById('submit-analysis-btn');
+        
+        if (videoPreviewContainer && videoPreview) {
+            const videoUrl = URL.createObjectURL(file);
+            videoPreview.src = videoUrl;
+            videoPreviewContainer.classList.remove('hidden');
+        }
+        
+        if (submitBtn) {
+            submitBtn.classList.remove('hidden');
+        }
     }
     if (planningVideoInfo && planningVideoName) {
         planningVideoName.textContent = file.name;
@@ -799,6 +818,9 @@ function removeUploadedVideoFile() {
     const planningFileInput = document.getElementById('lecture-video-upload-planning');
     const fileInfo = document.getElementById('uploaded-video-info');
     const planningVideoInfo = document.getElementById('uploaded-video-info-planning');
+    const videoPreviewContainer = document.getElementById('video-preview-container');
+    const videoPreview = document.getElementById('video-preview');
+    const submitBtn = document.getElementById('submit-analysis-btn');
     
     if (fileInput) fileInput.value = '';
     if (planningFileInput) planningFileInput.value = '';
@@ -809,6 +831,19 @@ function removeUploadedVideoFile() {
     if (planningVideoInfo) {
         planningVideoInfo.classList.add('hidden');
         document.getElementById('uploaded-video-name-planning').textContent = '';
+    }
+    if (videoPreviewContainer) {
+        videoPreviewContainer.classList.add('hidden');
+    }
+    if (videoPreview) {
+        videoPreview.src = '';
+        // Revoke object URL to free memory
+        if (videoPreview.src.startsWith('blob:')) {
+            URL.revokeObjectURL(videoPreview.src);
+        }
+    }
+    if (submitBtn) {
+        submitBtn.classList.add('hidden');
     }
 }
 
@@ -1034,9 +1069,25 @@ async function editLecture(lectureId) {
                 uploadedVideoFile = null; // Reset uploaded video since we're editing
                 const videoInfo = document.getElementById('uploaded-video-info');
                 const videoName = document.getElementById('uploaded-video-name');
+                const videoPreviewContainer = document.getElementById('video-preview-container');
+                const videoPreview = document.getElementById('video-preview');
+                const submitBtn = document.getElementById('submit-analysis-btn');
+                
                 if (videoInfo && videoName) {
                     videoName.textContent = lecture.videoName;
                     videoInfo.classList.remove('hidden');
+                }
+                
+                // Show video preview if video path exists
+                if (lecture.videoPath && videoPreviewContainer && videoPreview) {
+                    const API_BASE_URL = 'http://localhost:8001/api';
+                    // Serve video through API endpoint
+                    videoPreview.src = `${API_BASE_URL}/lectures/${lectureId}/video`;
+                    videoPreviewContainer.classList.remove('hidden');
+                }
+                
+                if (submitBtn) {
+                    submitBtn.classList.remove('hidden');
                 }
             }
         }, 100);
@@ -1048,21 +1099,27 @@ async function editLecture(lectureId) {
 }
 
 async function refreshLecturesList() {
-    // Find the "Upcoming Lectures" section
+    // Find the "Lectures" tab
     const tabLectures = document.getElementById('tab-lectures');
     if (!tabLectures) return;
     
-    // Try to find the upcoming lectures list by ID first
+    // Find Past Lectures and Upcoming Lectures sections
+    const sections = tabLectures.querySelectorAll('.bg-white\\/80');
+    let pastLecturesUl = null;
     let upcomingUl = document.getElementById('upcoming-lectures-list');
     
-    // Fallback to finding it the old way
-    if (!upcomingUl) {
-        const upcomingSection = tabLectures.querySelectorAll('.bg-white\\/80');
-        if (upcomingSection.length < 2) return;
-        upcomingUl = upcomingSection[1].querySelector('ul');
+    // Find Past Lectures list (first section with ul)
+    if (sections.length > 0) {
+        const pastSection = sections[0];
+        pastLecturesUl = pastSection.querySelector('ul');
     }
     
-    if (!upcomingUl) return;
+    // Fallback to finding upcoming lectures the old way
+    if (!upcomingUl && sections.length >= 2) {
+        upcomingUl = sections[1].querySelector('ul');
+    }
+    
+    if (!pastLecturesUl || !upcomingUl) return;
     
     try {
         const API_BASE_URL = 'http://localhost:8001/api';
@@ -1079,18 +1136,40 @@ async function refreshLecturesList() {
         
         const lectures = await response.json();
         
-        // Clear existing dynamic lectures (keep the first one which is the mock "Project Proposals")
-        const existingItems = Array.from(upcomingUl.children);
-        existingItems.forEach(item => {
-            const onclick = item.querySelector('a')?.getAttribute('onclick');
-            // Only remove items that have editLecture onclick
-            if (onclick && onclick.includes('editLecture')) {
+        // Separate analyzed (past) and non-analyzed (upcoming) lectures
+        const pastLectures = lectures.filter(l => l.hasAnalysis === true);
+        const upcomingLectures = lectures.filter(l => !l.hasAnalysis);
+        
+        // Clear existing dynamic lectures from both lists
+        // Keep only items with data-original-content="true"
+        Array.from(pastLecturesUl.children).forEach(item => {
+            if (!item.hasAttribute('data-original-content')) {
                 item.remove();
             }
         });
         
-        // Add saved lectures
-        lectures.forEach(lecture => {
+        Array.from(upcomingUl.children).forEach(item => {
+            if (!item.hasAttribute('data-original-content')) {
+                item.remove();
+            }
+        });
+        
+        // Add past lectures (analyzed)
+        pastLectures.forEach(lecture => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <a onclick="showLectureAnalysis('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                    <span class="font-medium text-gray-700">${lecture.title}</span>
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </a>
+            `;
+            pastLecturesUl.appendChild(li);
+        });
+        
+        // Add upcoming lectures (not analyzed)
+        upcomingLectures.forEach(lecture => {
             const li = document.createElement('li');
             li.innerHTML = `
                 <a onclick="editLecture('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
@@ -1105,5 +1184,349 @@ async function refreshLecturesList() {
     } catch (error) {
         console.error('Error refreshing lectures list:', error);
         // Silently fail - keep existing lectures
+    }
+}
+
+async function showLectureAnalysis(lectureId) {
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        
+        // Fetch lecture and analysis data
+        const [lectureResponse, analysisResponse] = await Promise.all([
+            fetch(`${API_BASE_URL}/lectures/${lectureId}`),
+            fetch(`${API_BASE_URL}/lectures/${lectureId}/analysis`)
+        ]);
+        
+        if (!lectureResponse.ok) {
+            throw new Error(`Failed to load lecture: ${lectureResponse.status}`);
+        }
+        
+        if (!analysisResponse.ok) {
+            throw new Error(`Failed to load analysis: ${analysisResponse.status}`);
+        }
+        
+        const lecture = await lectureResponse.json();
+        const analysis = await analysisResponse.json();
+        
+        // Navigate to analysis screen
+        await showScreen('screen-lecture-analysis', document.getElementById('nav-courses'));
+        
+        // Wait for the screen to be fully loaded before populating
+        setTimeout(() => {
+            populateAnalysisPage(lecture, analysis);
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error loading lecture analysis:', error);
+        alert(`Failed to load lecture analysis: ${error.message}`);
+    }
+}
+
+function populateAnalysisPage(lecture, analysis) {
+    // Update title
+    const titleElement = document.querySelector('#screen-lecture-analysis h1');
+    if (titleElement) {
+        titleElement.textContent = lecture.title;
+    }
+    
+    // Update breadcrumb
+    const breadcrumbElement = document.querySelector('#screen-lecture-analysis .text-sm.text-gray-600 span:last-child');
+    if (breadcrumbElement) {
+        breadcrumbElement.textContent = `${lecture.title}: Analysis`;
+    }
+    
+    // Update video player
+    const videoContainer = document.querySelector('#screen-lecture-analysis .bg-gray-900.rounded-xl');
+    if (videoContainer && lecture.hasVideo) {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        // Determine video type based on file extension
+        const videoExt = lecture.videoName ? lecture.videoName.split('.').pop().toLowerCase() : 'mp4';
+        const videoTypes = {
+            'mp4': 'video/mp4',
+            'mov': 'video/quicktime',
+            'avi': 'video/x-msvideo',
+            'mkv': 'video/x-matroska',
+            'webm': 'video/webm',
+            'flv': 'video/x-flv',
+            'wmv': 'video/x-ms-wmv'
+        };
+        const videoType = videoTypes[videoExt] || 'video/mp4';
+        
+        const videoUrl = `${API_BASE_URL}/lectures/${lecture.id}/video`;
+        videoContainer.innerHTML = `
+            <video controls class="w-full h-full rounded-xl" style="max-height: 100%;" preload="metadata">
+                <source src="${videoUrl}" type="${videoType}">
+                Your browser does not support the video tag.
+            </video>
+        `;
+        
+        // Try to load the video after a short delay to ensure the element is in the DOM
+        setTimeout(() => {
+            const videoElement = videoContainer.querySelector('video');
+            if (videoElement) {
+                videoElement.load();
+                // Add error handler for debugging
+                videoElement.addEventListener('error', (e) => {
+                    console.error('Video load error:', e);
+                    console.error('Video URL:', videoUrl);
+                    console.error('Video type:', videoType);
+                });
+            }
+        }, 200);
+    }
+    
+    // Populate timeline
+    populateTimeline(analysis.timeline || {}, analysis.video_duration || 3600);
+    
+    // Populate transcript
+    populateTranscript(analysis.transcript || []);
+    
+    // Populate topic coverage
+    populateTopicCoverage(analysis.topic_coverage || []);
+    
+    // Populate AI reflections
+    populateAIReflections(analysis.ai_reflections || {});
+}
+
+function populateTimeline(timeline, videoDuration) {
+    // Find the timeline container - it's inside the Analysis Timeline section
+    const timelineSection = document.querySelector('#screen-lecture-analysis .bg-white\\/80.backdrop-blur-sm.p-6.rounded-xl.shadow-md.overflow-x-auto');
+    if (!timelineSection) return;
+    
+    const timelineContainer = timelineSection.querySelector('.space-y-2');
+    if (!timelineContainer) return;
+    
+    let html = '';
+    
+    // Clarity events
+    if (timeline.clarity && timeline.clarity.length > 0) {
+        html += '<div class="font-medium text-sm text-gray-700">Clarity</div>';
+        html += '<div class="timeline-track">';
+        timeline.clarity.forEach(event => {
+            const left = event.left_percent || ((event.start_time / videoDuration) * 100);
+            const width = event.width_percent || ((event.duration / videoDuration) * 100);
+            const timeStr = formatTime(event.start_time);
+            html += `<div class="timeline-event bg-yellow-500" style="left: ${left}%; width: ${width}%;" title="${event.title} (${timeStr})" onclick="showTimelineInsight('clarity', ${JSON.stringify(event).replace(/"/g, '&quot;')})"></div>`;
+        });
+        html += '</div>';
+    }
+    
+    // Interaction events
+    if (timeline.interaction && timeline.interaction.length > 0) {
+        html += '<div class="font-medium text-sm text-gray-700">Interaction</div>';
+        html += '<div class="timeline-track">';
+        timeline.interaction.forEach(event => {
+            const left = event.left_percent || ((event.start_time / videoDuration) * 100);
+            const width = event.width_percent || ((event.duration / videoDuration) * 100);
+            const timeStr = formatTime(event.start_time);
+            const bgColor = event.type === 'question' ? 'bg-blue-500' : 'bg-green-500';
+            const title = event.type === 'question' ? 'Student Question' : 'Professor Answer';
+            html += `<div class="timeline-event ${bgColor}" style="left: ${left}%; width: ${width}%;" title="${title} (${timeStr})" onclick="showTimelineInsight('${event.type}', ${JSON.stringify(event).replace(/"/g, '&quot;')})"></div>`;
+        });
+        html += '</div>';
+    }
+    
+    // Positive events
+    if (timeline.positive && timeline.positive.length > 0) {
+        html += '<div class="font-medium text-sm text-gray-700">Positive</div>';
+        html += '<div class="timeline-track">';
+        timeline.positive.forEach(event => {
+            const left = event.left_percent || ((event.start_time / videoDuration) * 100);
+            const width = event.width_percent || ((event.duration / videoDuration) * 100);
+            const timeStr = formatTime(event.start_time);
+            html += `<div class="timeline-event bg-green-500" style="left: ${left}%; width: ${width}%;" title="${event.title} (${timeStr})" onclick="showTimelineInsight('positive', ${JSON.stringify(event).replace(/"/g, '&quot;')})"></div>`;
+        });
+        html += '</div>';
+    }
+    
+    timelineContainer.innerHTML = html;
+}
+
+function populateTranscript(transcript) {
+    // Find the transcript container - it's the div with h-96 class
+    const transcriptSection = document.querySelector('#screen-lecture-analysis .bg-white\\/80.backdrop-blur-sm.p-6.rounded-xl.shadow-md.h-96.overflow-y-auto');
+    if (!transcriptSection) return;
+    
+    const transcriptContainer = transcriptSection.querySelector('.space-y-3');
+    if (!transcriptContainer) return;
+    
+    let html = '';
+    transcript.forEach(item => {
+        const typeClass = item.type === 'Success' ? 'text-green-700' : 
+                         item.type === 'Opportunity' ? 'text-yellow-700' : 
+                         item.type === 'Question' ? 'text-blue-600' : 'text-gray-700';
+        const speakerLabel = item.speaker === 'Student' ? '[Student Question]' : 
+                           item.speaker === 'Professor' && item.type === 'Answer' ? '[Professor Answer]' : '';
+        html += `<p><span class="font-semibold text-black">${item.timestamp}</span> ${speakerLabel ? `<span class="font-semibold">${speakerLabel}</span> ` : ''}<span class="${typeClass}">${item.text}</span></p>`;
+    });
+    
+    transcriptContainer.innerHTML = html;
+}
+
+function populateTopicCoverage(topics) {
+    // Find the topic coverage container - it's the first aside section
+    const topicSection = document.querySelector('#screen-lecture-analysis aside .bg-white\\/80.backdrop-blur-sm.p-6.rounded-xl.shadow-md');
+    if (!topicSection) return;
+    
+    const topicContainer = topicSection.querySelector('.space-y-3');
+    if (!topicContainer) return;
+    
+    let html = '';
+    topics.forEach(topic => {
+        const iconColor = topic.covered ? 'bg-green-100' : 'bg-red-100';
+        const textColor = topic.covered ? 'text-green-600' : 'text-red-600';
+        const status = topic.covered ? 'Covered' : 'Missed';
+        const icon = topic.covered ? 
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />' :
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
+        
+        html += `
+            <div class="flex items-center gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full ${iconColor} flex items-center justify-center">
+                    <svg class="w-4 h-4 ${textColor}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        ${icon}
+                    </svg>
+                </span>
+                <span class="font-medium text-gray-700">${topic.topic} (${status})</span>
+            </div>
+        `;
+    });
+    
+    topicContainer.innerHTML = html;
+}
+
+function populateAIReflections(reflections) {
+    const insightPanel = document.getElementById('insight-content');
+    if (!insightPanel) return;
+    
+    let html = '<ul class="space-y-4">';
+    
+    // Add insights
+    if (reflections.insights && reflections.insights.length > 0) {
+        reflections.insights.forEach(insight => {
+            const iconClass = insight.icon === 'yellow' ? 'bg-yellow-100 text-yellow-600' :
+                            insight.icon === 'green' ? 'bg-green-100 text-green-600' :
+                            'bg-red-100 text-red-600';
+            
+            const iconSvg = insight.icon === 'yellow' ? 
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" />' :
+                insight.icon === 'green' ?
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" />' :
+                '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
+            
+            const typeLabel = insight.type === 'success' ? 'Success' :
+                            insight.type === 'opportunity' ? 'Opportunity' : 'Warning';
+            
+            html += `
+                <li class="flex items-start gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full ${iconClass} flex items-center justify-center mt-1">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            ${iconSvg}
+                        </svg>
+                    </span>
+                    <div>
+                        <h4 class="font-semibold text-gray-800">${typeLabel}: ${insight.title}</h4>
+                        <p class="text-gray-600">${insight.description}</p>
+                    </div>
+                </li>
+            `;
+        });
+    }
+    
+    html += '</ul>';
+    
+    // Add action items
+    if (reflections.action_items && reflections.action_items.length > 0) {
+        html += '<hr class="my-4 border-gray-200">';
+        html += '<h4 class="font-semibold text-gray-800 mb-3">Action Items for Next Lecture</h4>';
+        html += '<ul class="space-y-2 list-disc list-inside text-sm text-gray-700">';
+        reflections.action_items.forEach(item => {
+            html += `<li><b>${item.priority}:</b> ${item.item}</li>`;
+        });
+        html += '</ul>';
+    }
+    
+    insightPanel.innerHTML = html;
+    
+    // Cache the original content
+    cacheOriginalInsights();
+}
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function showTimelineInsight(type, event) {
+    // This can be enhanced to show specific insights when clicking timeline events
+    showInsight(type);
+}
+
+async function submitForAnalysis() {
+    if (!uploadedVideoFile) {
+        alert('Please upload a video file first.');
+        return;
+    }
+    
+    if (!currentLectureId) {
+        alert('Please save the lecture first before submitting for analysis.');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submit-analysis-btn');
+    if (!submitBtn) return;
+    
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing...';
+    
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const formData = new FormData();
+        
+        // Only append video if we have a new upload, otherwise backend will use saved video
+        if (uploadedVideoFile) {
+            formData.append('video', uploadedVideoFile);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/lectures/${currentLectureId}/analyze`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        const analysisResult = await response.json();
+        
+        // Show success message
+        alert('Analysis complete! The lecture has been analyzed with AI-powered insights.');
+        
+        // Refresh the lectures list to show the lecture in Past Lectures
+        if (currentCourseId) {
+            // Refresh lectures list in the course hub
+            setTimeout(() => {
+                refreshLecturesList();
+            }, 500);
+        }
+        
+        // Navigate to analysis page with the lecture data
+        await showLectureAnalysis(currentLectureId);
+        
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        
+    } catch (error) {
+        console.error('Error submitting for analysis:', error);
+        alert(`Failed to analyze lecture: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`);
+        
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     }
 }

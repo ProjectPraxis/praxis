@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import os
+from gemini_analysis import analyze_lecture_video, save_analysis_result
 
 app = FastAPI(title="Praxis API", version="1.0.0")
 
@@ -32,6 +33,8 @@ DATA_FILE = Path(__file__).parent / "classes_data.json"
 LECTURES_FILE = Path(__file__).parent / "lectures_data.json"
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)  # Create uploads directory if it doesn't exist
+ANALYSIS_DIR = Path(__file__).parent / "data" / "analyses"
+ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)  # Create analyses directory if it doesn't exist
 
 
 # Pydantic models for request/response
@@ -91,8 +94,15 @@ def save_classes(classes: List[dict]):
 def load_lectures() -> List[dict]:
     """Load lectures from JSON file"""
     if LECTURES_FILE.exists():
-        with open(LECTURES_FILE, 'r') as f:
-            return json.load(f)
+        try:
+            with open(LECTURES_FILE, 'r') as f:
+                content = f.read().strip()
+                if not content:
+                    return []
+                return json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            # If file is corrupted or empty, return empty list
+            return []
     return []
 
 
@@ -255,7 +265,9 @@ async def create_lecture(
         "videoName": video_name,
         "videoPath": video_path,
         "classId": classId,
-        "createdAt": datetime.now().isoformat()
+        "createdAt": datetime.now().isoformat(),
+        "hasAnalysis": False,
+        "analysisPath": None
     }
     
     lectures.append(new_lecture)
@@ -322,8 +334,8 @@ async def update_lecture(
                 with open(video_path, "wb") as buffer:
                     shutil.copyfileobj(video.file, buffer)
             
-            # Update lecture
-            lectures[i].update({
+            # Update lecture (preserve hasAnalysis and analysisPath if they exist)
+            update_data = {
                 "title": title,
                 "topics": topics_list,
                 "hasSlides": file_path is not None,
@@ -333,7 +345,13 @@ async def update_lecture(
                 "videoName": video_name,
                 "videoPath": video_path,
                 "classId": classId
-            })
+            }
+            # Preserve existing analysis status if not being updated
+            if "hasAnalysis" in lecture:
+                update_data["hasAnalysis"] = lecture.get("hasAnalysis", False)
+            if "analysisPath" in lecture:
+                update_data["analysisPath"] = lecture.get("analysisPath")
+            lectures[i].update(update_data)
             
             save_lectures(lectures)
             return lectures[i]
@@ -384,6 +402,141 @@ def download_lecture_file(lecture_id: str):
                 )
             raise HTTPException(status_code=404, detail="File not found")
     raise HTTPException(status_code=404, detail="Lecture not found")
+
+
+@app.get("/api/lectures/{lecture_id}/video")
+def get_lecture_video(lecture_id: str):
+    """Get the lecture video file"""
+    lectures = load_lectures()
+    for lecture in lectures:
+        if lecture["id"] == lecture_id:
+            video_path = lecture.get("videoPath")
+            if video_path and Path(video_path).exists():
+                # Determine media type based on file extension
+                ext = Path(video_path).suffix.lower()
+                media_types = {
+                    '.mp4': 'video/mp4',
+                    '.mov': 'video/quicktime',
+                    '.avi': 'video/x-msvideo',
+                    '.mkv': 'video/x-matroska',
+                    '.webm': 'video/webm',
+                    '.flv': 'video/x-flv',
+                    '.wmv': 'video/x-ms-wmv'
+                }
+                media_type = media_types.get(ext, 'video/mp4')
+                
+                return FileResponse(
+                    video_path,
+                    filename=lecture.get("videoName", "video.mp4"),
+                    media_type=media_type
+                )
+            raise HTTPException(status_code=404, detail="Video not found")
+    raise HTTPException(status_code=404, detail="Lecture not found")
+
+
+@app.post("/api/lectures/{lecture_id}/analyze")
+async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(None)):
+    """
+    Analyze a lecture video using Gemini 2.5 Pro API.
+    Saves the analysis result to a JSON file in the analyses directory.
+    If video is not provided, uses the existing video from the lecture.
+    """
+    lectures = load_lectures()
+    lecture = None
+    
+    # Find the lecture
+    for l in lectures:
+        if l["id"] == lecture_id:
+            lecture = l
+            break
+    
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    # Use existing video path if available, otherwise use uploaded video
+    video_path = lecture.get("videoPath")
+    
+    if video and video.filename:
+        # Save the new video file if provided
+        video_ext = Path(video.filename).suffix
+        video_name = f"{uuid.uuid4()}{video_ext}"
+        video_path = str(UPLOAD_DIR / video_name)
+        
+        with open(video_path, "wb") as buffer:
+            shutil.copyfileobj(video.file, buffer)
+        
+        # Update lecture with new video path
+        for i, l in enumerate(lectures):
+            if l["id"] == lecture_id:
+                lectures[i]["videoPath"] = video_path
+                lectures[i]["videoName"] = video_name
+                lectures[i]["hasVideo"] = True
+                save_lectures(lectures)
+                break
+    elif not video_path or not Path(video_path).exists():
+        raise HTTPException(status_code=400, detail="No video file available. Please upload a video first.")
+    
+    # Get lecture details
+    lecture_title = lecture.get("title", "Lecture")
+    topics = lecture.get("topics", [])
+    
+    try:
+        # Analyze the video using Gemini
+        analysis_result = analyze_lecture_video(
+            video_path=video_path,
+            lecture_id=lecture_id,
+            lecture_title=lecture_title,
+            topics=topics
+        )
+        
+        # Check for errors
+        if "error" in analysis_result:
+            raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result['error']}")
+        
+        # Save the analysis result to JSON file
+        analysis_file_path = save_analysis_result(analysis_result, ANALYSIS_DIR)
+        
+        # Update lecture with analysis file path
+        for i, l in enumerate(lectures):
+            if l["id"] == lecture_id:
+                lectures[i]["analysisPath"] = analysis_file_path
+                lectures[i]["hasAnalysis"] = True
+                save_lectures(lectures)
+                break
+        
+        return {
+            "status": "success",
+            "lecture_id": lecture_id,
+            "analysis": analysis_result,
+            "analysis_file": analysis_file_path
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing video: {str(e)}")
+
+
+@app.get("/api/lectures/{lecture_id}/analysis")
+def get_lecture_analysis(lecture_id: str):
+    """Get the analysis result for a lecture"""
+    lectures = load_lectures()
+    lecture = None
+    
+    for l in lectures:
+        if l["id"] == lecture_id:
+            lecture = l
+            break
+    
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    analysis_path = lecture.get("analysisPath")
+    if not analysis_path or not Path(analysis_path).exists():
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    
+    with open(analysis_path, 'r') as f:
+        analysis_data = json.load(f)
+    
+    return analysis_data
 
 
 if __name__ == "__main__":
