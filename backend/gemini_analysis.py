@@ -13,7 +13,7 @@ import os
 import time
 
 # Configure Gemini API
-GEMINI_API_KEY = "AIzaSyCsbNr-wtbaM7HKcsY4K_ds9vE84vtmJSo"
+GEMINI_API_KEY = "AIzaSyCuYdB7RObwDyYqV8dZa6K52_2wKg75L9g"
 
 def get_client():
     """Get the Gemini client"""
@@ -25,7 +25,7 @@ def get_model():
         return genai.GenerativeModel('gemini-2.5-pro')
     except:
         # Fallback to 1.5 Pro if 2.5 Pro is not available
-        return genai.GenerativeModel('gemini-1.5-pro')
+        return genai.GenerativeModel('gemini-1.5-flash')
 
 
 def format_time(seconds: float) -> str:
@@ -79,37 +79,37 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
         # Prepare prompt for materials analysis
         prompt_text = f"""Analyze these lecture materials (slides/presentation/document) and extract the key topics that are intended to be covered in this lecture.
 
-Lecture Title: {lecture_title}
+        Lecture Title: {lecture_title}
 
-Please provide a super comprehensive analysis of the materials including:
+        Please provide a super comprehensive analysis of the materials including:
 
-1. **Main Topics**: List all major topics/concepts and subtopics that will be covered in this lecture. Be thorough here!
-2. **Subtopics**: For each main topic, identify important subtopics or specific concepts
-3. **Learning Objectives**: What should students learn from this lecture based on the materials?
-4. **Key Concepts**: Important terms, definitions, or concepts mentioned
-5. **Estimated Coverage**: Brief notes on how much time/depth each topic might require
+        1. **Main Topics**: List all major topics/concepts and subtopics that will be covered in this lecture. Be thorough here!
+        2. **Subtopics**: For each main topic, identify important subtopics or specific concepts
+        3. **Learning Objectives**: What should students learn from this lecture based on the materials?
+        4. **Key Concepts**: Important terms, definitions, or concepts mentioned
+        5. **Estimated Coverage**: Brief notes on how much time/depth each topic might require
 
-Return the analysis in this exact JSON structure:
-{{
-    "topics": [
+        Return the analysis in this exact JSON structure:
         {{
-            "name": "Topic Name",
-            "subtopics": ["Subtopic 1", "Subtopic 2"],
-            "description": "Brief description of what this topic covers",
-            "key_concepts": ["Concept 1", "Concept 2"],
-            "estimated_time": "Brief note on coverage depth"
+            "topics": [
+                {{
+                    "name": "Topic Name",
+                    "subtopics": ["Subtopic 1", "Subtopic 2"],
+                    "description": "Brief description of what this topic covers",
+                    "key_concepts": ["Concept 1", "Concept 2"],
+                    "estimated_time": "Brief note on coverage depth"
+                }}
+            ],
+            "learning_objectives": [
+                "Objective 1",
+                "Objective 2"
+            ],
+            "summary": "Overall summary of what this lecture intends to cover",
+            "total_topics_count": 0
         }}
-    ],
-    "learning_objectives": [
-        "Objective 1",
-        "Objective 2"
-    ],
-    "summary": "Overall summary of what this lecture intends to cover",
-    "total_topics_count": 0
-}}
 
-Be thorough and extract all meaningful topics from the materials. Focus on educational content that would be taught in a lecture setting.
-"""
+        Be thorough and extract all meaningful topics from the materials. Focus on educational content that would be taught in a lecture setting.
+        """
 
         # Determine mime type from file extension
         import mimetypes
@@ -289,117 +289,117 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         
         prompt_text = f"""Analyze this lecture video and provide a comprehensive analysis in JSON format.
 
-Lecture Title: {lecture_title}
-Expected Topics: {topics_text}
-{materials_context}
+        Lecture Title: {lecture_title}
+        Expected Topics: {topics_text}
+        {materials_context}
 
-Please provide a detailed analysis including:
+        Please provide a detailed analysis including:
 
-1. **Transcript**: Generate a full transcript with timestamps in [MM:SS] format for key moments
-2. **Timeline Events**: Identify and categorize events:
-   - Clarity issues (rushed explanations, unclear segments) - mark as yellow
-   - Student interactions - BE VERY CAREFUL HERE:
-     * ONLY mark as "question" if you hear a DIFFERENT VOICE asking a question (not the professor)
-     * Student questions are typically shorter, in a questioning tone, and from a different speaker
-     * If you hear "does anyone know..." or "what do you think..." from the professor, this is NOT a student question
-     * Mark as blue ONLY for actual student questions from students
-     * Mark professor responses to student questions as green "answer" type
-   - Positive moments (good examples, jokes, engaging content) - mark as green or pink
-3. **Topic Coverage**: List which topics were covered and which were missed. {
-    "If materials analysis was provided, compare against those topics and indicate whether each intended topic was covered in the video." if materials_context else ""
-}
-4. **AI Reflections**: Provide insights and action items:
-   - Opportunities for improvement
-   - Successes to highlight
-   - Action items for next lecture
+        1. **Transcript**: Generate a full transcript with timestamps in [MM:SS] format for key moments
+        2. **Timeline Events**: Identify and categorize events:
+        - Clarity issues (rushed explanations, unclear segments) - mark as yellow
+        - Student interactions - BE VERY CAREFUL HERE:
+            * ONLY mark as "question" if you hear a DIFFERENT VOICE asking a question (not the professor)
+            * Student questions are typically shorter, in a questioning tone, and from a different speaker
+            * If you hear "does anyone know..." or "what do you think..." from the professor, this is NOT a student question
+            * Mark as blue ONLY for actual student questions from students
+            * Mark professor responses to student questions as green "answer" type
+        - Positive moments (good examples, jokes, engaging content) - mark as green or pink
+        3. **Topic Coverage**: List which topics were covered and which were missed. {
+            "If materials analysis was provided, compare against those topics and indicate whether each intended topic was covered in the video." if materials_context else ""
+        }
+        4. **AI Reflections**: Provide insights and action items:
+        - Opportunities for improvement
+        - Successes to highlight
+        - Action items for next lecture
 
-**CRITICAL GUIDELINES FOR INTERACTION DETECTION:**
-- Student questions: when you clearly hear a different speaker (not the professor) asking something
-- Look for voice changes, tone differences, and conversational patterns
-- When in heavy doubt, DO NOT mark it as a student question - it's better to miss a question than create false positives
-- Professor using Socratic method = NOT a student question
-- Only mark interactions when you're confident there are multiple speakers
+        **CRITICAL GUIDELINES FOR INTERACTION DETECTION:**
+        - Student questions: when you clearly hear a different speaker (not the professor) asking something
+        - Look for voice changes, tone differences, and conversational patterns
+        - When in heavy doubt, DO NOT mark it as a student question - it's better to miss a question than create false positives
+        - Professor using Socratic method = NOT a student question
+        - Only mark interactions when you're confident there are multiple speakers
 
-Return the analysis in this exact JSON structure:
-{{
-    "transcript": [
+        Return the analysis in this exact JSON structure:
         {{
-            "timestamp": "[00:02:40]",
-            "text": "transcript text here",
-            "type": "Success|Opportunity|Normal",
-            "speaker": "Professor|Student"
-        }}
-    ],
-    "timeline": {{
-        "clarity": [
-            {{
-                "start_time": 3007,
-                "duration": 23,
-                "title": "Rushed Theory",
-                "description": "Brief description"
-            }}
-        ],
-        "interaction": [
-            {{
-                "start_time": 659,
-                "duration": 10,
-                "type": "question",
-                "title": "Student Question",
-                "description": "Question text",
-                "student_name": "Student name if mentioned, or 'Student' if not"
+            "transcript": [
+                {{
+                    "timestamp": "[00:02:40]",
+                    "text": "transcript text here",
+                    "type": "Success|Opportunity|Normal",
+                    "speaker": "Professor|Student"
+                }}
+            ],
+            "timeline": {{
+                "clarity": [
+                    {{
+                        "start_time": 3007,
+                        "duration": 23,
+                        "title": "Rushed Theory",
+                        "description": "Brief description"
+                    }}
+                ],
+                "interaction": [
+                    {{
+                        "start_time": 659,
+                        "duration": 10,
+                        "type": "question",
+                        "title": "Student Question",
+                        "description": "Question text",
+                        "student_name": "Student name if mentioned, or 'Student' if not"
+                    }},
+                    {{
+                        "start_time": 669,
+                        "duration": 30,
+                        "type": "answer",
+                        "title": "Professor Answer",
+                        "description": "Answer text"
+                    }}
+                ],
+                "positive": [
+                    {{
+                        "start_time": 800,
+                        "duration": 25,
+                        "title": "Good Example|Engaging Story|Helpful Analogy",
+                        "description": "Description"
+                    }}
+                ]
             }},
-            {{
-                "start_time": 669,
-                "duration": 30,
-                "type": "answer",
-                "title": "Professor Answer",
-                "description": "Answer text"
-            }}
-        ],
-        "positive": [
-            {{
-                "start_time": 800,
-                "duration": 25,
-                "title": "Good Example|Engaging Story|Helpful Analogy",
-                "description": "Description"
-            }}
-        ]
-    }},
-    "topic_coverage": [
-        {{
-            "topic": "Topic Name",
-            "covered": true,
-            "notes": "Brief notes on how well it was covered"
+            "topic_coverage": [
+                {{
+                    "topic": "Topic Name",
+                    "covered": true,
+                    "notes": "Brief notes on how well it was covered"
+                }}
+            ],
+            "ai_reflections": {{
+                "insights": [
+                    {{
+                        "type": "opportunity|success|warning",
+                        "title": "Specific, actionable title",
+                        "description": "Detailed description with specific examples and timestamps when relevant",
+                        "icon": "yellow|green|red"
+                    }}
+                ],
+                "action_items": [
+                    {{
+                        "priority": "Must Do|Should Do|Continue Doing",
+                        "item": "Concrete, actionable item with specific recommendations"
+                    }}
+                ]
+            }},
+            "video_duration": 0
         }}
-    ],
-    "ai_reflections": {{
-        "insights": [
-            {{
-                "type": "opportunity|success|warning",
-                "title": "Specific, actionable title",
-                "description": "Detailed description with specific examples and timestamps when relevant",
-                "icon": "yellow|green|red"
-            }}
-        ],
-        "action_items": [
-            {{
-                "priority": "Must Do|Should Do|Continue Doing",
-                "item": "Concrete, actionable item with specific recommendations"
-            }}
-        ]
-    }},
-    "video_duration": 0
-}}
 
-Important:
-- All timestamps should be in seconds (for timeline) and formatted as [MM:SS] for transcript
-- Calculate percentage positions for timeline events (left: X%, width: Y%)
-- Be specific and actionable in your analysis
-- Focus on teaching effectiveness and student engagement
-- For interaction events: Be conservative - only mark actual student questions
-- Include student names in interaction events when mentioned
-- Differentiate between different types of positive moments (examples, stories, analogies, humor)
-"""
+        Important:
+        - All timestamps should be in seconds (for timeline) and formatted as [MM:SS] for transcript
+        - Calculate percentage positions for timeline events (left: X%, width: Y%)
+        - Be specific and actionable in your analysis
+        - Focus on teaching effectiveness and student engagement
+        - For interaction events: Be conservative - only mark actual student questions
+        - Include student names in interaction events when mentioned
+        - Differentiate between different types of positive moments (examples, stories, analogies, humor)
+        """
         
         # Configure generation with low media resolution to save tokens
         config = types.GenerateContentConfig(

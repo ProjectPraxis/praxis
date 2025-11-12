@@ -1719,55 +1719,58 @@ function populateAnalysisPage(lecture, analysis, surveys = []) {
     "#screen-lecture-analysis .bg-gray-900.rounded-xl"
   );
   if (videoContainer && lecture.hasVideo) {
-    const API_BASE_URL = "http://localhost:8001"; // Corrected base URL
-    const videoUrl = `${API_BASE_URL}/api/lectures/${lecture.id}/video`;
+    const API_BASE_URL = "http://localhost:8001/api";
+    const videoUrl = `${API_BASE_URL}/lectures/${lecture.id}/video`;
 
-    // Determine video type based on file extension
-    const videoExt = lecture.videoName
-      ? lecture.videoName.split(".").pop().toLowerCase()
-      : "mp4";
-    const videoTypes = {
-      mp4: "video/mp4",
-      mov: "video/quicktime",
-      avi: "video/x-msvideo",
-      mkv: "video/x-matroska",
-      webm: "video/webm",
-      flv: "video/x-flv",
-      wmv: "video/x-ms-wmv",
-    };
-    const videoType = videoTypes[videoExt] || "video/mp4";
+    // Clear the container and set up proper styling
+    videoContainer.innerHTML = "";
+    videoContainer.className = "bg-gray-900 rounded-xl shadow-md aspect-video";
+    videoContainer.style.display = "block";
+    videoContainer.style.position = "relative";
+    videoContainer.style.overflow = "hidden";
 
-    videoContainer.innerHTML = `
-            <video controls class="w-full h-full rounded-xl" style="max-height: 100%;" preload="metadata" controlsList="nodownload">
-                <source src="${videoUrl}" type="${videoType}">
-                Your browser does not support the video tag.
-            </video>
-        `;
+    // Create video element programmatically and set src directly (more reliable than source element)
+    const videoElement = document.createElement("video");
+    videoElement.controls = true;
+    videoElement.className = "w-full rounded-xl";
+    videoElement.style.display = "block";
+    videoElement.style.width = "100%";
+    videoElement.style.height = "auto";
+    videoElement.style.maxHeight = "100%";
+    videoElement.style.objectFit = "contain";
+    videoElement.preload = "metadata";
+    videoElement.controlsList = "nodownload";
 
-    // Load and attach error handler after a short delay to ensure DOM is ready
-    setTimeout(() => {
-      const videoElement = videoContainer.querySelector("video");
-      if (videoElement) {
-        // Add error handler for debugging
-        videoElement.addEventListener("error", (e) => {
-          console.error("Video Error:", e);
-          // You could display a user-friendly error message here
-        });
+    // Set src directly on video element (this is the fix - more reliable than source element)
+    videoElement.src = videoUrl;
 
-        // Add loadstart handler to show loading state
-        videoElement.addEventListener("loadstart", () => {
-          console.log("Video load started...");
-        });
+    // Add error handler
+    videoElement.addEventListener("error", (e) => {
+      console.error("Video load error:", e);
+      console.error("Video URL:", videoUrl);
+      console.error("Video element error code:", videoElement.error?.code);
+      console.error("Video element error message:", videoElement.error?.message);
 
-        // Add canplay handler to confirm video is ready
-        videoElement.addEventListener("canplay", () => {
-          console.log("Video can play.");
-        });
+      const errorMsg = document.createElement("div");
+      errorMsg.className = "text-red-600 text-sm mt-2 p-2 bg-red-50 rounded";
+      errorMsg.textContent = `Failed to load video. Please check if the file exists.`;
+      videoContainer.appendChild(errorMsg);
+    });
 
-        // Explicitly load the video
-        videoElement.load();
-      }
-    }, 100);
+    // Add loaded event to verify it's working
+    videoElement.addEventListener("loadedmetadata", () => {
+      console.log("Video metadata loaded successfully");
+    });
+
+    // Make sure video is visible
+    videoElement.style.visibility = "visible";
+    videoElement.style.opacity = "1";
+
+    // Append video element to container
+    videoContainer.appendChild(videoElement);
+
+    // Load the video
+    videoElement.load();
   }
 
   // Populate timeline
