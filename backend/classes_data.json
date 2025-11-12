@@ -1,12 +1,12 @@
 [
   {
-    "id": "0970162b-8f52-4589-a370-6cb51d2a1842",
-    "code": "123",
-    "name": "test",
-    "totalLectures": 12,
+    "id": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "code": "601.490",
+    "name": "Introduction to Human-Computer Interaction",
+    "totalLectures": 14,
     "currentLecture": 0,
     "semester": "Fall 2025",
     "description": "",
-    "createdAt": "2025-11-11T18:24:32.396614"
+    "createdAt": "2025-11-12T07:43:59.472573"
   }
 ]

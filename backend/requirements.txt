@@ -4,4 +4,4 @@ fastapi
 uvicorn[standard]
 pydantic
 python-multipart
-google-generativeai
+google-genai

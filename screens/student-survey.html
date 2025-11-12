@@ -1,0 +1,67 @@
+<div id="screen-student-survey" class="screen space-y-6">
+    <div class="text-sm text-gray-600">
+        <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+        <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+        <span class="font-medium text-gray-800">Student Comprehension Survey</span>
+    </div>
+    
+    <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-8 text-white shadow-lg">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-4xl font-bold mb-2" id="survey-title">Student Comprehension Survey</h1>
+                <p class="text-purple-100 text-lg" id="survey-subtitle">Help us understand how well you've grasped the lecture concepts</p>
+            </div>
+            <button onclick="copySurveyLink()" class="bg-white text-purple-600 font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-50 transition-colors flex items-center gap-2">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                Copy Shareable Link
+            </button>
+        </div>
+        <div class="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-4">
+            <div class="flex items-center gap-2 text-sm">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                <span class="font-mono" id="survey-link">https://praxis.edu/survey/abc123</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-md">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Survey Preview</h2>
+            <p class="text-gray-600">This is how students will see the survey. Use the shareable link above to distribute it to your class.</p>
+        </div>
+
+        <form id="survey-form" class="space-y-8">
+            <div id="survey-questions-container">
+                <!-- Questions will be dynamically inserted here -->
+                <div class="text-center py-12">
+                    <svg class="w-12 h-12 mx-auto text-gray-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-gray-500 mt-4">Loading survey questions...</p>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-gray-200">
+                <button type="button" onclick="alert('This is a preview. Students will submit their responses here.')" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:opacity-90 transition-opacity">
+                    Submit Survey (Preview Mode)
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+        <div class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+            <div>
+                <h3 class="font-semibold text-yellow-900 mb-1">Survey Distribution Tips</h3>
+                <ul class="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+                    <li>Share the link via email, Canvas/LMS, or class announcements</li>
+                    <li>Students can complete the survey anonymously or with their name (depending on your settings)</li>
+                    <li>Results will be aggregated to help you identify which concepts need reinforcement</li>
+                    <li>Survey responses are saved and can be viewed from the lecture analysis page</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -21,7 +21,18 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <section>
+            <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Upload Lecture Materials</h2>
+                    <button id="analyze-materials-btn-edit" onclick="analyzeMaterials(currentLectureId)" class="hidden text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                            </svg>
+                            Analyze with AI
+                        </span>
+                    </button>
+                </div>
                 <div id="file-upload-area" class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 bg-white/50 backdrop-blur-sm hover:border-gray-400 transition-colors cursor-pointer" 
                      onclick="document.getElementById('lecture-slides-upload').click()"
                      ondrop="handleFileDrop(event)" 
@@ -33,12 +44,13 @@
                         </svg>
                         <div class="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
                             <label for="lecture-slides-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500">
-                                <span>Upload your slides</span>
-                                <input id="lecture-slides-upload" name="lecture-slides-upload" type="file" accept=".pdf,.pptx,.ppt" class="sr-only" onchange="handleFileUpload(event)">
+                                <span>Upload your slides or materials</span>
+                                <input id="lecture-slides-upload" name="lecture-slides-upload" type="file" accept=".pdf,.pptx,.ppt,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" class="sr-only" onchange="handleFileUploadWithAnalysis(event)">
                             </label>
                             <p class="pl-1">or drag and drop</p>
                         </div>
-                        <p class="text-xs leading-5 text-gray-600 mt-2">Praxis will analyze them to create a desired coverage graph.</p>
+                        <p class="text-xs leading-5 text-gray-600 mt-2">PDF or PowerPoint files</p>
+                        <p class="text-xs leading-5 text-indigo-600 font-medium mt-2">Gemini AI will analyze your materials to extract topics automatically</p>
                         <div id="uploaded-file-info" class="mt-4 hidden">
                             <div class="flex items-center justify-center gap-2 text-sm text-green-600">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -108,7 +120,7 @@
                                     </div>
                                     <button id="submit-analysis-btn" onclick="submitForAnalysis()" class="mt-4 w-full flex items-center justify-center gap-2 text-white font-semibold py-3 px-6 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity hidden">
                                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                                         </svg>
                                         Submit for Analysis
                                     </button>
