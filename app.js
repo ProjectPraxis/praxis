@@ -181,16 +181,36 @@ function setTheme(themeName) {
 }
 
 function showTab(tabId, tabElement) {
+    // Hide all tab contents
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.add('hidden');
     });
+    // Remove active state from all tab buttons
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
     
-    document.getElementById(tabId).classList.remove('hidden');
-    tabElement.classList.add('active');
-    activeTabButton = tabElement;
+    // Show the target tab content
+    const targetTab = document.getElementById(tabId);
+    if (!targetTab) {
+        console.warn(`Tab content with ID "${tabId}" not found`);
+        return;
+    }
+    targetTab.classList.remove('hidden');
+    
+    // Activate the tab button if provided
+    if (tabElement) {
+        tabElement.classList.add('active');
+        activeTabButton = tabElement;
+    } else {
+        // Try to find the tab button if not provided
+        const tabButton = document.querySelector(`[onclick*="showTab('${tabId}'"]`) || 
+                         document.querySelector(`#tab-btn-${tabId.replace('tab-', '')}`);
+        if (tabButton) {
+            tabButton.classList.add('active');
+            activeTabButton = tabButton;
+        }
+    }
     
     // Refresh lectures list when lectures tab is shown
     if (tabId === 'tab-lectures') {
@@ -674,6 +694,7 @@ function addPriorityTopic(topicName) {
 async function saveLecture() {
     const titleInput = document.getElementById('lecture-title-input');
     const topicList = document.getElementById('lecture-topic-list');
+    const saveButton = document.querySelector('button[onclick="saveLecture()"]');
     
     if (!titleInput) return;
     
@@ -689,104 +710,145 @@ async function saveLecture() {
         return textNode ? textNode.textContent.trim() : '';
     }).filter(t => t);
     
-    // Prepare lecture data
-    const lectureData = {
-        id: currentLectureId,
-        title: title,
-        topics: topics,
-        hasSlides: uploadedFile !== null,
-        fileName: uploadedFile ? uploadedFile.name : null,
-        createdAt: new Date().toISOString()
-    };
-    
-    // If file is uploaded, you would upload it to the server here
-    if (uploadedFile) {
-        // In a real implementation, you would upload the file to the server
-        console.log('File to upload:', uploadedFile.name);
-        // Example: await uploadFile(uploadedFile, currentLectureId);
-    }
-    
-    // Save lecture data (in a real app, this would be an API call)
-    console.log('Saving lecture:', lectureData);
-    
-    // Store in localStorage for now (in a real app, this would be an API call)
-    let lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
-    const existingIndex = lectures.findIndex(l => l.id === currentLectureId);
-    if (existingIndex >= 0) {
-        lectures[existingIndex] = lectureData;
-    } else {
-        lectures.push(lectureData);
-    }
-    localStorage.setItem('lectures', JSON.stringify(lectures));
-    
-    // Show success message
-    alert(`Lecture "${title}" has been saved!`);
-    
-    // Navigate back to course hub
-    showScreen('screen-course-hub', document.getElementById('nav-courses'));
-    showTab('tab-lectures', document.getElementById('tab-btn-lectures'));
-    
-    // Refresh the lectures list
-    refreshLecturesList();
-}
-
-function editLecture(lectureId) {
-    // Load lecture data from localStorage (in a real app, this would be an API call)
-    const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
-    const lecture = lectures.find(l => l.id === lectureId);
-    
-    if (!lecture) {
-        alert('Lecture not found');
-        return;
-    }
-    
-    currentLectureId = lectureId;
-    
-    // Navigate to edit screen
-    showScreen('screen-lecture-edit', document.getElementById('nav-courses'));
-    
-    // Populate the form
-    setTimeout(() => {
-        const titleInput = document.getElementById('lecture-title-input');
-        const topicList = document.getElementById('lecture-topic-list');
+    // Disable save button and show loading
+    if (saveButton) {
+        saveButton.disabled = true;
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = '<svg class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
         
-        if (titleInput) titleInput.value = lecture.title || 'New Lecture';
-        if (topicList) {
-            topicList.innerHTML = '';
-            if (lecture.topics && lecture.topics.length > 0) {
-                lecture.topics.forEach(topic => {
-                    const topicPill = document.createElement('div');
-                    topicPill.className = 'py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 flex items-center gap-2';
-                    topicPill.innerHTML = `
-                        <span>${topic}</span>
-                        <button onclick="removeLectureTopic(this)" class="text-red-600 hover:text-red-800 ml-1">
-                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    `;
-                    topicList.appendChild(topicPill);
+        try {
+            const API_BASE_URL = 'http://localhost:8001/api';
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('topics', JSON.stringify(topics));
+            
+            // Add file if uploaded
+            if (uploadedFile) {
+                formData.append('file', uploadedFile);
+            }
+            
+            let response;
+            // If currentLectureId starts with 'lecture-', it's a temporary ID for a new lecture
+            // Otherwise, it's an existing lecture ID from the server
+            if (currentLectureId && currentLectureId.startsWith('lecture-')) {
+                // This is a new lecture, create it
+                response = await fetch(`${API_BASE_URL}/lectures`, {
+                    method: 'POST',
+                    body: formData
+                });
+            } else if (currentLectureId) {
+                // Update existing lecture
+                response = await fetch(`${API_BASE_URL}/lectures/${currentLectureId}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+            } else {
+                // No ID, create new lecture
+                response = await fetch(`${API_BASE_URL}/lectures`, {
+                    method: 'POST',
+                    body: formData
                 });
             }
-        }
-        
-        // Show file info if slides were uploaded
-        if (lecture.hasSlides && lecture.fileName) {
-            const fileInfo = document.getElementById('uploaded-file-info');
-            const fileName = document.getElementById('uploaded-file-name');
-            if (fileInfo && fileName) {
-                fileName.textContent = lecture.fileName;
-                fileInfo.classList.remove('hidden');
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            }
+            
+            const savedLecture = await response.json();
+            currentLectureId = savedLecture.id; // Update with server-generated ID
+            
+            // Show success message
+            alert(`Lecture "${title}" has been saved!`);
+            
+            // Navigate back to course hub
+            const navCourses = document.getElementById('nav-courses');
+            await showScreen('screen-course-hub', navCourses);
+            
+            // Wait for the screen to be fully loaded before showing the tab
+            setTimeout(() => {
+                const tabBtnLectures = document.getElementById('tab-btn-lectures');
+                if (tabBtnLectures) {
+                    showTab('tab-lectures', tabBtnLectures);
+                } else {
+                    // If tab button not found, try to show tab anyway (it will find the button)
+                    showTab('tab-lectures', null);
+                }
+            }, 100);
+            
+        } catch (error) {
+            console.error('Error saving lecture:', error);
+            alert(`Failed to save lecture: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`);
+            
+            // Re-enable button
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalText;
             }
         }
-    }, 100);
+    }
 }
 
-function refreshLecturesList() {
-    // Load lectures from localStorage (in a real app, this would be an API call)
-    const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
-    
-    // Find the "Upcoming Lectures" section - look for the ul inside the last bg-white/80 div in tab-lectures
+async function editLecture(lectureId) {
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const lecture = await response.json();
+        currentLectureId = lectureId;
+        
+        // Navigate to edit screen
+        showScreen('screen-lecture-edit', document.getElementById('nav-courses'));
+        
+        // Populate the form
+        setTimeout(() => {
+            const titleInput = document.getElementById('lecture-title-input');
+            const topicList = document.getElementById('lecture-topic-list');
+            
+            if (titleInput) titleInput.value = lecture.title || 'New Lecture';
+            if (topicList) {
+                topicList.innerHTML = '';
+                if (lecture.topics && lecture.topics.length > 0) {
+                    lecture.topics.forEach(topic => {
+                        const topicPill = document.createElement('div');
+                        topicPill.className = 'py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 flex items-center gap-2';
+                        topicPill.innerHTML = `
+                            <span>${topic}</span>
+                            <button onclick="removeLectureTopic(this)" class="text-red-600 hover:text-red-800 ml-1">
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        `;
+                        topicList.appendChild(topicPill);
+                    });
+                }
+            }
+            
+            // Show file info if slides were uploaded
+            if (lecture.hasSlides && lecture.fileName) {
+                uploadedFile = null; // Reset uploaded file since we're editing
+                const fileInfo = document.getElementById('uploaded-file-info');
+                const fileName = document.getElementById('uploaded-file-name');
+                if (fileInfo && fileName) {
+                    fileName.textContent = lecture.fileName;
+                    fileInfo.classList.remove('hidden');
+                }
+            }
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error loading lecture:', error);
+        alert(`Failed to load lecture: ${error.message}`);
+    }
+}
+
+async function refreshLecturesList() {
+    // Find the "Upcoming Lectures" section
     const tabLectures = document.getElementById('tab-lectures');
     if (!tabLectures) return;
     
@@ -796,27 +858,41 @@ function refreshLecturesList() {
     const upcomingUl = upcomingSection[1].querySelector('ul');
     if (!upcomingUl) return;
     
-    // Clear existing dynamic lectures (keep the first one which is the mock "Project Proposals")
-    const existingItems = Array.from(upcomingUl.children);
-    existingItems.forEach(item => {
-        const onclick = item.querySelector('a')?.getAttribute('onclick');
-        // Only remove items that have editLecture onclick
-        if (onclick && onclick.includes('editLecture')) {
-            item.remove();
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const response = await fetch(`${API_BASE_URL}/lectures`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
-    
-    // Add saved lectures
-    lectures.forEach(lecture => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <a onclick="editLecture('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
-                <span class="font-medium text-gray-700">${lecture.title}</span>
-                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-            </a>
-        `;
-        upcomingUl.appendChild(li);
-    });
+        
+        const lectures = await response.json();
+        
+        // Clear existing dynamic lectures (keep the first one which is the mock "Project Proposals")
+        const existingItems = Array.from(upcomingUl.children);
+        existingItems.forEach(item => {
+            const onclick = item.querySelector('a')?.getAttribute('onclick');
+            // Only remove items that have editLecture onclick
+            if (onclick && onclick.includes('editLecture')) {
+                item.remove();
+            }
+        });
+        
+        // Add saved lectures
+        lectures.forEach(lecture => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <a onclick="editLecture('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                    <span class="font-medium text-gray-700">${lecture.title}</span>
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                </a>
+            `;
+            upcomingUl.appendChild(li);
+        });
+    } catch (error) {
+        console.error('Error refreshing lectures list:', error);
+        // Silently fail - keep existing lectures
+    }
 }
