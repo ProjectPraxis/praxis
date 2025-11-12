@@ -5,13 +5,12 @@
         <nav class="-mb-px flex space-x-6" aria-label="Tabs">
             <button id="tab-btn-overview" class="tab-button active" onclick="showTab('tab-overview', this)">Overview</button>
             <button id="tab-btn-lectures" class="tab-button" onclick="showTab('tab-lectures', this)">Lectures</button>
-            <button id="tab-btn-assignments" class="tab-button" onclick="showScreen('screen-assignments-hub', document.getElementById('nav-courses'))">Assignments</button>
-            <button id="tab-btn-trends" class="tab-button" onclick="showScreen('screen-student-trends', document.getElementById('nav-courses'))">Student Trends</button>
+            <button id="tab-btn-assignments" class="tab-button" onclick="showTab('tab-assignments', this)">Assignments</button>
+            <button id="tab-btn-trends" class="tab-button" onclick="showTab('tab-trends', this)">Student Trends</button>
         </nav>
     </div>
 
-    <div id="tab-overview" class="tab-content space-y-8">
-        
+    <div id="tab-overview" class="tab-content space-y-8" data-original-content="true">
         <section>
             <h2 class="text-2xl font-semibold text-gray-800 mb-4">Priority Action Items</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -115,19 +114,31 @@
                 Add Lecture
             </button>
         </div>
-        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md" data-original-content="true">
             <h3 class="text-xl font-semibold text-gray-800 mb-4">Past Lectures</h3>
             <ul class="space-y-2">
                 <li><a onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses'))" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"><span class="font-medium text-gray-700">3. The Data Dilemma</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
                 <li><a class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-not-allowed opacity-60"><span class="font-medium text-gray-700">2. User-Centered Design</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
                 <li><a class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-not-allowed opacity-60"><span class="font-medium text-gray-700">1. Defining the Problem</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
             </ul>
-            </div>
+        </div>
         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
             <h3 class="text-xl font-semibold text-gray-800 mb-4">Upcoming Lectures</h3>
-            <ul class="space-y-2">
-                <li><a onclick="showScreen('screen-lecture-planning', document.getElementById('nav-courses'))" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"><span class="font-medium text-gray-700">4. Project Proposals</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
+            <ul class="space-y-2" id="upcoming-lectures-list">
+                <li data-original-content="true"><a onclick="showScreen('screen-lecture-planning', document.getElementById('nav-courses'))" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"><span class="font-medium text-gray-700">4. Project Proposals</span><svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></a></li>
             </ul>
+        </div>
+    </div>
+    
+    <div id="tab-assignments" class="tab-content hidden space-y-6">
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <p class="text-gray-600">Assignments content will be displayed here.</p>
+        </div>
+    </div>
+    
+    <div id="tab-trends" class="tab-content hidden space-y-6">
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <p class="text-gray-600">Student trends content will be displayed here.</p>
         </div>
     </div>
 </div>

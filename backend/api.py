@@ -182,6 +182,8 @@ def get_lectures(class_id: Optional[str] = None):
     lectures = load_lectures()
     if class_id:
         lectures = [l for l in lectures if l.get("classId") == class_id]
+    # Sort by creation date, newest first
+    lectures.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
     return lectures
 
 

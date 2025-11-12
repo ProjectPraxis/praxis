@@ -8,5 +8,25 @@
     "filePath": "/Users/jason/praxis/backend/uploads/1ffd8d13-f065-4495-aed6-24e7369dfd74.pdf",
     "classId": null,
     "createdAt": "2025-11-11T18:53:56.448595"
+  },
+  {
+    "id": "a0b22fd1-1c31-4d9b-88ea-236791d41557",
+    "title": "Test",
+    "topics": [],
+    "hasSlides": true,
+    "fileName": "a2dcf219-f563-425e-89b5-9f6f5f813dd3.pdf",
+    "filePath": "/Users/jason/praxis/backend/uploads/a2dcf219-f563-425e-89b5-9f6f5f813dd3.pdf",
+    "classId": "27544168-4e55-4d86-af86-ef7010dc9567",
+    "createdAt": "2025-11-11T19:12:25.892483"
+  },
+  {
+    "id": "ba4a069c-5fac-406f-9374-e28c8b65de00",
+    "title": "Test",
+    "topics": [],
+    "hasSlides": true,
+    "fileName": "162017d6-eea5-473e-b30d-50de6f3f2c79.pdf",
+    "filePath": "/Users/jason/praxis/backend/uploads/162017d6-eea5-473e-b30d-50de6f3f2c79.pdf",
+    "classId": "0970162b-8f52-4589-a370-6cb51d2a1842",
+    "createdAt": "2025-11-11T19:20:04.931986"
   }
 ]

@@ -65,8 +65,9 @@ function cacheOriginalInsights() {
  * Fetches and displays a screen.
  * @param {string} screenId - The ID of the screen to show (e.g., 'screen-home-dashboard').
  * @param {HTMLElement} navElement - The sidebar link that was clicked.
+ * @param {Object} courseData - Optional course data for course-specific screens.
  */
-async function showScreen(screenId, navElement) {
+async function showScreen(screenId, navElement, courseData = null) {
     const screenFile = screenFileMap[screenId];
     if (!screenFile) {
         console.error('Unknown screen ID:', screenId);
@@ -77,7 +78,51 @@ async function showScreen(screenId, navElement) {
         // Fetch the new screen content
         const response = await fetch(`./screens/${screenFile}`);
         if (!response.ok) throw new Error(`Failed to load ${screenFile}`);
-        const html = await response.text();
+        let html = await response.text();
+        
+        // If this is the course hub and we have course data, populate it dynamically
+        if (screenId === 'screen-course-hub' && courseData) {
+            // Check if this is the original hardcoded course
+            const isOriginalCourse = (courseData.code === '601.486/686' || courseData.code === 'JHU 601.486/686') && 
+                                     courseData.name === 'ML: AI System Design';
+            
+            // Replace the hardcoded course title with the actual course data
+            html = html.replace(
+                /<h1[^>]*>.*?<\/h1>/,
+                `<h1 class="text-4xl font-bold text-gray-900">${courseData.code || ''} - ${courseData.name || ''}</h1>`
+            );
+            
+            // If it's a new course (not the original), replace hardcoded content with blank tabs
+            if (!isOriginalCourse) {
+                // Create a temporary container to parse and manipulate the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Replace overview tab content
+                const overviewTab = tempDiv.querySelector('#tab-overview[data-original-content="true"]');
+                if (overviewTab) {
+                    overviewTab.removeAttribute('data-original-content');
+                    overviewTab.innerHTML = `
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <p class="text-gray-600">Overview content will be displayed here.</p>
+        </div>`;
+                }
+                
+                // Remove the hardcoded "Past Lectures" section
+                const pastLectures = tempDiv.querySelector('.bg-white\\/80[data-original-content="true"]');
+                if (pastLectures) {
+                    pastLectures.remove();
+                }
+                
+                // Remove the hardcoded "Project Proposals" from upcoming lectures
+                const projectProposals = tempDiv.querySelector('li[data-original-content="true"]');
+                if (projectProposals) {
+                    projectProposals.remove();
+                }
+                
+                html = tempDiv.innerHTML;
+            }
+        }
         
         // Inject the content
         const mainContainer = document.getElementById('main-content-container');
@@ -94,9 +139,19 @@ async function showScreen(screenId, navElement) {
         
         // --- Handle screen-specific initializations ---
         
+        // Refresh class list when navigating to home screen
+        if (screenId === 'screen-home-dashboard') {
+            refreshClassList();
+        }
+        
         // Reset to first tab if navigating to course hub
         if (screenId === 'screen-course-hub') {
-            activeTabButton = document.getElementById('tab-btn-overview');
+            setTimeout(() => {
+                const overviewTab = document.getElementById('tab-btn-overview');
+                if (overviewTab) {
+                    showTab('tab-overview', overviewTab);
+                }
+            }, 50);
         }
         
         // Cache insights if we just loaded the lecture analysis screen
@@ -462,6 +517,10 @@ async function handleAddClass(event) {
         
         const newClass = await response.json();
         
+        // Re-enable submit button and reset text
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+        
         // Add the new class card immediately to the UI
         const classesGrid = document.getElementById('classes-grid');
         if (classesGrid) {
@@ -515,21 +574,29 @@ async function refreshClassList() {
     try {
         const classes = await fetchClasses();
         
-        // Only update if we got classes from the API
+        // Remove only dynamically added API classes (those created by createClassCard)
+        // Keep hardcoded classes that were in the original HTML
+        const existingCards = Array.from(classesGrid.children);
+        existingCards.forEach(card => {
+            // Check if this card was created dynamically (has onclick that calls showScreen with courseData)
+            // Hardcoded cards have onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))"
+            // Dynamic cards have onclick that sets currentCourseId and passes courseData
+            const onclick = card.getAttribute('onclick');
+            if (onclick && onclick.includes('currentCourseId')) {
+                card.remove();
+            }
+        });
+        
+        // Add all classes from API
         if (classes.length > 0) {
-            // Clear existing classes
-            classesGrid.innerHTML = '';
-            
-            // Render all classes from API
             classes.forEach(classItem => {
                 const classCard = createClassCard(classItem);
                 classesGrid.appendChild(classCard);
             });
         }
-        // If API returns empty array or fails, keep existing classes
     } catch (error) {
         console.error('Error refreshing class list:', error);
-        // Keep existing classes on error
+        // On error, keep existing classes (both hardcoded and dynamic)
     }
 }
 
@@ -537,7 +604,10 @@ async function refreshClassList() {
 function createClassCard(classData) {
     const card = document.createElement('div');
     card.className = 'bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1';
-    card.onclick = () => showScreen('screen-course-hub', document.getElementById('nav-courses'));
+    card.onclick = () => {
+        currentCourseId = classData.id;
+        showScreen('screen-course-hub', document.getElementById('nav-courses'), classData);
+    };
     
     // Calculate progress (assuming currentLecture is 0 for new classes)
     const currentLecture = classData.currentLecture || 0;
@@ -563,11 +633,17 @@ function createClassCard(classData) {
     return card;
 }
 
-// Lecture management functions
+// Course and lecture management
+let currentCourseId = null;
 let currentLectureId = null;
 let uploadedFile = null;
 
 function addNewLecture() {
+    if (!currentCourseId) {
+        alert('Please select a course first.');
+        return;
+    }
+    
     // Create a new blank lecture
     currentLectureId = 'lecture-' + Date.now(); // Generate a temporary ID
     uploadedFile = null;
@@ -721,6 +797,9 @@ async function saveLecture() {
             const formData = new FormData();
             formData.append('title', title);
             formData.append('topics', JSON.stringify(topics));
+            if (currentCourseId) {
+                formData.append('classId', currentCourseId);
+            }
             
             // Add file if uploaded
             if (uploadedFile) {
@@ -761,9 +840,25 @@ async function saveLecture() {
             // Show success message
             alert(`Lecture "${title}" has been saved!`);
             
-            // Navigate back to course hub
+            // Navigate back to course hub - need to fetch course data first
             const navCourses = document.getElementById('nav-courses');
-            await showScreen('screen-course-hub', navCourses);
+            if (currentCourseId) {
+                try {
+                    const API_BASE_URL = 'http://localhost:8001/api';
+                    const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
+                    if (courseResponse.ok) {
+                        const courseData = await courseResponse.json();
+                        await showScreen('screen-course-hub', navCourses, courseData);
+                    } else {
+                        await showScreen('screen-course-hub', navCourses);
+                    }
+                } catch (error) {
+                    console.error('Error fetching course data:', error);
+                    await showScreen('screen-course-hub', navCourses);
+                }
+            } else {
+                await showScreen('screen-course-hub', navCourses);
+            }
             
             // Wait for the screen to be fully loaded before showing the tab
             setTimeout(() => {
@@ -852,15 +947,26 @@ async function refreshLecturesList() {
     const tabLectures = document.getElementById('tab-lectures');
     if (!tabLectures) return;
     
-    const upcomingSection = tabLectures.querySelectorAll('.bg-white\\/80');
-    if (upcomingSection.length < 2) return;
+    // Try to find the upcoming lectures list by ID first
+    let upcomingUl = document.getElementById('upcoming-lectures-list');
     
-    const upcomingUl = upcomingSection[1].querySelector('ul');
+    // Fallback to finding it the old way
+    if (!upcomingUl) {
+        const upcomingSection = tabLectures.querySelectorAll('.bg-white\\/80');
+        if (upcomingSection.length < 2) return;
+        upcomingUl = upcomingSection[1].querySelector('ul');
+    }
+    
     if (!upcomingUl) return;
     
     try {
         const API_BASE_URL = 'http://localhost:8001/api';
-        const response = await fetch(`${API_BASE_URL}/lectures`);
+        // Filter lectures by current course ID if available
+        const url = currentCourseId 
+            ? `${API_BASE_URL}/lectures?class_id=${currentCourseId}`
+            : `${API_BASE_URL}/lectures`;
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
