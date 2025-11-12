@@ -8,12 +8,47 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <section>
-                <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 bg-white/50 backdrop-blur-sm">
+            <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Upload Lecture Materials</h2>
+                    <button id="analyze-materials-btn" onclick="analyzeMaterials(currentLectureId)" class="hidden text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                            </svg>
+                            Analyze with AI
+                        </span>
+                    </button>
+                </div>
+                <div class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 bg-white/50 backdrop-blur-sm hover:border-indigo-400 transition-colors"
+                     onclick="document.getElementById('materials-file-upload').click()"
+                     ondrop="handleMaterialsDrop(event)" 
+                     ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-50');" 
+                     ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');">
                     <div class="text-center">
                         <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
-                        <div class="mt-4 flex text-sm leading-6 text-gray-600"><label for="file-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500"><span>Upload your slides</span><input id="file-upload" name="file-upload" type="file" class="sr-only"></label><p class="pl-1">or drag and drop</p></div>
-                        <p class="text-xs leading-5 text-gray-600">Praxis will analyze them to create a desired coverage graph.</p>
+                        <div class="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
+                            <label for="materials-file-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500">
+                                <span>Upload your slides or materials</span>
+                                <input id="materials-file-upload" name="materials-file-upload" type="file" accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" class="sr-only" onchange="handleMaterialsUploadWithButton(event)">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs leading-5 text-gray-600 mt-2">PDF or PowerPoint files</p>
+                        <p class="text-xs leading-5 text-indigo-600 font-medium mt-2">Gemini AI will analyze your materials to extract topics automatically</p>
+                        <div id="uploaded-materials-info" class="mt-4 hidden">
+                            <div class="flex items-center justify-center gap-2 text-sm text-green-600">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                                <span id="uploaded-materials-name"></span>
+                                <button onclick="removeUploadedMaterialsFile(event)" class="ml-2 text-red-600 hover:text-red-800">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

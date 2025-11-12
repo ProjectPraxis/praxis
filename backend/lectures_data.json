@@ -2,16 +2,63 @@
   {
     "id": "6ed83a73-2607-482e-aefa-9104c513612a",
     "title": "Test",
-    "topics": [],
-    "hasSlides": false,
-    "fileName": null,
-    "filePath": null,
+    "topics": [
+      "Globalization, Infrastructure, and Trade",
+      "The Global Technology Sector and the Digital Economy",
+      "Socio-Economic Consequences: Inequality and Labor",
+      "Comparative Models of Economic Development: India and China"
+    ],
+    "hasSlides": true,
+    "fileName": "b66e417d-8038-48c2-99ee-ad838abc8f7d.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/b66e417d-8038-48c2-99ee-ad838abc8f7d.pdf",
     "hasVideo": true,
     "videoName": "c3c27ab3-ddf4-4118-bdfb-786da5aa388f.MOV",
     "videoPath": "/Users/jason/praxis/backend/uploads/c3c27ab3-ddf4-4118-bdfb-786da5aa388f.MOV",
     "classId": "0970162b-8f52-4589-a370-6cb51d2a1842",
     "createdAt": "2025-11-11T20:27:19.299766",
     "analysisPath": "/Users/jason/praxis/backend/data/analyses/6ed83a73-2607-482e-aefa-9104c513612a_analysis.json",
-    "hasAnalysis": true
+    "hasAnalysis": true,
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/6ed83a73-2607-482e-aefa-9104c513612a_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "95ab808d-ffb8-4a64-93a5-1d845ae5a526",
+    "title": "New Lecture",
+    "topics": [],
+    "hasSlides": false,
+    "fileName": null,
+    "filePath": null,
+    "hasVideo": false,
+    "videoName": null,
+    "videoPath": null,
+    "classId": "0970162b-8f52-4589-a370-6cb51d2a1842",
+    "createdAt": "2025-11-11T21:14:35.467196",
+    "hasAnalysis": false,
+    "analysisPath": null
+  },
+  {
+    "id": "6cad1618-cfde-404e-aec4-3ed23363083e",
+    "title": "New Lecture",
+    "topics": [
+      "Introduction and Project Motivation",
+      "Scientific Background: Retinal Biomarkers for Stroke",
+      "Methodology and Project Outline",
+      "Data and Processing Pipelines",
+      "A/V Ratio Calculation Methods",
+      "Generative AI Modeling",
+      "Preliminary Results and Next Steps"
+    ],
+    "hasSlides": true,
+    "fileName": "3707819e-55d4-4ee8-89de-be83b31241c3.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/3707819e-55d4-4ee8-89de-be83b31241c3.pdf",
+    "hasVideo": true,
+    "videoName": "4ea3a6c9-fb8a-433e-a0b2-c402f804942d.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/4ea3a6c9-fb8a-433e-a0b2-c402f804942d.MOV",
+    "classId": "eff48547-8f6b-433f-bb47-693fdaf3226d",
+    "createdAt": "2025-11-11T21:15:30.708448",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/6cad1618-cfde-404e-aec4-3ed23363083e_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/6cad1618-cfde-404e-aec4-3ed23363083e_materials_analysis.json",
+    "hasMaterialsAnalysis": true
   }
 ]

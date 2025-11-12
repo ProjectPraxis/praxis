@@ -153,6 +153,8 @@ async function showScreen(screenId, navElement, courseData = null) {
                 }
                 // Refresh lectures list when course hub loads to show updated status
                 refreshLecturesList();
+                // Also refresh the topic knowledge pills
+                refreshTopicKnowledge();
             }, 100);
         }
         
@@ -642,6 +644,46 @@ let currentCourseId = null;
 let currentLectureId = null;
 let uploadedFile = null;
 let uploadedVideoFile = null;
+let uploadedMaterialsFile = null;
+
+async function refreshTopicKnowledge() {
+    const topicContainer = document.getElementById('topic-knowledge-pills');
+    if (!topicContainer || !currentCourseId) return;
+
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/topic-knowledge`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const topics = await response.json();
+
+        // Clear only dynamically added pills
+        Array.from(topicContainer.children).forEach(pill => {
+            if (!pill.hasAttribute('data-original-content')) {
+                pill.remove();
+            }
+        });
+
+        // Add pills from API
+        topics.forEach(topic => {
+            const pill = document.createElement('div');
+            let statusClass = '';
+            switch (topic.status) {
+                case 'Strong': statusClass = 'topic-pill-strong'; break;
+                case 'Developing': statusClass = 'topic-pill-developing'; break;
+                case 'Struggling': statusClass = 'topic-pill-struggling'; break;
+                default: statusClass = 'topic-pill-neutral';
+            }
+            pill.className = statusClass;
+            pill.textContent = topic.name;
+            pill.onclick = () => showTopicDetail(topic.name, topic.status, pill);
+            topicContainer.appendChild(pill);
+        });
+
+    } catch (error) {
+        console.error('Error refreshing topic knowledge:', error);
+    }
+}
 
 function addNewLecture() {
     if (!currentCourseId) {
@@ -684,6 +726,304 @@ function handleFileUpload(event) {
     }
 }
 
+function handleFileUploadWithAnalysis(event) {
+    const file = event.target.files[0];
+    if (file) {
+        uploadedFile = file;
+        
+        // Show file info
+        const fileInfo = document.getElementById('uploaded-file-info');
+        const fileName = document.getElementById('uploaded-file-name');
+        if (fileInfo && fileName) {
+            fileName.textContent = file.name;
+            fileInfo.classList.remove('hidden');
+        }
+        
+        // Show the analyze button (works for both edit and planning screens)
+        const analyzeBtn = document.getElementById('analyze-materials-btn-edit') || 
+                          document.getElementById('analyze-materials-btn');
+        if (analyzeBtn) {
+            analyzeBtn.classList.remove('hidden');
+        }
+    }
+}
+
+function handleMaterialsUploadWithButton(event) {
+    const file = event.target.files[0];
+    if (file) {
+        uploadedMaterialsFile = file;
+        
+        // Show file info
+        const materialsInfo = document.getElementById('uploaded-materials-info');
+        const materialsName = document.getElementById('uploaded-materials-name');
+        if (materialsInfo && materialsName) {
+            materialsName.textContent = file.name;
+            materialsInfo.classList.remove('hidden');
+        }
+        
+        // Show the analyze button
+        const analyzeBtn = document.getElementById('analyze-materials-btn');
+        if (analyzeBtn) {
+            analyzeBtn.classList.remove('hidden');
+        }
+    }
+}
+
+function handleMaterialsDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const uploadArea = event.currentTarget;
+    uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        // Check if it's a valid file type
+        const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-powerpoint'];
+        if (validTypes.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) {
+            uploadedMaterialsFile = file;
+            
+            // Update the file input
+            const fileInput = document.getElementById('materials-file-upload');
+            if (fileInput) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+            }
+            
+            // Show file info
+            const materialsInfo = document.getElementById('uploaded-materials-info');
+            const materialsName = document.getElementById('uploaded-materials-name');
+            if (materialsInfo && materialsName) {
+                materialsName.textContent = file.name;
+                materialsInfo.classList.remove('hidden');
+            }
+            
+            // Show the analyze button
+            const analyzeBtn = document.getElementById('analyze-materials-btn');
+            if (analyzeBtn) {
+                analyzeBtn.classList.remove('hidden');
+            }
+        } else {
+            alert('Please upload a PDF or PowerPoint file (.pdf, .ppt, .pptx)');
+        }
+    }
+}
+
+function removeUploadedMaterialsFile(event) {
+    event.stopPropagation();
+    uploadedMaterialsFile = null;
+    
+    const fileInput = document.getElementById('materials-file-upload');
+    const materialsInfo = document.getElementById('uploaded-materials-info');
+    const analyzeBtn = document.getElementById('analyze-materials-btn');
+    
+    if (fileInput) fileInput.value = '';
+    if (materialsInfo) {
+        materialsInfo.classList.add('hidden');
+        document.getElementById('uploaded-materials-name').textContent = '';
+    }
+    if (analyzeBtn) {
+        analyzeBtn.classList.add('hidden');
+    }
+}
+
+async function handleMaterialsUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Process the uploaded file
+        processUploadedFile(file);
+        
+        // If we're in the planning screen and have a lecture ID, analyze immediately
+        const planningScreen = document.getElementById('screen-lecture-planning');
+        if (planningScreen && !planningScreen.classList.contains('hidden') && currentLectureId) {
+            // Show confirmation
+            const shouldAnalyze = confirm('Would you like to analyze this file to extract topics automatically?');
+            if (shouldAnalyze) {
+                await analyzeMaterials(currentLectureId, file);
+            }
+        }
+    }
+}
+
+async function analyzeMaterials(lectureId, materialsFile = null) {
+    // Use the global uploaded materials file if no file is passed
+    const fileToAnalyze = materialsFile || uploadedMaterialsFile;
+    
+    if (!fileToAnalyze && !lectureId) {
+        alert('Please upload materials and save the lecture first.');
+        return;
+    }
+    
+    // Show loading modal
+    showMaterialsLoadingScreen();
+    
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const formData = new FormData();
+        
+        // Append materials file
+        if (fileToAnalyze) {
+            formData.append('materials', fileToAnalyze);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}/analyze-materials`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Hide loading modal
+        hideMaterialsLoadingScreen();
+        
+        // Update the UI with extracted topics
+        if (result.extracted_topics && result.extracted_topics.length > 0) {
+            updateTopicsList(result.extracted_topics);
+            
+            // Show success message with topic count
+            alert(`Materials analyzed successfully! Found ${result.extracted_topics.length} topics:\n\n${result.extracted_topics.join('\n')}`);
+        } else {
+            alert('Materials analyzed, but no topics were extracted.');
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Error analyzing materials:', error);
+        hideMaterialsLoadingScreen();
+        alert(`Failed to analyze materials: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`);
+        return null;
+    }
+}
+
+async function analyzeMaterials(lectureId, materialsFile = null) {
+    if (!lectureId) {
+        alert('Please save the lecture first before analyzing materials.');
+        return;
+    }
+    
+    // Show loading modal
+    showMaterialsLoadingScreen();
+    
+    try {
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const formData = new FormData();
+        
+        // Only append materials if we have a new upload, otherwise backend will use saved file
+        if (materialsFile) {
+            formData.append('materials', materialsFile);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}/analyze-materials`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Hide loading modal
+        hideMaterialsLoadingScreen();
+        
+        // Update the UI with extracted topics
+        if (result.extracted_topics && result.extracted_topics.length > 0) {
+            updateTopicsList(result.extracted_topics);
+            
+            // Show success message with topic count
+            alert(`Materials analyzed successfully! Found ${result.extracted_topics.length} topics.`);
+        } else {
+            alert('Materials analyzed, but no topics were extracted.');
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Error analyzing materials:', error);
+        hideMaterialsLoadingScreen();
+        alert(`Failed to analyze materials: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`);
+        return null;
+    }
+}
+
+function showMaterialsLoadingScreen() {
+    // Create loading overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'materials-loading-overlay';
+    overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    overlay.innerHTML = `
+        <div class="bg-white rounded-xl p-8 max-w-md mx-4 text-center shadow-2xl">
+            <div class="mb-6">
+                <svg class="w-16 h-16 mx-auto text-indigo-600 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Analyzing Materials...</h3>
+            <p class="text-gray-600 mb-4">Gemini AI is analyzing your lecture materials to extract topics and learning objectives.</p>
+            <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div class="w-2 h-2 bg-indigo-600 rounded-full animate-pulse"></div>
+                <div class="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">This may take 30-60 seconds...</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function hideMaterialsLoadingScreen() {
+    const overlay = document.getElementById('materials-loading-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+function updateTopicsList(topics) {
+    // Try to find the topic list - could be in either planning or edit screen
+    const topicList = document.getElementById('manual-topic-list') || 
+                      document.getElementById('lecture-topic-list');
+    
+    if (!topicList) {
+        console.warn('Could not find topic list container');
+        return;
+    }
+    
+    // Clear existing dynamic topics (keep manual ones if any)
+    // Or just clear all and add the new topics
+    topicList.innerHTML = '';
+    
+    topics.forEach(topicName => {
+        const topicPill = document.createElement('div');
+        topicPill.className = 'py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 flex items-center gap-2';
+        topicPill.innerHTML = `
+            <span>${topicName}</span>
+            <button onclick="removeTopicPill(this)" class="text-red-600 hover:text-red-800 ml-1">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        `;
+        topicList.appendChild(topicPill);
+    });
+}
+
+function removeTopicPill(button) {
+    if (button && button.parentElement) {
+        button.parentElement.remove();
+    }
+}
+
 function handleFileDrop(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -704,6 +1044,15 @@ function handleFileDrop(event) {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
+            }
+            
+            // Trigger analysis if in planning screen
+            const planningScreen = document.getElementById('screen-lecture-planning');
+            if (planningScreen && !planningScreen.classList.contains('hidden') && currentLectureId) {
+                const shouldAnalyze = confirm('Would you like to analyze this file to extract topics automatically?');
+                if (shouldAnalyze) {
+                    analyzeMaterials(currentLectureId, file);
+                }
             }
         } else {
             alert('Please upload a PDF or PowerPoint file (.pdf, .ppt, .pptx)');
@@ -1099,91 +1448,63 @@ async function editLecture(lectureId) {
 }
 
 async function refreshLecturesList() {
-    // Find the "Lectures" tab
     const tabLectures = document.getElementById('tab-lectures');
     if (!tabLectures) return;
-    
-    // Find Past Lectures and Upcoming Lectures sections
-    const sections = tabLectures.querySelectorAll('.bg-white\\/80');
-    let pastLecturesUl = null;
-    let upcomingUl = document.getElementById('upcoming-lectures-list');
-    
-    // Find Past Lectures list (first section with ul)
-    if (sections.length > 0) {
-        const pastSection = sections[0];
-        pastLecturesUl = pastSection.querySelector('ul');
+
+    const pastLecturesUl = document.querySelector('#tab-lectures .bg-white\\/80 ul');
+    const upcomingUl = document.getElementById('upcoming-lectures-list');
+
+    if (!pastLecturesUl || !upcomingUl) {
+        console.warn('Could not find lecture lists to refresh.');
+        return;
     }
-    
-    // Fallback to finding upcoming lectures the old way
-    if (!upcomingUl && sections.length >= 2) {
-        upcomingUl = sections[1].querySelector('ul');
-    }
-    
-    if (!pastLecturesUl || !upcomingUl) return;
-    
+
     try {
         const API_BASE_URL = 'http://localhost:8001/api';
-        // Filter lectures by current course ID if available
         const url = currentCourseId 
             ? `${API_BASE_URL}/lectures?class_id=${currentCourseId}`
             : `${API_BASE_URL}/lectures`;
         
         const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const lectures = await response.json();
         
-        // Separate analyzed (past) and non-analyzed (upcoming) lectures
         const pastLectures = lectures.filter(l => l.hasAnalysis === true);
         const upcomingLectures = lectures.filter(l => !l.hasAnalysis);
-        
-        // Clear existing dynamic lectures from both lists
-        // Keep only items with data-original-content="true"
+
+        // Clear only dynamically added lectures
         Array.from(pastLecturesUl.children).forEach(item => {
-            if (!item.hasAttribute('data-original-content')) {
-                item.remove();
-            }
+            if (!item.hasAttribute('data-original-content')) item.remove();
         });
-        
         Array.from(upcomingUl.children).forEach(item => {
-            if (!item.hasAttribute('data-original-content')) {
-                item.remove();
-            }
+            if (!item.hasAttribute('data-original-content')) item.remove();
         });
-        
-        // Add past lectures (analyzed)
+
+        // Add past lectures from API
         pastLectures.forEach(lecture => {
             const li = document.createElement('li');
             li.innerHTML = `
                 <a onclick="showLectureAnalysis('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
                     <span class="font-medium text-gray-700">${lecture.title}</span>
-                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                </a>
-            `;
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                </a>`;
             pastLecturesUl.appendChild(li);
         });
-        
-        // Add upcoming lectures (not analyzed)
+
+        // Add upcoming lectures from API
         upcomingLectures.forEach(lecture => {
             const li = document.createElement('li');
             li.innerHTML = `
                 <a onclick="editLecture('${lecture.id}')" class="flex justify-between items-center p-3 -m-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
                     <span class="font-medium text-gray-700">${lecture.title}</span>
-                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                </a>
-            `;
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                </a>`;
             upcomingUl.appendChild(li);
         });
+
     } catch (error) {
         console.error('Error refreshing lectures list:', error);
-        // Silently fail - keep existing lectures
     }
 }
 

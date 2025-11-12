@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import os
-from gemini_analysis import analyze_lecture_video, save_analysis_result
+from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result
 
 app = FastAPI(title="Praxis API", version="1.0.0")
 
@@ -480,13 +480,24 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
     lecture_title = lecture.get("title", "Lecture")
     topics = lecture.get("topics", [])
     
+    # Load materials analysis if available
+    materials_analysis = None
+    materials_analysis_path = lecture.get("materialsAnalysisPath")
+    if materials_analysis_path and Path(materials_analysis_path).exists():
+        try:
+            with open(materials_analysis_path, 'r') as f:
+                materials_analysis = json.load(f)
+        except:
+            pass
+    
     try:
-        # Analyze the video using Gemini
+        # Analyze the video using Gemini with materials context
         analysis_result = analyze_lecture_video(
             video_path=video_path,
             lecture_id=lecture_id,
             lecture_title=lecture_title,
-            topics=topics
+            topics=topics,
+            materials_analysis=materials_analysis
         )
         
         # Check for errors
@@ -513,6 +524,120 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing video: {str(e)}")
+
+
+@app.post("/api/lectures/{lecture_id}/analyze-materials")
+async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = File(None)):
+    """
+    Analyze lecture materials (PDF, PowerPoint, etc.) using Gemini to extract intended topics.
+    Saves the analysis result and updates the lecture with extracted topics.
+    """
+    lectures = load_lectures()
+    lecture = None
+    
+    # Find the lecture
+    for l in lectures:
+        if l["id"] == lecture_id:
+            lecture = l
+            break
+    
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    # Use existing materials file if available, otherwise use uploaded materials
+    materials_path = lecture.get("filePath")
+    
+    if materials and materials.filename:
+        # Save the new materials file if provided
+        file_ext = Path(materials.filename).suffix
+        file_name = f"{uuid.uuid4()}{file_ext}"
+        materials_path = str(UPLOAD_DIR / file_name)
+        
+        with open(materials_path, "wb") as buffer:
+            shutil.copyfileobj(materials.file, buffer)
+        
+        # Update lecture with new materials path
+        for i, l in enumerate(lectures):
+            if l["id"] == lecture_id:
+                lectures[i]["filePath"] = materials_path
+                lectures[i]["fileName"] = file_name
+                lectures[i]["hasSlides"] = True
+                save_lectures(lectures)
+                break
+    elif not materials_path or not Path(materials_path).exists():
+        raise HTTPException(status_code=400, detail="No materials file available. Please upload materials first.")
+    
+    # Get lecture details
+    lecture_title = lecture.get("title", "Lecture")
+    
+    try:
+        # Analyze the materials using Gemini
+        analysis_result = analyze_lecture_materials(
+            file_path=materials_path,
+            lecture_id=lecture_id,
+            lecture_title=lecture_title
+        )
+        
+        # Check for errors
+        if "error" in analysis_result:
+            raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result['error']}")
+        
+        # Save the materials analysis result to JSON file
+        materials_analysis_file_path = save_materials_analysis_result(analysis_result, ANALYSIS_DIR)
+        
+        # Extract topic names for the lecture topics field
+        extracted_topics = []
+        if "topics" in analysis_result:
+            for topic in analysis_result["topics"]:
+                extracted_topics.append(topic["name"])
+        
+        # Update lecture with materials analysis file path and extracted topics
+        for i, l in enumerate(lectures):
+            if l["id"] == lecture_id:
+                lectures[i]["materialsAnalysisPath"] = materials_analysis_file_path
+                lectures[i]["hasMaterialsAnalysis"] = True
+                # Merge with existing topics (avoid duplicates)
+                existing_topics = set(lectures[i].get("topics", []))
+                for topic in extracted_topics:
+                    existing_topics.add(topic)
+                lectures[i]["topics"] = list(existing_topics)
+                save_lectures(lectures)
+                break
+        
+        return {
+            "status": "success",
+            "lecture_id": lecture_id,
+            "analysis": analysis_result,
+            "materials_analysis_file": materials_analysis_file_path,
+            "extracted_topics": extracted_topics
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing materials: {str(e)}")
+
+
+@app.get("/api/lectures/{lecture_id}/materials-analysis")
+def get_materials_analysis(lecture_id: str):
+    """Get the materials analysis result for a lecture"""
+    lectures = load_lectures()
+    lecture = None
+    
+    for l in lectures:
+        if l["id"] == lecture_id:
+            lecture = l
+            break
+    
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    materials_analysis_path = lecture.get("materialsAnalysisPath")
+    if not materials_analysis_path or not Path(materials_analysis_path).exists():
+        raise HTTPException(status_code=404, detail="Materials analysis not found")
+    
+    with open(materials_analysis_path, 'r') as f:
+        analysis_data = json.load(f)
+    
+    return analysis_data
 
 
 @app.get("/api/lectures/{lecture_id}/analysis")
