@@ -31,6 +31,7 @@ const modalFileMap = {
   "modal-lecture-rewind": "lecture-rewind.html",
   "modal-topic-detail": "topic-detail.html",
   "modal-add-class": "add-class.html",
+  "modal-add-lecture": "add-lecture.html",
 };
 
 // --- DOMContentLoaded (Initialization) ---
@@ -258,6 +259,13 @@ async function showModal(modalId) {
       // The showTopicDetail() function will handle its content.
     } else {
       existingModal.classList.remove("hidden");
+      
+      // Auto-focus the first input in the modal if it exists
+      const firstInput = existingModal.querySelector('input[type="text"], input[type="number"], textarea');
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+      }
+      
       return;
     }
   }
@@ -290,6 +298,12 @@ async function showModal(modalId) {
       const newModal = document.getElementById(modalId);
       if (newModal) {
         newModal.classList.remove("hidden");
+        
+        // Auto-focus the first input in the modal if it exists
+        const firstInput = newModal.querySelector('input[type="text"], input[type="number"], textarea');
+        if (firstInput) {
+          setTimeout(() => firstInput.focus(), 100);
+        }
       }
     } catch (error) {
       console.error("Error loading modal:", error);
@@ -804,32 +818,99 @@ function addNewLecture() {
     return;
   }
 
-  // Create a new blank lecture
-  currentLectureId = "lecture-" + Date.now(); // Generate a temporary ID
-  uploadedFile = null;
-  uploadedVideoFile = null;
+  // Show the modal to get the lecture name
+  showModal("modal-add-lecture");
+}
 
-  // Navigate to the edit screen
-  showScreen("screen-lecture-edit", document.getElementById("nav-courses"));
+async function handleAddLecture(event) {
+  event.preventDefault();
 
-  // Reset the form
-  setTimeout(() => {
-    const titleInput = document.getElementById("lecture-title-input");
-    const topicList = document.getElementById("lecture-topic-list");
-    const fileInfo = document.getElementById("uploaded-file-info");
-    const videoInfo = document.getElementById("uploaded-video-info");
+  const form = event.target;
+  const formData = new FormData(form);
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalButtonText = submitButton.textContent;
 
-    if (titleInput) titleInput.value = "New Lecture";
-    if (topicList) topicList.innerHTML = "";
-    if (fileInfo) {
-      fileInfo.classList.add("hidden");
-      document.getElementById("uploaded-file-name").textContent = "";
+  const lectureTitle = formData.get("lecture-name").trim();
+  
+  if (!lectureTitle) {
+    alert("Please enter a lecture name.");
+    return;
+  }
+
+  // Disable submit button and show loading state
+  submitButton.disabled = true;
+  submitButton.textContent = "Creating...";
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const formDataToSend = new FormData();
+    formDataToSend.append("title", lectureTitle);
+    formDataToSend.append("topics", JSON.stringify([]));
+    if (currentCourseId) {
+      formDataToSend.append("classId", currentCourseId);
     }
-    if (videoInfo) {
-      videoInfo.classList.add("hidden");
-      document.getElementById("uploaded-video-name").textContent = "";
+
+    const response = await fetch(`${API_BASE_URL}/lectures`, {
+      method: "POST",
+      body: formDataToSend,
+    });
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ detail: "Unknown error" }));
+      throw new Error(
+        errorData.detail || `HTTP error! status: ${response.status}`
+      );
     }
-  }, 100);
+
+    const savedLecture = await response.json();
+    currentLectureId = savedLecture.id;
+    uploadedFile = null;
+    uploadedVideoFile = null;
+
+    // Re-enable submit button and reset text
+    submitButton.disabled = false;
+    submitButton.textContent = originalButtonText;
+
+    // Reset form and close modal
+    form.reset();
+    hideModal("modal-add-lecture");
+
+    // Navigate to the edit screen
+    showScreen("screen-lecture-edit", document.getElementById("nav-courses"));
+
+    // Update the title input with the saved lecture title
+    setTimeout(() => {
+      const titleInput = document.getElementById("lecture-title-input");
+      const topicList = document.getElementById("lecture-topic-list");
+      const fileInfo = document.getElementById("uploaded-file-info");
+      const videoInfo = document.getElementById("uploaded-video-info");
+
+      if (titleInput) titleInput.value = lectureTitle;
+      if (topicList) topicList.innerHTML = "";
+      if (fileInfo) {
+        fileInfo.classList.add("hidden");
+        const fileNameEl = document.getElementById("uploaded-file-name");
+        if (fileNameEl) fileNameEl.textContent = "";
+      }
+      if (videoInfo) {
+        videoInfo.classList.add("hidden");
+        const videoNameEl = document.getElementById("uploaded-video-name");
+        if (videoNameEl) videoNameEl.textContent = "";
+      }
+    }, 100);
+  } catch (error) {
+    console.error("Error creating lecture:", error);
+    
+    // Re-enable submit button and reset text
+    submitButton.disabled = false;
+    submitButton.textContent = originalButtonText;
+    
+    alert(
+      `Failed to create lecture: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`
+    );
+  }
 }
 
 function handleFileUpload(event) {
