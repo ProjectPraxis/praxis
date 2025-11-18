@@ -24,7 +24,7 @@
             <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold text-gray-800">Upload Lecture Materials</h2>
-                    <button id="analyze-materials-btn-edit" onclick="analyzeMaterials(currentLectureId)" class="hidden text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90">
+                    <button id="analyze-materials-btn-edit" type="button" onclick="handleAnalyzeMaterialsClick(event)" class="hidden text-sm font-medium text-white py-2 px-4 rounded-md primary-gradient hover:opacity-90">
                         <span class="flex items-center gap-2">
                             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
@@ -34,7 +34,7 @@
                     </button>
                 </div>
                 <div id="file-upload-area" class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10 bg-white/50 backdrop-blur-sm hover:border-gray-400 transition-colors cursor-pointer" 
-                     onclick="document.getElementById('lecture-slides-upload').click()"
+                     onclick="if(event.target.tagName !== 'LABEL' && event.target.tagName !== 'INPUT' && !event.target.closest('label')) { document.getElementById('lecture-slides-upload').click(); }"
                      ondrop="handleFileDrop(event)" 
                      ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-50');" 
                      ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');">
@@ -43,7 +43,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
                         </svg>
                         <div class="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
-                            <label for="lecture-slides-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500">
+                            <label for="lecture-slides-upload" class="relative cursor-pointer rounded-md font-semibold primary-gradient-text hover:text-indigo-500" onclick="event.stopPropagation()">
                                 <span>Upload your slides or materials</span>
                                 <input id="lecture-slides-upload" name="lecture-slides-upload" type="file" accept=".pdf,.pptx,.ppt,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" class="sr-only" onchange="handleFileUploadWithAnalysis(event)">
                             </label>
@@ -85,7 +85,7 @@
                     <h3 class="text-2xl font-bold text-gray-900">Finished the lecture? Upload it for analysis!</h3>
                     <p class="text-gray-600 mt-2 mb-4">Once the analysis is complete, the lecture will automatically move from "Upcoming" to "Past Lectures" with AI-powered insights.</p>
                     <div id="video-upload-area" class="mt-2 flex justify-center rounded-lg border border-dashed border-indigo-300 px-6 py-10 bg-white/50 backdrop-blur-sm hover:border-indigo-400 transition-colors cursor-pointer" 
-                             onclick="document.getElementById('lecture-video-upload').click()"
+                             onclick="if(event.target.tagName !== 'LABEL' && event.target.tagName !== 'INPUT' && !event.target.closest('label')) { document.getElementById('lecture-video-upload').click(); }"
                              ondrop="handleVideoDrop(event)" 
                              ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-50');" 
                              ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');">
@@ -94,7 +94,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
                                 <div class="mt-4 flex text-sm leading-6 text-gray-600 justify-center">
-                                    <label for="lecture-video-upload" class="relative cursor-pointer rounded-md font-semibold text-indigo-600 hover:text-indigo-500">
+                                    <label for="lecture-video-upload" class="relative cursor-pointer rounded-md font-semibold text-indigo-600 hover:text-indigo-500" onclick="event.stopPropagation()">
                                         <span>Upload Lecture Video</span>
                                         <input id="lecture-video-upload" name="lecture-video-upload" type="file" accept="video/*,.mp4,.mov,.avi,.mkv,.webm,.flv,.wmv" class="sr-only" onchange="handleVideoUpload(event)">
                                     </label>

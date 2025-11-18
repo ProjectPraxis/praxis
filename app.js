@@ -985,6 +985,12 @@ async function analyzeMaterials(lectureId, materialsFile = null) {
     return;
   }
 
+  // Prevent double-submission
+  const existingOverlay = document.getElementById("materials-loading-overlay");
+  if (existingOverlay) {
+    return;
+  }
+
   // Show loading modal
   showMaterialsLoadingScreen();
 
@@ -1023,21 +1029,45 @@ async function analyzeMaterials(lectureId, materialsFile = null) {
     if (result.extracted_topics && result.extracted_topics.length > 0) {
       updateTopicsList(result.extracted_topics);
 
+      // Store scroll position before showing alert
+      const scrollPosition = window.scrollY;
+      
       // Show success message with topic count
       alert(
         `Materials analyzed successfully! Found ${result.extracted_topics.length} topics.`
       );
+      
+      // Restore scroll position after alert is dismissed (use setTimeout to ensure it happens after browser processes the alert)
+      setTimeout(() => {
+        window.scrollTo(0, scrollPosition);
+      }, 0);
     } else {
+      // Store scroll position before showing alert
+      const scrollPosition = window.scrollY;
+      
       alert("Materials analyzed, but no topics were extracted.");
+      
+      // Restore scroll position after alert is dismissed
+      setTimeout(() => {
+        window.scrollTo(0, scrollPosition);
+      }, 0);
     }
 
     return result;
   } catch (error) {
     console.error("Error analyzing materials:", error);
     hideMaterialsLoadingScreen();
+    
+    // Store scroll position before showing alert
+    const scrollPosition = window.scrollY;
+    
     alert(
       `Failed to analyze materials: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`
     );
+    
+    // Restore scroll position after alert is dismissed
+    window.scrollTo(0, scrollPosition);
+    
     return null;
   }
 }
@@ -2200,6 +2230,11 @@ async function submitForAnalysis() {
 
   const submitBtn = document.getElementById("submit-analysis-btn");
   if (!submitBtn) return;
+
+  // Prevent double-submission
+  if (submitBtn.disabled) {
+    return;
+  }
 
   // Disable button and show loading state
   submitBtn.disabled = true;
