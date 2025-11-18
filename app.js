@@ -62,29 +62,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Back Button Handler ---
 async function handleBackButton() {
-  if (currentScreen === "screen-lecture-analysis" && currentCourseId) {
-    // If we're on lecture analysis, go back to course hub with lectures tab
-    try {
-      const API_BASE_URL = "http://localhost:8001/api";
-      const courseResponse = await fetch(
-        `${API_BASE_URL}/classes/${currentCourseId}`
-      );
-      if (courseResponse.ok) {
-        const courseData = await courseResponse.json();
-        const navCourses = document.getElementById("nav-courses");
-        await showScreen("screen-course-hub", navCourses, courseData);
-        
-        // Wait for screen to fully load, then switch to lectures tab
-        setTimeout(() => {
-          const tabBtnLectures = document.getElementById("tab-btn-lectures");
-          if (tabBtnLectures) {
-            showTab("tab-lectures", tabBtnLectures);
-          }
-        }, 100);
-        return;
+  // If we're on the survey page, go back to the lecture analysis page
+  if (currentScreen === "screen-student-survey") {
+    if (currentSurvey && currentSurvey.lecture_id) {
+      // Navigate back to the lecture analysis page
+      await showLectureAnalysis(currentSurvey.lecture_id);
+      return;
+    } else if (currentLectureId) {
+      // Fallback: use currentLectureId if available
+      await showLectureAnalysis(currentLectureId);
+      return;
+    }
+  }
+  
+  // If we're on lecture pages (edit, analysis, planning), go back to course hub
+  if (
+    currentScreen === "screen-lecture-analysis" ||
+    currentScreen === "screen-lecture-edit" ||
+    currentScreen === "screen-lecture-planning"
+  ) {
+    if (currentCourseId) {
+      try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        const courseResponse = await fetch(
+          `${API_BASE_URL}/classes/${currentCourseId}`
+        );
+        if (courseResponse.ok) {
+          const courseData = await courseResponse.json();
+          const navCourses = document.getElementById("nav-courses");
+          await showScreen("screen-course-hub", navCourses, courseData);
+          
+          // Wait for screen to fully load, then switch to lectures tab
+          setTimeout(() => {
+            const tabBtnLectures = document.getElementById("tab-btn-lectures");
+            if (tabBtnLectures) {
+              showTab("tab-lectures", tabBtnLectures);
+            }
+          }, 100);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching course data for back navigation:", error);
       }
-    } catch (error) {
-      console.error("Error fetching course data for back navigation:", error);
     }
   }
   
@@ -761,6 +780,8 @@ function createClassCard(classData) {
 let currentCourseId = null;
 let currentLectureId = null;
 let currentScreen = null; // Track current screen for back button navigation
+let previousScreen = null; // Track previous screen for back navigation
+let previousScreenData = null; // Store data needed to navigate back
 let uploadedFile = null;
 let uploadedVideoFile = null;
 let uploadedMaterialsFile = null;
@@ -2520,6 +2541,11 @@ async function viewStudentSurvey(survey) {
   }
 
   try {
+    // Store the lecture_id from the survey for back navigation
+    if (survey.lecture_id) {
+      currentLectureId = survey.lecture_id;
+    }
+    
     // If survey doesn't have questions, fetch the full survey data
     let fullSurvey = survey;
     if (!survey.questions && survey.survey_id) {
@@ -2527,6 +2553,10 @@ async function viewStudentSurvey(survey) {
       const response = await fetch(`${API_BASE_URL}/surveys/${survey.survey_id}`);
       if (response.ok) {
         fullSurvey = await response.json();
+        // Make sure we have the lecture_id from the full survey
+        if (fullSurvey.lecture_id && !currentLectureId) {
+          currentLectureId = fullSurvey.lecture_id;
+        }
       } else {
         throw new Error("Failed to load survey data");
       }
