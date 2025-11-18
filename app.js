@@ -295,6 +295,14 @@ async function showScreen(screenId, navElement, courseData = null) {
 async function showModal(modalId) {
   const modalContainer = document.getElementById("modal-container");
 
+  // For add-class modal, always remove existing version to force fresh fetch
+  if (modalId === "modal-add-class") {
+    const existingAddClassModal = document.getElementById(modalId);
+    if (existingAddClassModal) {
+      existingAddClassModal.remove();
+    }
+  }
+
   // Check if modal is already in DOM. If so, just show it.
   const existingModal = document.getElementById(modalId);
   if (existingModal) {
@@ -332,7 +340,11 @@ async function showModal(modalId) {
   const modalFile = modalFileMap[modalId];
   if (modalFile) {
     try {
-      const response = await fetch(`./modals/${modalFile}`);
+      // Add cache-busting for add-class modal to prevent stale cached versions
+      const url = modalId === "modal-add-class" 
+        ? `./modals/${modalFile}?v=${Date.now()}` 
+        : `./modals/${modalFile}`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error(`Failed to load ${modalFile}`);
       const html = await response.text();
 
@@ -650,7 +662,6 @@ async function handleAddClass(event) {
   const courseData = {
     code: formData.get("course-code"),
     name: formData.get("course-name"),
-    totalLectures: parseInt(formData.get("total-lectures")),
     semester: formData.get("semester"),
     description: formData.get("description") || "",
   };
@@ -775,11 +786,8 @@ function createClassCard(classData) {
     );
   };
 
-  // Calculate progress (assuming currentLecture is 0 for new classes)
-  const currentLecture = classData.currentLecture || 0;
-  const totalLectures = classData.totalLectures || 1;
-  const progress =
-    totalLectures > 0 ? (currentLecture / totalLectures) * 100 : 0;
+  // Progress bar for visual appeal (can be updated later if needed)
+  const progress = 0;
 
   card.innerHTML = `
         <div class="flex justify-between items-start mb-4">
@@ -793,7 +801,6 @@ function createClassCard(classData) {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
         </div>
-        <div class="text-sm text-gray-600 mb-1">Lecture ${currentLecture} of ${totalLectures}</div>
         <div class="w-full bg-gray-200 rounded-full h-2.5">
             <div class="primary-gradient h-2.5 rounded-full" style="width: ${progress}%"></div>
         </div>
