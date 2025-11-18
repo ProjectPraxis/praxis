@@ -60,6 +60,32 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// --- Helper function to navigate to course hub with course data ---
+async function navigateToCourseHub(courseId) {
+  if (!courseId) {
+    showScreen("screen-course-hub", document.getElementById("nav-courses"));
+    return;
+  }
+  
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const courseResponse = await fetch(`${API_BASE_URL}/classes/${courseId}`);
+    if (courseResponse.ok) {
+      const courseData = await courseResponse.json();
+      const navCourses = document.getElementById("nav-courses");
+      await showScreen("screen-course-hub", navCourses, courseData);
+    } else {
+      showScreen("screen-course-hub", document.getElementById("nav-courses"));
+    }
+  } catch (error) {
+    console.error("Error fetching course data for navigation:", error);
+    showScreen("screen-course-hub", document.getElementById("nav-courses"));
+  }
+}
+
+// Make it globally accessible
+window.navigateToCourseHub = navigateToCourseHub;
+
 // --- Back Button Handler ---
 async function handleBackButton() {
   // If we're on the survey page, go back to the lecture analysis page
@@ -901,8 +927,28 @@ async function handleAddLecture(event) {
     // Navigate to the edit screen
     showScreen("screen-lecture-edit", document.getElementById("nav-courses"));
 
-    // Update the title input with the saved lecture title
-    setTimeout(() => {
+    // Update the title input with the saved lecture title and breadcrumb
+    setTimeout(async () => {
+      // Update breadcrumb course name - select the span with onclick that contains screen-course-hub
+      const courseBreadcrumb = document.querySelector(
+        "#screen-lecture-edit .text-sm.text-gray-600 span[onclick*='screen-course-hub']"
+      );
+      if (courseBreadcrumb && currentCourseId) {
+        try {
+          const API_BASE_URL = "http://localhost:8001/api";
+          const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
+          if (courseResponse.ok) {
+            const courseData = await courseResponse.json();
+            const courseName = courseData.code ? `${courseData.code} - ${courseData.name}` : courseData.name;
+            courseBreadcrumb.textContent = courseName;
+            // Update onclick to navigate to the correct course
+            courseBreadcrumb.setAttribute('onclick', `navigateToCourseHub('${currentCourseId}')`);
+          }
+        } catch (error) {
+          console.error("Error fetching course for breadcrumb:", error);
+        }
+      }
+      
       const titleInput = document.getElementById("lecture-title-input");
       const topicList = document.getElementById("lecture-topic-list");
       const fileInfo = document.getElementById("uploaded-file-info");
@@ -1645,12 +1691,38 @@ async function editLecture(lectureId) {
 
     const lecture = await response.json();
     currentLectureId = lectureId;
+    
+    // Set currentCourseId from lecture
+    if (lecture.classId) {
+      currentCourseId = lecture.classId;
+    } else if (lecture.class_id) {
+      currentCourseId = lecture.class_id;
+    }
 
     // Navigate to edit screen
     showScreen("screen-lecture-edit", document.getElementById("nav-courses"));
 
-    // Populate the form
-    setTimeout(() => {
+    // Populate the form and update breadcrumb
+    setTimeout(async () => {
+      // Update breadcrumb course name - select the span with onclick that contains screen-course-hub
+      const courseBreadcrumb = document.querySelector(
+        "#screen-lecture-edit .text-sm.text-gray-600 span[onclick*='screen-course-hub']"
+      );
+      if (courseBreadcrumb && currentCourseId) {
+        try {
+          const API_BASE_URL = "http://localhost:8001/api";
+          const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
+          if (courseResponse.ok) {
+            const courseData = await courseResponse.json();
+            const courseName = courseData.code ? `${courseData.code} - ${courseData.name}` : courseData.name;
+            courseBreadcrumb.textContent = courseName;
+            // Update onclick to navigate to the correct course
+            courseBreadcrumb.setAttribute('onclick', `navigateToCourseHub('${currentCourseId}')`);
+          }
+        } catch (error) {
+          console.error("Error fetching course for breadcrumb:", error);
+        }
+      }
       const titleInput = document.getElementById("lecture-title-input");
       const topicList = document.getElementById("lecture-topic-list");
 
@@ -1843,8 +1915,8 @@ async function showLectureAnalysis(lectureId) {
     );
 
     // Wait for the screen to be fully loaded before populating
-    setTimeout(() => {
-      populateAnalysisPage(lecture, analysis, surveys, responses); // Pass surveys and responses
+    setTimeout(async () => {
+      await populateAnalysisPage(lecture, analysis, surveys, responses); // Pass surveys and responses
     }, 100);
   } catch (error) {
     console.error("Error loading lecture analysis:", error);
@@ -1852,14 +1924,34 @@ async function showLectureAnalysis(lectureId) {
   }
 }
 
-function populateAnalysisPage(lecture, analysis, surveys = [], responses = []) {
+async function populateAnalysisPage(lecture, analysis, surveys = [], responses = []) {
   // Update title
   const titleElement = document.querySelector("#screen-lecture-analysis h1");
   if (titleElement) {
     titleElement.textContent = lecture.title;
   }
 
-  // Update breadcrumb
+  // Update breadcrumb course name - select the span with onclick that contains screen-course-hub
+  const courseBreadcrumb = document.querySelector(
+    "#screen-lecture-analysis .text-sm.text-gray-600 span[onclick*='screen-course-hub']"
+  );
+  if (courseBreadcrumb && currentCourseId) {
+    try {
+      const API_BASE_URL = "http://localhost:8001/api";
+      const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
+      if (courseResponse.ok) {
+        const courseData = await courseResponse.json();
+        const courseName = courseData.code ? `${courseData.code} - ${courseData.name}` : courseData.name;
+        courseBreadcrumb.textContent = courseName;
+        // Update onclick to navigate to the correct course
+        courseBreadcrumb.setAttribute('onclick', `navigateToCourseHub('${currentCourseId}')`);
+      }
+    } catch (error) {
+      console.error("Error fetching course for breadcrumb:", error);
+    }
+  }
+
+  // Update breadcrumb last part
   const breadcrumbElement = document.querySelector(
     "#screen-lecture-analysis .text-sm.text-gray-600 span:last-child"
   );
@@ -2501,8 +2593,8 @@ async function generateStudentSurvey() {
     );
 
     // Populate the survey
-    setTimeout(() => {
-      populateSurveyScreen(currentSurvey);
+    setTimeout(async () => {
+      await populateSurveyScreen(currentSurvey);
     }, 100);
   } catch (error) {
     console.error("Error generating survey:", error);
@@ -2572,8 +2664,8 @@ async function viewStudentSurvey(survey) {
     );
 
     // Populate the survey
-    setTimeout(() => {
-      populateSurveyScreen(currentSurvey);
+    setTimeout(async () => {
+      await populateSurveyScreen(currentSurvey);
     }, 100);
   } catch (error) {
     console.error("Error loading survey:", error);
@@ -2581,7 +2673,27 @@ async function viewStudentSurvey(survey) {
   }
 }
 
-function populateSurveyScreen(survey) {
+async function populateSurveyScreen(survey) {
+  // Update breadcrumb course name - select the span with onclick that contains screen-course-hub
+  const courseBreadcrumb = document.querySelector(
+    "#screen-student-survey .text-sm.text-gray-600 span[onclick*='screen-course-hub']"
+  );
+  if (courseBreadcrumb && currentCourseId) {
+    try {
+      const API_BASE_URL = "http://localhost:8001/api";
+      const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
+      if (courseResponse.ok) {
+        const courseData = await courseResponse.json();
+        const courseName = courseData.code ? `${courseData.code} - ${courseData.name}` : courseData.name;
+        courseBreadcrumb.textContent = courseName;
+        // Update onclick to navigate to the correct course
+        courseBreadcrumb.setAttribute('onclick', `navigateToCourseHub('${currentCourseId}')`);
+      }
+    } catch (error) {
+      console.error("Error fetching course for breadcrumb:", error);
+    }
+  }
+  
   // Update title and subtitle
   const titleElement = document.getElementById("survey-title");
   const subtitleElement = document.getElementById("survey-subtitle");
