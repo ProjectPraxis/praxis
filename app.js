@@ -1132,11 +1132,17 @@ async function handleMaterialsUpload(event) {
 }
 
 async function analyzeMaterials(lectureId, materialsFile = null) {
-  // Use the global uploaded materials file if no file is passed
-  const fileToAnalyze = materialsFile || uploadedMaterialsFile;
+  // Use the passed file, or check both uploadedFile (lecture slides) and uploadedMaterialsFile (materials)
+  const fileToAnalyze = materialsFile || uploadedMaterialsFile || uploadedFile;
 
   if (!lectureId) {
     alert("Please save the lecture first before analyzing materials.");
+    return;
+  }
+
+  if (!fileToAnalyze) {
+    alert("No materials file available. Please upload materials first.");
+    hideMaterialsLoadingScreen();
     return;
   }
 
@@ -1153,10 +1159,8 @@ async function analyzeMaterials(lectureId, materialsFile = null) {
     const API_BASE_URL = "http://localhost:8001/api";
     const formData = new FormData();
 
-    // Only append materials if we have a new upload, otherwise backend will use saved file
-    if (fileToAnalyze) {
-      formData.append("materials", fileToAnalyze);
-    }
+    // Append materials file
+    formData.append("materials", fileToAnalyze);
 
     const response = await fetch(
       `${API_BASE_URL}/lectures/${lectureId}/analyze-materials`,
