@@ -3022,3 +3022,101 @@ async function submitSurveyResponse(surveyId, lectureId) {
     }
   }
 }
+
+// --- Course Profile Functions ---
+
+function selectProfileOption(element, group) {
+  // Find all buttons in the same group (siblings or within the same container context)
+  const container = element.parentElement;
+  const buttons = container.querySelectorAll('.profile-option-card');
+  
+  // Remove active state from all
+  buttons.forEach(btn => {
+    btn.classList.remove('border-indigo-500', 'bg-indigo-50/50', 'border-teal-500', 'bg-teal-50/50');
+    btn.classList.add('border-gray-100');
+    
+    // Reset the check dot
+    const dot = btn.querySelector('.check-dot');
+    if (dot) {
+      dot.classList.remove('opacity-100', 'transform', 'scale-100');
+      dot.classList.add('opacity-0', 'transform', 'scale-0');
+    }
+  });
+
+  // Add active state to clicked element
+  if (group === 'format') {
+    element.classList.remove('border-gray-100');
+    element.classList.add('border-indigo-500', 'bg-indigo-50/50');
+  } else if (group === 'feedback') {
+    element.classList.remove('border-gray-100');
+    element.classList.add('border-teal-500', 'bg-teal-50/50');
+  }
+
+  // Show check dot
+  const dot = element.querySelector('.check-dot');
+  if (dot) {
+    dot.classList.remove('opacity-0', 'transform', 'scale-0');
+    dot.classList.add('opacity-100', 'transform', 'scale-100');
+  }
+}
+
+function toggleProfilePill(element) {
+  // Toggle selection state
+  if (element.classList.contains('bg-pink-500')) {
+    // Deselect
+    element.classList.remove('bg-pink-500', 'text-white', 'border-pink-500');
+    element.classList.add('border-gray-200', 'text-gray-600');
+  } else {
+    // Select
+    element.classList.remove('border-gray-200', 'text-gray-600');
+    element.classList.add('bg-pink-500', 'text-white', 'border-pink-500');
+  }
+}
+
+function updatePersonaLabel(value) {
+  const label = document.getElementById('persona-description');
+  if (!label) return;
+
+  switch(parseInt(value)) {
+    case 1:
+      label.textContent = "Supportive Cheerleader: Focuses on encouragement, strengths, and positive reinforcement.";
+      break;
+    case 2:
+      label.textContent = "Balanced Partner: Constructive feedback that highlights both wins and opportunities.";
+      break;
+    case 3:
+      label.textContent = "Strict Critic: Rigorous, high-standards evaluation focused on identifying every flaw.";
+      break;
+  }
+}
+
+function saveCourseProfile(button) {
+  const originalText = button.innerHTML;
+  
+  // Show loading state
+  button.disabled = true;
+  button.innerHTML = `
+    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    Saving...
+  `;
+
+  // Simulate API call
+  setTimeout(() => {
+    button.innerHTML = `
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      Saved Successfully!
+    `;
+    button.classList.remove('bg-gray-900', 'hover:bg-gray-800');
+    button.classList.add('bg-green-600', 'hover:bg-green-500');
+    
+    setTimeout(() => {
+      button.disabled = false;
+      button.innerHTML = originalText;
+      button.classList.add('bg-gray-900', 'hover:bg-gray-800');
+      button.classList.remove('bg-green-600', 'hover:bg-green-500');
+    }, 2000);
+  }, 1000);
+}
