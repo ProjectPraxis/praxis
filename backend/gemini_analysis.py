@@ -217,7 +217,7 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
             pass
 
 
-def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str = "Lecture", topics: list = None, materials_analysis: Dict[str, Any] = None) -> Dict[str, Any]:
+def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str = "Lecture", topics: list = None, materials_analysis: Dict[str, Any] = None, professor_feedback: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Analyze a lecture video using Gemini 2.5 Pro with low resolution to save tokens.
     
@@ -227,6 +227,7 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         lecture_title: Title of the lecture
         topics: List of topics that should be covered
         materials_analysis: Optional analysis from lecture materials to provide context
+        professor_feedback: Optional professor feedback on previous AI reflections to guide analysis
     
     Returns:
         Dictionary containing analysis results in the format expected by lecture-analysis.html
@@ -287,11 +288,33 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
                     materials_context += f"  Subtopics: {', '.join(topic['subtopics'])}\n"
             materials_context += "\nPlease compare the video content against these intended topics and identify which were covered and which were missed.\n"
         
+        # Prepare professor feedback context if available
+        feedback_context = ""
+        if professor_feedback and "feedback" in professor_feedback:
+            feedback_items = professor_feedback["feedback"]
+            if feedback_items:
+                feedback_context = "\n\nProfessor Feedback Preferences (use this to guide your analysis style and focus):\n"
+                # Group feedback by rating
+                thumbs_up = [f for f in feedback_items if f.get("rating") == "up" and f.get("feedback_text")]
+                thumbs_down = [f for f in feedback_items if f.get("rating") == "down" and f.get("feedback_text")]
+                
+                if thumbs_up:
+                    feedback_context += "\nWhat the professor LIKES in AI reflections:\n"
+                    for item in thumbs_up[:5]:  # Limit to 5 most recent
+                        feedback_context += f"- {item.get('feedback_text', '')}\n"
+                
+                if thumbs_down:
+                    feedback_context += "\nWhat the professor DISLIKES or wants LESS of in AI reflections:\n"
+                    for item in thumbs_down[:5]:  # Limit to 5 most recent
+                        feedback_context += f"- {item.get('feedback_text', '')}\n"
+                
+                feedback_context += "\nPlease tailor your AI reflections to align with these preferences.\n"
+        
         prompt_text = f"""Analyze this lecture video and provide a comprehensive analysis in JSON format.
 
         Lecture Title: {lecture_title}
         Expected Topics: {topics_text}
-        {materials_context}
+        {materials_context}{feedback_context}
 
         Please provide a detailed analysis including:
 

@@ -33,6 +33,7 @@ const modalFileMap = {
   "modal-add-class": "add-class.html",
   "modal-add-lecture": "add-lecture.html",
   "modal-generate-survey": "generate-survey.html",
+  "modal-feedback": "feedback-modal.html",
 };
 
 // --- DOMContentLoaded (Initialization) ---
@@ -2235,7 +2236,10 @@ function populateAIReflections(reflections) {
 
   // Add insights
   if (reflections.insights && reflections.insights.length > 0) {
-    reflections.insights.forEach((insight) => {
+    reflections.insights.forEach((insight, index) => {
+      // Create a unique ID for this insight
+      const insightId = insight.id || `insight-${index}-${insight.title?.replace(/\s+/g, '-').toLowerCase() || index}`;
+      
       const iconClass =
         insight.icon === "yellow"
           ? "bg-yellow-100 text-yellow-600"
@@ -2258,15 +2262,27 @@ function populateAIReflections(reflections) {
           : "Warning";
 
       html += `
-                <li class="flex items-start gap-3">
+                <li class="flex items-start gap-3 group" data-insight-id="${insightId}">
                     <span class="flex-shrink-0 w-8 h-8 rounded-full ${iconClass} flex items-center justify-center mt-1">
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             ${iconSvg}
                         </svg>
                     </span>
-                    <div>
+                    <div class="flex-1">
                         <h4 class="font-semibold text-gray-800">${typeLabel}: ${insight.title}</h4>
                         <p class="text-gray-600">${insight.description}</p>
+                        <div class="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="openFeedbackModal('${insightId}', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Helpful">
+                                <svg class="w-4 h-4 text-gray-600 hover:text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558-.645 1.08-1.084 1.533a9.04 9.04 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672V12.75a.75.75 0 01-.75.75h-4.5A2.25 2.25 0 013 11.25v-1.5A2.25 2.25 0 015.25 7.5h1.383z" />
+                                </svg>
+                            </button>
+                            <button onclick="openFeedbackModal('${insightId}', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Not helpful">
+                                <svg class="w-4 h-4 text-gray-600 hover:text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.367 13.5c-.806 0-1.533.446-2.031 1.08a9.041 9.041 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672V21a.75.75 0 01-.75.75A2.25 2.25 0 017.5 19.5c0-1.152.26-2.243.723-3.218.266-.558.645-1.08 1.084-1.533a9.04 9.04 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V11.25a.75.75 0 01.75-.75h4.5A2.25 2.25 0 0119.5 12.75v1.5a2.25 2.25 0 01-2.25 2.25h-1.883z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </li>
             `;
@@ -2644,6 +2660,88 @@ async function generateStudentSurvey(professorInput = null) {
 
 // Make the function globally accessible
 window.generateStudentSurvey = generateStudentSurvey;
+
+// --- Feedback Functions ---
+function openFeedbackModal(insightId, rating) {
+  const modal = document.getElementById("modal-feedback");
+  const insightIdInput = document.getElementById("feedback-insight-id");
+  const ratingInput = document.getElementById("feedback-rating");
+  const titleElement = document.getElementById("feedback-modal-title");
+  const labelElement = document.getElementById("feedback-label");
+  const feedbackText = document.getElementById("feedback-text");
+  
+  if (insightIdInput) insightIdInput.value = insightId;
+  if (ratingInput) ratingInput.value = rating;
+  if (feedbackText) feedbackText.value = "";
+  
+  if (rating === "up") {
+    if (titleElement) titleElement.textContent = "Thumbs Up";
+    if (labelElement) labelElement.textContent = "Why did you like this reflection?";
+  } else {
+    if (titleElement) titleElement.textContent = "Thumbs Down";
+    if (labelElement) labelElement.textContent = "Why didn't you like this reflection?";
+  }
+  
+  showModal("modal-feedback");
+}
+
+// Make it globally accessible
+window.openFeedbackModal = openFeedbackModal;
+
+async function handleFeedbackSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const insightId = formData.get("insight-id");
+  const rating = formData.get("rating");
+  const feedbackText = formData.get("feedback-text")?.trim() || "";
+  
+  if (!currentCourseId) {
+    alert("No course selected.");
+    return;
+  }
+  
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        insight_id: insightId,
+        rating: rating,
+        feedback_text: feedbackText,
+        lecture_id: currentLectureId,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error("Failed to save feedback");
+    }
+    
+    hideModal("modal-feedback");
+    
+    // Show a subtle success indicator
+    const insightElement = document.querySelector(`[data-insight-id="${insightId}"]`);
+    if (insightElement) {
+      const buttons = insightElement.querySelectorAll("button");
+      buttons.forEach(btn => {
+        if ((rating === "up" && btn.onclick.toString().includes("'up'")) ||
+            (rating === "down" && btn.onclick.toString().includes("'down'"))) {
+          btn.classList.add("opacity-100");
+          btn.querySelector("svg").classList.add(rating === "up" ? "text-green-600" : "text-red-600");
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error saving feedback:", error);
+    alert("Failed to save feedback. Please try again.");
+  }
+}
+
+// Make it globally accessible
+window.handleFeedbackSubmit = handleFeedbackSubmit;
 
 async function viewStudentSurveyById(surveyId) {
   try {
