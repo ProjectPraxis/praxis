@@ -1,0 +1,38 @@
+<div id="modal-generate-survey" class="modal-screen hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+        <button onclick="hideModal('modal-generate-survey')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 no-print">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        
+        <h3 class="text-2xl font-semibold text-gray-800 mb-6">Generate Student Survey</h3>
+        
+        <form id="generate-survey-form" onsubmit="handleGenerateSurvey(event)" class="space-y-6">
+            <div>
+                <label for="professor-input" class="block text-sm font-medium text-gray-700 mb-2">
+                    Professor Instructions (Optional)
+                </label>
+                <p class="text-xs text-gray-500 mb-3">
+                    Provide any specific instructions or focus areas for the survey. If left empty, AI will generate a survey based on the lecture analysis.
+                </p>
+                <textarea 
+                    id="professor-input" 
+                    name="professor-input" 
+                    rows="6"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 border"
+                    placeholder="e.g., Focus on understanding of machine learning concepts, emphasize practical applications, include questions about homework difficulty..."></textarea>
+            </div>
+            
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="hideModal('modal-generate-survey')" 
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                    class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:opacity-90 transition-opacity">
+                    Generate Survey
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

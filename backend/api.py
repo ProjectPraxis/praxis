@@ -3,7 +3,7 @@ FastAPI backend server for Praxis application
 Handles class management API endpoints
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict
@@ -701,7 +701,7 @@ def get_lecture_analysis(lecture_id: str):
 
 
 @app.post("/api/lectures/{lecture_id}/generate-survey/")
-async def generate_lecture_survey(lecture_id: str):
+async def generate_lecture_survey(lecture_id: str, request: Request = None):
     """
     Generate a student comprehension survey for a lecture using Gemini AI.
     The survey is based on the lecture analysis and helps identify concepts that need reinforcement.
@@ -720,6 +720,15 @@ async def generate_lecture_survey(lecture_id: str):
     
     lecture_title = lecture.get("title", "Lecture")
     
+    # Get professor input from request body if provided
+    professor_input = None
+    if request:
+        try:
+            body = await request.json()
+            professor_input = body.get("professor_input")
+        except:
+            pass
+    
     # Load the lecture analysis if available
     analysis_data = None
     analysis_path = lecture.get("analysisPath")
@@ -735,7 +744,8 @@ async def generate_lecture_survey(lecture_id: str):
         survey_data = generate_student_survey(
             lecture_id=lecture_id,
             lecture_title=lecture_title,
-            analysis_data=analysis_data
+            analysis_data=analysis_data,
+            professor_input=professor_input
         )
         
         # Check for errors

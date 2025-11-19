@@ -541,7 +541,7 @@ def save_materials_analysis_result(analysis_data: Dict[str, Any], output_dir: Pa
     return str(output_file)
 
 
-def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: Dict[str, Any] = None) -> Dict[str, Any]:
+def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: Dict[str, Any] = None, professor_input: str = None) -> Dict[str, Any]:
     """
     Generate a student comprehension survey based on lecture analysis using Gemini.
     
@@ -549,6 +549,7 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         lecture_id: Unique identifier for the lecture
         lecture_title: Title of the lecture
         analysis_data: Optional lecture analysis data to provide context
+        professor_input: Optional professor instructions for survey generation
     
     Returns:
         Dictionary containing the generated survey with questions
@@ -581,10 +582,14 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
                     topics_context += f"\n\nAreas that may need clarification: {', '.join(clarity_issues)}"
         
         # Prepare prompt for Gemini
+        professor_instructions = ""
+        if professor_input:
+            professor_instructions = f"\n\nProfessor Instructions:\n{professor_input}\n\nPlease incorporate these instructions into the survey generation."
+        
         prompt_text = f"""Create a comprehensive student comprehension survey for the following lecture.
 
         Lecture Title: {lecture_title}
-        {topics_context}
+        {topics_context}{professor_instructions}
 
         The survey should help professors understand:
         1. Which concepts students understood well
