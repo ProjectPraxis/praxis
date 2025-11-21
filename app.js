@@ -168,8 +168,8 @@ async function showScreen(screenId, navElement, courseData = null) {
   }
 
   try {
-    // Fetch the new screen content
-    const response = await fetch(`./screens/${screenFile}`);
+    // Fetch the new screen content with aggressive cache busting (random number)
+    const response = await fetch(`./screens/${screenFile}?v=${Date.now()}_${Math.floor(Math.random() * 1000)}`);
     if (!response.ok) throw new Error(`Failed to load ${screenFile}`);
     let html = await response.text();
 
@@ -278,6 +278,13 @@ async function showScreen(screenId, navElement, courseData = null) {
     // Cache insights if we just loaded the lecture analysis screen
     if (screenId === "screen-lecture-analysis") {
       cacheOriginalInsights();
+    }
+    
+    // Load existing recommendations if we are on the planning or edit screen
+    if ((screenId === "screen-lecture-planning" || screenId === "screen-lecture-edit") && currentLectureId) {
+        setTimeout(() => {
+            loadMaterialsAnalysis(currentLectureId);
+        }, 100);
     }
 
     // Scroll to top
@@ -664,6 +671,7 @@ async function handleAddClass(event) {
     name: formData.get("course-name"),
     semester: formData.get("semester"),
     description: formData.get("description") || "",
+    totalLectures: 0, // Default value as it's required by backend but not in form
   };
 
   try {
@@ -681,9 +689,13 @@ async function handleAddClass(event) {
       const errorData = await response
         .json()
         .catch(() => ({ detail: "Unknown error" }));
-      throw new Error(
-        errorData.detail || `HTTP error! status: ${response.status}`
-      );
+      
+      // Handle if detail is an object/array (common in FastAPI)
+      const errorMessage = typeof errorData.detail === 'object' 
+        ? JSON.stringify(errorData.detail, null, 2) 
+        : (errorData.detail || `HTTP error! status: ${response.status}`);
+        
+      throw new Error(errorMessage);
     }
 
     const newClass = await response.json();
@@ -1185,32 +1197,39 @@ async function analyzeMaterials(lectureId, materialsFile = null) {
     hideMaterialsLoadingScreen();
 
     // Update the UI with extracted topics
-    if (result.extracted_topics && result.extracted_topics.length > 0) {
-      updateTopicsList(result.extracted_topics);
-
-      // Store scroll position before showing alert
-      const scrollPosition = window.scrollY;
-      
-      // Show success message with topic count
-      alert(
-        `Materials analyzed successfully! Found ${result.extracted_topics.length} topics.`
-      );
-      
-      // Restore scroll position after alert is dismissed (use setTimeout to ensure it happens after browser processes the alert)
-      setTimeout(() => {
-        window.scrollTo(0, scrollPosition);
-      }, 0);
-    } else {
-      // Store scroll position before showing alert
-      const scrollPosition = window.scrollY;
-      
-      alert("Materials analyzed, but no topics were extracted.");
-      
-      // Restore scroll position after alert is dismissed
-      setTimeout(() => {
-        window.scrollTo(0, scrollPosition);
-      }, 0);
+    if (result.analysis && result.analysis.topics && result.analysis.topics.length > 0) {
+        // Pass the FULL rich topic objects!
+        updateTopicsList(result.analysis.topics);
+    } else if (result.extracted_topics && result.extracted_topics.length > 0) {
+        // Fallback to string list
+        updateTopicsList(result.extracted_topics);
     }
+
+    // Handle Slide Recommendations
+    if (result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
+        renderRecommendations(result.analysis.recommendations);
+    }
+
+    // Success alert logic
+    const scrollPosition = window.scrollY;
+    let message = "Materials analyzed successfully!";
+    if (result.extracted_topics && result.extracted_topics.length > 0) {
+        message += ` Found ${result.extracted_topics.length} topics.`;
+    }
+    if (result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
+        message += `\n\nCheck below for ${result.analysis.recommendations.length} slide improvement recommendations.`;
+    }
+    
+    alert(message);
+    
+    setTimeout(() => {
+        window.scrollTo(0, scrollPosition);
+        // Scroll to recommendations if they exist
+        const recSection = document.getElementById("slide-recommendations-section");
+        if (recSection && result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
+            recSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 0);
 
     return result;
   } catch (error) {
@@ -1277,23 +1296,113 @@ function updateTopicsList(topics) {
   }
 
   // Clear existing dynamic topics (keep manual ones if any)
-  // Or just clear all and add the new topics
   topicList.innerHTML = "";
 
-  topics.forEach((topicName) => {
-    const topicPill = document.createElement("div");
-    topicPill.className =
-      "py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 flex items-center gap-2";
-    topicPill.innerHTML = `
+  // Pastel colors for variety
+  const colorSchemes = [
+    { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-800", badge: "bg-blue-100 text-blue-700" },
+    { bg: "bg-purple-50", border: "border-purple-100", text: "text-purple-800", badge: "bg-purple-100 text-purple-700" },
+    { bg: "bg-rose-50", border: "border-rose-100", text: "text-rose-800", badge: "bg-rose-100 text-rose-700" },
+    { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-800", badge: "bg-amber-100 text-amber-700" },
+    { bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-800", badge: "bg-emerald-100 text-emerald-700" },
+    { bg: "bg-indigo-50", border: "border-indigo-100", text: "text-indigo-800", badge: "bg-indigo-100 text-indigo-700" },
+  ];
+
+  topics.forEach((topic, index) => {
+    // Determine if topic is a string or an object
+    const isObject = typeof topic === "object" && topic !== null;
+    const topicName = isObject ? topic.name : topic;
+    const colors = colorSchemes[index % colorSchemes.length];
+    
+    // Create a container for the card
+    const topicCard = document.createElement("div");
+    
+    // Base classes for the card - using the color scheme
+    topicCard.className = `group w-full ${colors.bg} border ${colors.border} rounded-lg p-3 hover:shadow-md transition-all cursor-pointer relative overflow-hidden`;
+    
+    if (isObject) {
+        // RICH TOPIC CARD
+        const description = topic.description || "No description available.";
+        const subtopics = topic.subtopics || [];
+        const keyConcepts = topic.key_concepts || [];
+        const time = topic.estimated_time || "";
+        
+        // Unique ID for toggling
+        const topicId = "topic-" + Math.random().toString(36).substr(2, 9);
+        
+        topicCard.innerHTML = `
+            <div class="flex justify-between items-start mb-1" onclick="toggleTopicDetails('${topicId}')">
+                <div class="flex flex-col gap-1 flex-grow min-w-0 mr-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-semibold ${colors.text} text-sm leading-tight">${topicName}</span>
+                        ${time ? `<span class="text-[10px] px-1.5 py-0.5 bg-white/60 ${colors.text} rounded-full font-medium whitespace-normal max-w-full">${time}</span>` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <button class="text-gray-400 hover:text-gray-600 transition-colors transform duration-200" id="btn-${topicId}">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <button onclick="event.stopPropagation(); removeTopicPill(this)" class="text-gray-300 hover:text-red-500 transition-colors ml-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Collapsed Description (Truncated) -->
+            <p class="text-xs text-gray-500 line-clamp-2 group-hover:text-gray-700 transition-colors" onclick="toggleTopicDetails('${topicId}')">${description}</p>
+            
+            <!-- Expanded Details -->
+            <div id="${topicId}" class="hidden mt-3 pt-3 border-t ${colors.border} space-y-3">
+                <!-- Full Description -->
+                <p class="text-xs text-gray-600 italic">${description}</p>
+
+                ${subtopics.length > 0 ? `
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Subtopics</p>
+                    <ul class="text-xs text-gray-600 list-disc list-inside space-y-1 pl-1">
+                        ${subtopics.map(st => `<li>${st}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+                
+                ${keyConcepts.length > 0 ? `
+                <div>
+                    <p class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Key Concepts</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        ${keyConcepts.map(kc => `<span class="px-2 py-0.5 bg-white ${colors.text} border ${colors.border} text-[10px] rounded-md font-medium shadow-sm">${kc}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    } else {
+        // SIMPLE TOPIC PILL (Legacy / Manual)
+        topicCard.className = `py-2 px-3 rounded-lg ${colors.bg} border ${colors.border} ${colors.text} text-sm font-medium flex items-center justify-between hover:shadow-sm transition-all`;
+        topicCard.innerHTML = `
             <span>${topicName}</span>
-            <button onclick="removeTopicPill(this)" class="text-red-600 hover:text-red-800 ml-1">
-                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <button onclick="removeTopicPill(this)" class="text-gray-400 hover:text-red-600 ml-2">
+                <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         `;
-    topicList.appendChild(topicPill);
+    }
+    
+    topicList.appendChild(topicCard);
   });
+}
+
+function toggleTopicDetails(id) {
+    const content = document.getElementById(id);
+    const btn = document.getElementById('btn-' + id);
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        if(btn) btn.classList.add('rotate-180');
+    } else {
+        content.classList.add('hidden');
+        if(btn) btn.classList.remove('rotate-180');
+    }
 }
 
 function removeTopicPill(button) {
@@ -1888,13 +1997,14 @@ async function showLectureAnalysis(lectureId) {
 
     const API_BASE_URL = "http://localhost:8001/api";
 
-    // Fetch lecture, analysis, survey data, and survey responses
-    const [lectureResponse, analysisResponse, surveysResponse, responsesResponse] =
+    // Fetch lecture, analysis, survey data, survey responses, AND materials analysis
+    const [lectureResponse, analysisResponse, surveysResponse, responsesResponse, materialsResponse] =
       await Promise.all([
         fetch(`${API_BASE_URL}/lectures/${lectureId}`),
         fetch(`${API_BASE_URL}/lectures/${lectureId}/analysis`),
         fetch(`${API_BASE_URL}/lectures/${lectureId}/surveys`), // Fetch existing surveys
         fetch(`${API_BASE_URL}/lectures/${lectureId}/survey-responses`), // Fetch survey responses
+        fetch(`${API_BASE_URL}/lectures/${lectureId}/materials-analysis`).catch(() => ({ ok: false })), // Fetch materials analysis (optional)
       ]);
 
     if (!lectureResponse.ok) {
@@ -1908,6 +2018,7 @@ async function showLectureAnalysis(lectureId) {
     // Surveys and responses can be empty, so we don't throw an error if not found
     const surveys = surveysResponse.ok ? await surveysResponse.json() : [];
     const responses = responsesResponse.ok ? await responsesResponse.json() : [];
+    const materialsAnalysis = materialsResponse.ok ? await materialsResponse.json() : null;
 
     const lecture = await lectureResponse.json();
     const analysis = await analysisResponse.json();
@@ -1927,7 +2038,7 @@ async function showLectureAnalysis(lectureId) {
 
     // Wait for the screen to be fully loaded before populating
     setTimeout(async () => {
-      await populateAnalysisPage(lecture, analysis, surveys, responses); // Pass surveys and responses
+      await populateAnalysisPage(lecture, analysis, surveys, responses, materialsAnalysis); // Pass surveys, responses, and materials analysis
     }, 100);
   } catch (error) {
     console.error("Error loading lecture analysis:", error);
@@ -2192,7 +2303,7 @@ function populateTranscript(transcript) {
   transcriptContainer.innerHTML = html;
 }
 
-function populateTopicCoverage(topics) {
+function populateTopicCoverage(topics, materialsAnalysis = null) {
   // Find the topic coverage container - it's the first aside section
   const topicSection = document.querySelector(
     "#screen-lecture-analysis aside .bg-white\\/80.backdrop-blur-sm.p-6.rounded-xl.shadow-md"
@@ -2202,28 +2313,112 @@ function populateTopicCoverage(topics) {
   const topicContainer = topicSection.querySelector(".space-y-3");
   if (!topicContainer) return;
 
-  let html = "";
-  topics.forEach((topic) => {
-    const iconColor = topic.covered ? "bg-green-100" : "bg-red-100";
-    const textColor = topic.covered ? "text-green-600" : "text-red-600";
-    const status = topic.covered ? "Covered" : "Missed";
-    const icon = topic.covered
-      ? '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />'
-      : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
+  // Use the same pastel color schemes as the planning stage
+  const colorSchemes = [
+    { bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-800", badge: "bg-blue-100 text-blue-700" },
+    { bg: "bg-purple-50", border: "border-purple-100", text: "text-purple-800", badge: "bg-purple-100 text-purple-700" },
+    { bg: "bg-rose-50", border: "border-rose-100", text: "text-rose-800", badge: "bg-rose-100 text-rose-700" },
+    { bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-800", badge: "bg-amber-100 text-amber-700" },
+    { bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-800", badge: "bg-emerald-100 text-emerald-700" },
+    { bg: "bg-indigo-50", border: "border-indigo-100", text: "text-indigo-800", badge: "bg-indigo-100 text-indigo-700" },
+  ];
 
-    html += `
-            <div class="flex items-center gap-3">
-                <span class="flex-shrink-0 w-6 h-6 rounded-full ${iconColor} flex items-center justify-center">
-                    <svg class="w-4 h-4 ${textColor}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        ${icon}
-                    </svg>
-                </span>
-                <span class="font-medium text-gray-700">${topic.topic} (${status})</span>
+  topicContainer.innerHTML = ""; // Clear existing
+
+  topics.forEach((topic, index) => {
+    const isCovered = topic.covered;
+    // Different icon logic for covered/missed, but keeping the card style rich
+    const statusIcon = isCovered
+      ? `<span class="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><svg class="w-3 h-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>`
+      : `<span class="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center"><svg class="w-3 h-3 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></span>`;
+    
+    const statusText = isCovered 
+      ? `<span class="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium uppercase tracking-wide">Covered</span>`
+      : `<span class="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full font-medium uppercase tracking-wide">Missed</span>`;
+
+    // Try to find rich data from materialsAnalysis
+    let richData = null;
+    if (materialsAnalysis && materialsAnalysis.topics) {
+        // Loose matching logic
+        richData = materialsAnalysis.topics.find(t => 
+            t.name.toLowerCase().includes(topic.topic.toLowerCase()) || 
+            topic.topic.toLowerCase().includes(t.name.toLowerCase())
+        );
+    }
+
+    const colors = colorSchemes[index % colorSchemes.length];
+    const topicCard = document.createElement("div");
+    
+    // Base style matching the planning stage
+    topicCard.className = `group w-full ${colors.bg} border ${colors.border} rounded-lg p-3 hover:shadow-md transition-all cursor-pointer relative overflow-hidden`;
+
+    // Unique ID for toggling
+    const topicId = "analysis-topic-" + Math.random().toString(36).substr(2, 9);
+
+    // Content for the card
+    let description = "No description available.";
+    let subtopics = [];
+    let keyConcepts = [];
+    
+    if (richData) {
+        description = richData.description || description;
+        subtopics = richData.subtopics || [];
+        keyConcepts = richData.key_concepts || [];
+    }
+
+    topicCard.innerHTML = `
+        <div class="flex justify-between items-start mb-1" onclick="toggleTopicDetails('${topicId}')">
+            <div class="flex flex-col gap-1 flex-grow min-w-0 mr-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    ${statusIcon}
+                    <span class="font-semibold ${colors.text} text-sm leading-tight">${topic.topic}</span>
+                    ${statusText}
+                </div>
             </div>
-        `;
-  });
+            <div class="flex items-center gap-1 flex-shrink-0">
+                <button class="text-gray-400 hover:text-gray-600 transition-colors transform duration-200" id="btn-${topicId}">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Collapsed Description (Truncated) -->
+        <p class="text-xs text-gray-500 line-clamp-2 group-hover:text-gray-700 transition-colors mt-1" onclick="toggleTopicDetails('${topicId}')">${description}</p>
+        
+        <!-- Expanded Details -->
+        <div id="${topicId}" class="hidden mt-3 pt-3 border-t ${colors.border} space-y-3">
+            <p class="text-xs text-gray-600 italic">${description}</p>
 
-  topicContainer.innerHTML = html;
+            ${subtopics.length > 0 ? `
+            <div>
+                <p class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Subtopics</p>
+                <ul class="text-xs text-gray-600 list-disc list-inside space-y-1 pl-1">
+                    ${subtopics.map(st => `<li>${st}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            
+            ${keyConcepts.length > 0 ? `
+            <div>
+                <p class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Key Concepts</p>
+                <div class="flex flex-wrap gap-1.5">
+                    ${keyConcepts.map(kc => `<span class="px-2 py-0.5 bg-white ${colors.text} border ${colors.border} text-[10px] rounded-md font-medium shadow-sm">${kc}</span>`).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            <!-- Analysis Note (if any from video analysis) -->
+            ${topic.notes ? `
+            <div class="mt-2 pt-2 border-t border-dashed ${colors.border}">
+                <p class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Analysis Note</p>
+                <p class="text-xs text-gray-700">${topic.notes}</p>
+            </div>
+            ` : ''}
+        </div>
+    `;
+
+    topicContainer.appendChild(topicCard);
+  });
 }
 
 function populateAIReflections(reflections) {
@@ -2441,11 +2636,40 @@ async function submitForAnalysis() {
     return;
   }
 
-  // Disable button and show loading state
+  // Disable button and show loading state with progress bar
   submitBtn.disabled = true;
   const originalText = submitBtn.innerHTML;
-  submitBtn.innerHTML =
-    '<svg class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing...';
+  
+  // Initial loading state
+  submitBtn.innerHTML = `
+    <div class="flex flex-col items-center w-full">
+        <div class="flex items-center gap-2 mb-1">
+            <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>Analyzing Video... <span id="analysis-progress-text">0%</span></span>
+        </div>
+        <div class="w-full bg-indigo-700/50 rounded-full h-1.5 mt-1 overflow-hidden">
+            <div id="analysis-progress-bar" class="bg-white h-1.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+        </div>
+    </div>
+  `;
+
+  // Simulated progress logic
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    // Fast at first, then slows down
+    let increment = 0;
+    if (progress < 30) increment = Math.random() * 5;
+    else if (progress < 60) increment = Math.random() * 2;
+    else if (progress < 90) increment = Math.random() * 0.5;
+    
+    progress = Math.min(progress + increment, 90); // Cap at 90% until done
+    
+    const progressBar = document.getElementById('analysis-progress-bar');
+    const progressText = document.getElementById('analysis-progress-text');
+    
+    if (progressBar) progressBar.style.width = `${progress}%`;
+    if (progressText) progressText.textContent = `${Math.round(progress)}%`;
+  }, 500);
 
   try {
     const API_BASE_URL = "http://localhost:8001/api";
@@ -2464,6 +2688,8 @@ async function submitForAnalysis() {
       }
     );
 
+    clearInterval(progressInterval);
+
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -2472,6 +2698,15 @@ async function submitForAnalysis() {
         errorData.detail || `HTTP error! status: ${response.status}`
       );
     }
+
+    // Complete progress bar
+    const progressBar = document.getElementById('analysis-progress-bar');
+    const progressText = document.getElementById('analysis-progress-text');
+    if (progressBar) progressBar.style.width = "100%";
+    if (progressText) progressText.textContent = "100%";
+    
+    // Brief pause to show 100%
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const analysisResult = await response.json();
 
@@ -3119,4 +3354,124 @@ function saveCourseProfile(button) {
       button.classList.remove('bg-green-600', 'hover:bg-green-500');
     }, 2000);
   }, 1000);
+}
+
+/**
+ * Renders recommendations to the UI
+ */
+function renderRecommendations(recommendations) {
+    const recommendationsSection = document.getElementById("slide-recommendations-section");
+    const recommendationsList = document.getElementById("recommendations-list");
+    const placeholder = document.getElementById("recommendations-placeholder");
+    const content = document.getElementById("recommendations-content");
+    
+    if (!recommendationsList) return;
+    
+    // Helper to get icon
+    const getIconForType = (type) => {
+        const normalizedType = (type || "").toLowerCase();
+        if (normalizedType.includes("visual")) {
+            return `<div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>`;
+        } else if (normalizedType.includes("text")) {
+            return `<div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </div>`;
+        } else if (normalizedType.includes("clarity")) {
+            return `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>`;
+        } else {
+                return `<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+            </div>`;
+        }
+    };
+
+    // Helper to get badge class
+    const getBadgeClass = (type) => {
+            const normalizedType = (type || "").toLowerCase();
+            if (normalizedType.includes("visual")) return "bg-purple-100 text-purple-800";
+            if (normalizedType.includes("text")) return "bg-yellow-100 text-yellow-800";
+            if (normalizedType.includes("clarity")) return "bg-blue-100 text-blue-800";
+            return "bg-green-100 text-green-800";
+    };
+
+    // Clear previous
+    recommendationsList.innerHTML = "";
+
+    recommendations.forEach(rec => {
+        const html = `
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow animate-fade-in">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-1">
+                    ${getIconForType(rec.type)}
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Slide ${rec.slide_number || 'General'}</span>
+                        <span class="text-xs font-medium px-2 py-0.5 rounded-full ${getBadgeClass(rec.type)}">${(rec.type || 'General').charAt(0).toUpperCase() + (rec.type || 'General').slice(1)}</span>
+                    </div>
+                    <h4 class="text-md font-semibold text-gray-800 mb-1">${rec.suggestion}</h4>
+                    <p class="text-sm text-gray-600">${rec.rationale}</p>
+                </div>
+            </div>
+        </div>
+        `;
+        recommendationsList.innerHTML += html;
+    });
+    
+    // Toggle views
+    if (placeholder) placeholder.classList.add("hidden");
+    if (content) content.classList.remove("hidden");
+    if (recommendationsSection) {
+        recommendationsSection.classList.remove("hidden");
+        recommendationsSection.classList.add("animate-fade-in");
+    }
+}
+
+/**
+ * Loads existing materials analysis for a lecture
+ */
+async function loadMaterialsAnalysis(lectureId) {
+    if (!lectureId) return;
+    
+    try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}/materials-analysis`);
+        
+        if (response.ok) {
+            const analysisData = await response.json();
+            
+            // Check for recommendations
+            if (analysisData.recommendations && analysisData.recommendations.length > 0) {
+                renderRecommendations(analysisData.recommendations);
+            }
+            
+            // Also update topics if present
+            if (analysisData.topics && analysisData.topics.length > 0) {
+                // Pass full objects for rich rendering
+                updateTopicsList(analysisData.topics);
+            }
+        }
+    } catch (error) {
+        // Silent fail if no analysis exists yet
+        console.log("No existing materials analysis found or error loading it.");
+    }
+}
+
+// --- Recommendations UI Toggles ---
+
+function toggleRecommendations() {
+    const body = document.getElementById('recommendations-body');
+    const chevron = document.getElementById('recommendations-chevron');
+    
+    if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+    } else {
+        body.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+    }
 }

@@ -88,6 +88,11 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
         3. **Learning Objectives**: What should students learn from this lecture based on the materials?
         4. **Key Concepts**: Important terms, definitions, or concepts mentioned
         5. **Estimated Coverage**: Brief notes on how much time/depth each topic might require
+        6. **Slide Quality Feedback**: Provide specific, actionable recommendations to improve the slides. Focus on:
+            - **Visuals**: Are there slides that need more images/diagrams? (e.g., "Slide 7 is text-heavy, add a diagram")
+            - **Text Density**: Are there slides with too many words? (e.g., "Slide 4 has >100 words, simplify bullets")
+            - **Clarity**: Are any charts or diagrams confusing?
+            - **Engagement**: Ideas to make specific slides more interactive.
 
         Return the analysis in this exact JSON structure:
         {{
@@ -103,6 +108,14 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
             "learning_objectives": [
                 "Objective 1",
                 "Objective 2"
+            ],
+            "recommendations": [
+                {{
+                    "type": "visual|text|clarity|engagement",
+                    "slide_number": "Approximate slide number if inferable, or 'General'",
+                    "suggestion": "Specific recommendation text",
+                    "rationale": "Why this change helps student learning"
+                }}
             ],
             "summary": "Overall summary of what this lecture intends to cover",
             "total_topics_count": 0
@@ -251,19 +264,28 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
             }
             mime_type = mime_type_map.get(extension, 'video/mp4')
         
+        # Check file size
+        video_path_obj = Path(video_path)
+        file_size_mb = video_path_obj.stat().st_size / (1024 * 1024)
+        print(f"Video file size: {file_size_mb:.2f} MB")
+        
+        # Warn if file is very large
+        if file_size_mb > 500:
+            print(f"WARNING: Large file ({file_size_mb:.2f} MB). This may take a while or fail.")
+        
         # Upload video file (use 'file' parameter, not 'path')
         print(f"Uploading video file: {video_path} (mime type: {mime_type})")
         video_file = client.files.upload(file=video_path)
         
         # Wait for the file to be processed and become ACTIVE
         print(f"Uploaded file: {video_file.name}, waiting for processing...")
-        max_wait_time = 300  # Maximum 5 minutes
+        max_wait_time = 600  # Maximum 10 minutes (increased from 5)
         wait_time = 0
-        check_interval = 2  # Check every 2 seconds
+        check_interval = 3  # Check every 3 seconds (reduced API calls)
         
         while video_file.state == "PROCESSING":
             if wait_time >= max_wait_time:
-                raise Exception(f"File processing timeout after {max_wait_time} seconds. File state: {video_file.state}")
+                raise Exception(f"File processing timeout after {max_wait_time} seconds. File state: {video_file.state}. Try with a smaller video file or different format.")
             
             print(f"File state: {video_file.state}, waiting... ({wait_time}s)")
             time.sleep(check_interval)
@@ -271,7 +293,16 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
             video_file = client.files.get(name=video_file.name)
         
         if video_file.state != "ACTIVE":
-            raise Exception(f"File processing failed. State: {video_file.state}")
+            # Provide more helpful error message
+            error_msg = f"File processing failed. State: {video_file.state}."
+            error_msg += f"\n\nFile: {video_path_obj.name} ({file_size_mb:.2f} MB)"
+            error_msg += f"\nMIME Type: {mime_type}"
+            error_msg += "\n\nPossible causes:"
+            error_msg += "\n- Video file is too large (try a smaller file or compress it)"
+            error_msg += "\n- Video codec is unsupported (try converting to MP4 with H.264)"
+            error_msg += "\n- File is corrupted"
+            error_msg += "\n- Gemini API is experiencing issues"
+            raise Exception(error_msg)
         
         print(f"File is now {video_file.state}, proceeding with analysis using low resolution to save tokens...")
         

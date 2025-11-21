@@ -18,5 +18,15 @@
     "semester": "Fall 2025",
     "description": "",
     "createdAt": "2025-11-12T10:10:18.671043"
+  },
+  {
+    "id": "644386aa-4d75-49b5-8a1b-c2e08ecb7039",
+    "code": "AS.200.201",
+    "name": "Intro to Psychology",
+    "totalLectures": 0,
+    "currentLecture": 0,
+    "semester": "Fall 2025",
+    "description": "We will use this to evaluate our good and bad lectures",
+    "createdAt": "2025-11-21T16:30:13.210203"
   }
 ]

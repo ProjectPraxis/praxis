@@ -182,5 +182,223 @@
         "created_at": "2024-05-15T14:30:00Z"
       }
     ]
+  },
+  {
+    "id": "dd4eeaa1-6a84-4389-9123-7c4009c17c32",
+    "title": "Mark",
+    "topics": [
+      "Adapting HCI Principles for 3D Interaction",
+      "New HCI Imperatives: Safety, Ethics, and Social Acceptance",
+      "Design Trade-Offs: The Promise and Peril of Infinite Space",
+      "Analyzing Spatial Interaction with Norman's Model",
+      "Introduction to Spatial Computing",
+      "Designing for Safety and Imperfect Humans",
+      "Design Case Study: The Promise and Peril of Infinite Space",
+      "Gestalt Principles Under Stress",
+      "Market Context and Industry Investment",
+      "Ethical and Social Dimensions of Spatial Computing"
+    ],
+    "hasSlides": true,
+    "fileName": "21f37ddc-ee9f-4952-9fc4-31112ba916e9.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/21f37ddc-ee9f-4952-9fc4-31112ba916e9.pdf",
+    "hasVideo": false,
+    "videoName": null,
+    "videoPath": null,
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-11-21T14:47:33.716690",
+    "hasAnalysis": false,
+    "analysisPath": null,
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/dd4eeaa1-6a84-4389-9123-7c4009c17c32_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "90455d8d-f168-4f63-af94-27da5f096891",
+    "title": "Siam",
+    "topics": [
+      "Applying HCI Principles to Spatial Environments",
+      "Introduction to Spatial Computing",
+      "Safety, Ethics, and Social Acceptance",
+      "Design Strategies and Challenges in Spatial Computing"
+    ],
+    "hasSlides": true,
+    "fileName": "0aafd368-fcfa-4aec-b8fd-037e36e9b97e.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/0aafd368-fcfa-4aec-b8fd-037e36e9b97e.pdf",
+    "hasVideo": true,
+    "videoName": "34c20866-6fcb-4c35-b789-55822269cf13.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/34c20866-6fcb-4c35-b789-55822269cf13.MOV",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-11-21T14:56:49.606439",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/90455d8d-f168-4f63-af94-27da5f096891_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/90455d8d-f168-4f63-af94-27da5f096891_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "795d951d-ca1d-4fe8-acd5-493d8e399bf9",
+    "title": "HHHHH",
+    "topics": [
+      "Safety and Error Prevention in XR",
+      "Introduction to Spatial Computing",
+      "Core Interaction Concepts in XR",
+      "Ethical Considerations and Social Acceptability",
+      "Design Challenges and Trade-offs in XR",
+      "Applying Classical HCI Models to XR",
+      "The Shift in Human-Computer Interaction (HCI)",
+      "Applying Perceptual Principles to XR"
+    ],
+    "hasSlides": true,
+    "fileName": "be63dd0c-94e3-425c-9773-06e30eaa3e6e.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/be63dd0c-94e3-425c-9773-06e30eaa3e6e.pdf",
+    "hasVideo": true,
+    "videoName": "ff5beaa8-da5f-4046-a233-cb16bc99a27e.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/ff5beaa8-da5f-4046-a233-cb16bc99a27e.MOV",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-11-21T14:57:51.106187",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/795d951d-ca1d-4fe8-acd5-493d8e399bf9_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/795d951d-ca1d-4fe8-acd5-493d8e399bf9_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "ea5bc4e6-f560-41d6-aec7-dd31584be6ab",
+    "title": "fdsfdafdsf",
+    "topics": [
+      "Ethical and Social Dimensions of Spatial Computing",
+      "Introduction to Spatial Computing",
+      "Designing for Safety and Imperfect Humans",
+      "Analyzing Spatial Interaction with HCI Models",
+      "Perceptual and Cognitive Challenges in XR"
+    ],
+    "hasSlides": true,
+    "fileName": "9df60a0a-3e5a-4e0f-9118-5d2e210f2197.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/9df60a0a-3e5a-4e0f-9118-5d2e210f2197.pdf",
+    "hasVideo": true,
+    "videoName": "3a1603ad-fe4a-47c3-acc6-a0c87bd43a75.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/3a1603ad-fe4a-47c3-acc6-a0c87bd43a75.MOV",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-11-21T15:07:59.435191",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/ea5bc4e6-f560-41d6-aec7-dd31584be6ab_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/ea5bc4e6-f560-41d6-aec7-dd31584be6ab_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "sc-comprehension-survey-89102",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/ea5bc4e6-f560-41d6-aec7-dd31584be6ab_survey_sc-comprehension-survey-89102.json",
+        "created_at": "2023-10-27T10:00:00Z"
+      }
+    ]
+  },
+  {
+    "id": "840fdbd5-c206-4f64-b13c-089fef54d126",
+    "title": "hasfafdsaf",
+    "topics": [
+      "Introduction to Spatial Computing",
+      "Core HCI Principles Under Stress",
+      "The Evolving Role of the Designer",
+      "Designing for Spatial Interaction (Live Demo & Analysis)",
+      "Safety, Ethics, and New Design Heuristics"
+    ],
+    "hasSlides": true,
+    "fileName": "0b545edc-11a9-4167-aa50-8882dd925478.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/0b545edc-11a9-4167-aa50-8882dd925478.pdf",
+    "hasVideo": true,
+    "videoName": "fdca7a6c-7319-4066-84c7-2f8a98a8c669.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/fdca7a6c-7319-4066-84c7-2f8a98a8c669.MOV",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-11-21T15:26:25.466688",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/840fdbd5-c206-4f64-b13c-089fef54d126_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/840fdbd5-c206-4f64-b13c-089fef54d126_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "66d97ea8-3113-4560-9594-60b118f6d8d3",
+    "title": "GOOD Lecture on the Psychology of Habits",
+    "topics": [
+      "Introduction to Habit Formation",
+      "Application and Habit Change",
+      "Deconstructing The Cue",
+      "The Habit Loop Framework",
+      "Debunking Myths in Habit Formation",
+      "The Role of Routine and Reward"
+    ],
+    "hasSlides": true,
+    "fileName": "2608d6a9-12bb-487d-a999-cafadbb52915.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/2608d6a9-12bb-487d-a999-cafadbb52915.pdf",
+    "hasVideo": true,
+    "videoName": "ad4dad81-17c8-43d3-bfc4-b0a9a4cfa6b6.MOV",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/ad4dad81-17c8-43d3-bfc4-b0a9a4cfa6b6.MOV",
+    "classId": "f0ee9afe-d7a9-432c-94ea-3e35820015d5",
+    "createdAt": "2025-11-21T16:06:57.592713",
+    "hasAnalysis": false,
+    "analysisPath": null,
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/66d97ea8-3113-4560-9594-60b118f6d8d3_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "67af3f96-bc7b-4c4e-8efa-a85cdb5a639d",
+    "title": "GOOD Lecture on the Psychology of Habits",
+    "topics": [
+      "Practical Application & Case Studies",
+      "Component 2: The Routine",
+      "The Habit Loop Framework",
+      "Component 1: The Cue",
+      "Principles of Habit Change",
+      "Introduction to the Power of Habit",
+      "Component 3: The Reward"
+    ],
+    "hasSlides": true,
+    "fileName": "6f53907c-cb8c-424a-ac97-068b391e0329.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/6f53907c-cb8c-424a-ac97-068b391e0329.pdf",
+    "hasVideo": true,
+    "videoName": "dde196a3-2bd3-462b-8465-e206a67647af.mp4",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/dde196a3-2bd3-462b-8465-e206a67647af.mp4",
+    "classId": "644386aa-4d75-49b5-8a1b-c2e08ecb7039",
+    "createdAt": "2025-11-21T16:30:21.896943",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/67af3f96-bc7b-4c4e-8efa-a85cdb5a639d_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/67af3f96-bc7b-4c4e-8efa-a85cdb5a639d_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "8b9e4a3f-1d2c-4e5b-8f6a-9b8c7d6e5f4a",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/67af3f96-bc7b-4c4e-8efa-a85cdb5a639d_survey_8b9e4a3f-1d2c-4e5b-8f6a-9b8c7d6e5f4a.json",
+        "created_at": "2023-10-27T10:00:00Z"
+      }
+    ]
+  },
+  {
+    "id": "1e0ffb40-7bad-4c16-9d97-a33039d47a11",
+    "title": "BAD Lecture on Habits",
+    "topics": [
+      "Classical Conditioning",
+      "Timeframe for Habit Formation",
+      "Neural Substrates of Habit",
+      "Operant Conditioning",
+      "Strategies for Habit Change",
+      "Variable Rewards & Dopamine",
+      "Definition of Habits",
+      "The Habit Loop Mechanism"
+    ],
+    "hasSlides": true,
+    "fileName": "93ec2f7c-0716-4c90-a164-c0b65e8f3ebe.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/93ec2f7c-0716-4c90-a164-c0b65e8f3ebe.pdf",
+    "hasVideo": true,
+    "videoName": "417fc805-68b0-4024-8034-903073d257df.mp4",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/417fc805-68b0-4024-8034-903073d257df.mp4",
+    "classId": "644386aa-4d75-49b5-8a1b-c2e08ecb7039",
+    "createdAt": "2025-11-21T16:34:15.787082",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/1e0ffb40-7bad-4c16-9d97-a33039d47a11_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/1e0ffb40-7bad-4c16-9d97-a33039d47a11_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "8b3d5a4c-2f9e-4e1a-8f6b-0c7d9e2a1b3f",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/1e0ffb40-7bad-4c16-9d97-a33039d47a11_survey_8b3d5a4c-2f9e-4e1a-8f6b-0c7d9e2a1b3f.json",
+        "created_at": "2023-10-27T10:30:00Z"
+      }
+    ]
   }
 ]
