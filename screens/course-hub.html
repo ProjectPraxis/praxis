@@ -11,42 +11,19 @@
         </nav>
     </div>
 
-    <div id="tab-overview" class="tab-content space-y-8" data-original-content="true">
+    <div id="tab-overview" class="tab-content space-y-8">
+        <!-- Priority Action Items - Dynamic -->
         <section>
             <h2 class="text-2xl font-semibold text-gray-800 mb-4">Priority Action Items</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border-l-4 border-red-500">
-                    <div class="flex items-start gap-3">
-                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mt-1">
-                            <svg class="w-5 h-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>
-                        </span>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Critical: Deferred Content</h3>
-                            <p class="text-gray-600 mb-3">Lecture 3 ran long, deferring critical topics: <strong>Data Preparation, Understanding, and Documentation</strong>. This is a gap for student projects.</p>
-                            <div class="flex gap-2">
-                                <button onclick="showScreen('screen-lecture-analysis', document.getElementById('nav-courses'))" class="text-sm font-medium text-white py-1.5 px-3 rounded-md primary-gradient hover:opacity-90">See Lecture 3</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
-                    <div class="flex items-start gap-3">
-                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mt-1">
-                            <svg class="w-5 h-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 01-4.5-4.5v-4.5a4.5 4.5 0 014.5-4.5h7.5a4.5 4.5 0 014.5 4.5v4.5a4.5 4.5 0 01-4.5 4.5h-.793c-.704 0-1.402-.03-2.09-.09M15 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H9.66c-.664 0-1.301.266-1.767.733L3.293 6.707A2.25 2.25 0 002.25 8.25v.917a4.5 4.5 0 004.5 4.5h3.75c.704 0 1.402.03 2.09.09m3.841-1.321a4.5 4.5 0 00-1.242-3.243L11.293 3.707A2.25 2.25 0 009.75 2.25h-.083a4.5 4.5 0 00-4.5 4.5v.917a4.5 4.5 0 004.5 4.5h3.75c.704 0 1.402.03 2.09.09m-3.841 1.321c.317.05.631.09.936.123v-2.348c0-.987.803-1.79 1.79-1.79s1.79.803 1.79 1.79v2.348a4.505 4.505 0 01.936-.123" /></svg>
-                        </span>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Plan: Lecture 4</h3>
-                            <p class="text-gray-600 mb-3">Your next lecture, 'Project Proposals', is upcoming. Don't forget to upload your slides for analysis.</p>
-                            <div class="flex gap-2">
-                                <button onclick="showScreen('screen-lecture-planning', document.getElementById('nav-courses'))" class="text-sm font-medium text-white py-1.5 px-3 rounded-md primary-gradient hover:opacity-90">Plan Lecture</button>
-                                <button onclick="alert('Mock: This will ask for feedback (Not helpful, Incorrect, etc.)')" class="text-sm font-medium text-gray-700 py-1.5 px-3 rounded-md bg-gray-100 hover:bg-gray-200">Dismiss</button>
-                            </div>
-                        </div>
-                    </div>
+            <div id="action-items-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Will be populated dynamically -->
+                <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center">
+                    <p class="text-gray-500">Loading action items...</p>
                 </div>
             </div>
         </section>
         
+        <!-- Student Understanding Section - Dynamic -->
         <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-gray-800">Student Understanding (Overall)</h2>
@@ -61,47 +38,28 @@
                     <div class="w-full h-3 rounded-full student-understanding-gradient"></div>
                     <div class="flex justify-between text-xs text-gray-600 mt-1 px-1"><span>Strong</span><span>Developing</span><span>Struggling</span></div>
                 </div>
-                <div class="flex flex-wrap gap-4 items-center">
-                    <button onclick="showTopicDetail('Justifying AI Necessity', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Justifying AI Necessity</button><button onclick="showTopicDetail('Defining Subjective ML Outputs', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Defining Subjective ML Outputs</button><button onclick="showTopicDetail('Appropriate ML Model Selection', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Appropriate ML Model Selection</button><button onclick="showTopicDetail('Appropriate Data Source Selection', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Appropriate Data Source Selection</button><button onclick="showTopicDetail('Data Shift Concepts', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Shift Concepts</button><button onclick="showTopicDetail('Data Preparation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Preparation</button>
-                    <button onclick="showTopicDetail('Data Understanding', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Understanding</button>
-                    <button onclick="showTopicDetail('Data Documentation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full bg-red-500 text-white font-medium shadow-sm">Data Documentation</button><button onclick="showTopicDetail('Data Rights & Licensing', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Rights & Licensing</button><button onclick="showTopicDetail('Fairness Definitions & Trade-offs', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Fairness Definitions & Trade-offs</button><button onclick="showTopicDetail('Evaluating the Overall System', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluating the Overall System</button><button onclick="showTopicDetail('Applying HCD Process Rigorously', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Applying HCD Process Rigorously</button>
-                    <button onclick="showTopicDetail('Data Representation & Bias', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Representation & Bias</button>
-                    <button onclick="showTopicDetail('Human-AI Collaboration Models', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Human-AI Collaboration Models</button>
-                    <button onclick="showTopicDetail('Human-Centered Design (HCD) Principles', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">HCD Principles</button>
-                    <button onclick="showTopicDetail('Design Thinking Process', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Design Thinking Process</button>
-                    <button onclick="showTopicDetail('Data Labeling & Annotation', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Data Labeling & Annotation</button>
-                    <button onclick="showTopicDetail('Evaluation Goals & Planning', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluation Goals & Planning</button>
-                    <button onclick="showTopicDetail('System Evaluation Methods', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">System Evaluation Methods</button>
-                    <button onclick="showTopicDetail('Evaluating Uncertainty', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluating Uncertainty</button>
-                    <button onclick="showTopicDetail('Evaluating Interpretability', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm">Evaluating Interpretability</button><button onclick="showTopicDetail('Problem Definition & Need Finding', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Problem Definition & Need Finding</button><button onclick="showTopicDetail('AI Task Formalization', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">AI Task Formalization</button><button onclick="showTopicDetail('ML Algorithm Evaluation Metrics', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">ML Algorithm Evaluation Metrics</button>
-                    <button onclick="showTopicDetail('Data Collection & Access', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Data Collection & Access</button>
-                    <button onclick="showTopicDetail('ML Algorithm Evaluation', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">ML Algorithm Evaluation</button>
-                    <button onclick="showTopicDetail('Project Proposal Development', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Project Proposal Development</button>
-                    <button onclick="showTopicDetail('Defining Implications', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full bg-green-500 text-white font-medium shadow-sm">Defining Implications</button>
+                <div id="student-understanding-pills" class="flex flex-wrap gap-4 items-center">
+                    <!-- Will be populated dynamically -->
+                    <p class="text-gray-500 text-sm">Loading topics...</p>
                 </div>
             </div>
             
             <div id="knowledge-graph-view" class="hidden relative h-72">
-                <p class="text-sm text-gray-600 mb-4">Mock knowledge graph showing topic dependencies and student understanding.</p>
-                <div class="kg-node is-covered" style="top: 2rem; left: 2rem;">1. Problem Definition</div>
-                <div class="kg-node is-covered" style="top: 8rem; left: 10rem;">2. User-Centered Design</div>
-                <div class="kg-node is-covered" style="top: 2rem; left: 18rem;">3. Data Access</div>
-                <div class="kg-node is-struggling" style="top: 8rem; left: 26rem;">4. Data Shift Theory</div>
-                <div class="kg-connector" style="top: 4.5rem; left: 8.5rem; width: 3rem; height: 2px; transform: rotate(20deg);"></div>
-                <div class="kg-connector" style="top: 4.5rem; left: 16.5rem; width: 3rem; height: 2px; transform: rotate(-20deg);"></div>
-                <div class="kg-connector" style="top: 7.5rem; left: 18rem; width: 8rem; height: 2px;"></div>
+                <p class="text-sm text-gray-600 mb-4">Knowledge graph visualization coming soon.</p>
             </div>
 
         </section>
 
+        <!-- Course Coverage Section - Dynamic -->
         <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Course Coverage</h2>
             <div class="flex items-center gap-4 mb-4 text-sm">
                 <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full course-coverage-gradient"></div><span>Covered</span></div>
                 <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-gray-200 border border-gray-300"></div><span>Planned</span></div>
             </div>
-            <div class="flex flex-wrap gap-4 items-center">
-                <button onclick="showTopicDetail('Problem Definition & Need Finding', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Problem Definition & Need Finding</button><button onclick="showTopicDetail('AI Task Formalization', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">AI Task Formalization</button><button onclick="showTopicDetail('Human-AI Collaboration Models', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Human-AI Collaboration Models</button><button onclick="showTopicDetail('Human-Centered Design (HCD) Principles', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">HCD Principles</button><button onclick="showTopicDetail('Design Thinking Process', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Design Thinking Process</button><button onclick="showTopicDetail('Data Collection & Access', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data Collection & Access</button><button onclick="showTopicDetail('Data Representation & Bias', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data Representation & Bias</button><button onclick="showTopicDetail('Data Shift', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient">Data Shift</button><button onclick="showTopicDetail('Data Preparation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Preparation</button><button onclick="showTopicDetail('Data Labeling & Annotation', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Labeling & Annotation</button><button onclick="showTopicDetail('Data Understanding', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Understanding</button><button onclick="showTopicDetail('Data Documentation', 'Struggling', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Data Documentation</button><button onclick="showTopicDetail('Evaluation Goals & Planning', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluation Goals & Planning</button><button onclick="showTopicDetail('System Evaluation Methods', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">System Evaluation Methods</button><button onclick="showTopicDetail('ML Algorithm Evaluation', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">ML Algorithm Evaluation</button><button onclick="showTopicDetail('Evaluating Uncertainty', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluating Uncertainty</button><button onclick="showTopicDetail('Evaluating Fairness', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluating Fairness</button><button onclick="showTopicDetail('Evaluating Interpretability', 'Developing', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Evaluating Interpretability</button><button onclick="showTopicDetail('Project Proposal Development', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Project Proposal Development</button><button onclick="showTopicDetail('Defining Implications', 'Strong', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300">Defining Implications</button>
+            <div id="course-coverage-pills" class="flex flex-wrap gap-4 items-center">
+                <!-- Will be populated dynamically -->
+                <p class="text-gray-500 text-sm">Loading coverage data...</p>
             </div>
         </section>
     </div>

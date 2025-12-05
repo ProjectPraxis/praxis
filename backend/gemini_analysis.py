@@ -29,7 +29,7 @@ def get_model():
         return genai.GenerativeModel('gemini-2.5-pro')
     except:
         # Fallback to 1.5 Pro if 2.5 Pro is not available
-        return genai.GenerativeModel('gemini-1.5-flash')
+        return genai.GenerativeModel('gemini-1.5-pro')
 
 
 def format_time(seconds: float) -> str:
@@ -169,7 +169,7 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
         for attempt in range(max_retries):
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model="gemini-2.5-flash",
                     contents=contents,
                     config=config
                 )
@@ -486,7 +486,7 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         for attempt in range(max_retries):
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model="gemini-2.5-flash",
                     contents=contents,
                     config=config
                 )
@@ -718,7 +718,7 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         # Generate survey with Gemini
         print("Generating student survey with Gemini...")
         response = client.models.generate_content(
-            model="gemini-2.5-pro",
+            model="gemini-2.5-flash",
             contents=contents,
             config=config
         )

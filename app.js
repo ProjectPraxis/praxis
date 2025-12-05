@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Check for survey_id in URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const surveyId = urlParams.get("survey_id");
-  
+
   if (surveyId) {
     // Load the survey-taking page
     loadSurveyForStudent(surveyId);
@@ -68,7 +68,7 @@ async function navigateToCourseHub(courseId) {
     showScreen("screen-course-hub", document.getElementById("nav-courses"));
     return;
   }
-  
+
   try {
     const API_BASE_URL = "http://localhost:8001/api";
     const courseResponse = await fetch(`${API_BASE_URL}/classes/${courseId}`);
@@ -102,7 +102,7 @@ async function handleBackButton() {
       return;
     }
   }
-  
+
   // If we're on lecture pages (edit, analysis, planning), go back to course hub
   if (
     currentScreen === "screen-lecture-analysis" ||
@@ -119,7 +119,7 @@ async function handleBackButton() {
           const courseData = await courseResponse.json();
           const navCourses = document.getElementById("nav-courses");
           await showScreen("screen-course-hub", navCourses, courseData);
-          
+
           // Wait for screen to fully load, then switch to lectures tab
           setTimeout(() => {
             const tabBtnLectures = document.getElementById("tab-btn-lectures");
@@ -134,7 +134,7 @@ async function handleBackButton() {
       }
     }
   }
-  
+
   // Default: go to home screen
   showScreen("screen-home-dashboard", document.getElementById("nav-home"));
 }
@@ -162,7 +162,7 @@ function cacheOriginalInsights() {
 async function showScreen(screenId, navElement, courseData = null) {
   // Track current screen for back button navigation
   currentScreen = screenId;
-  
+
   const screenFile = screenFileMap[screenId];
   if (!screenFile) {
     console.error("Unknown screen ID:", screenId);
@@ -186,8 +186,7 @@ async function showScreen(screenId, navElement, courseData = null) {
       // Replace the hardcoded course title with the actual course data
       html = html.replace(
         /<h1[^>]*>.*?<\/h1>/,
-        `<h1 class="text-4xl font-bold text-gray-900">${
-          courseData.code || ""
+        `<h1 class="text-4xl font-bold text-gray-900">${courseData.code || ""
         } - ${courseData.name || ""}</h1>`
       );
 
@@ -263,7 +262,7 @@ async function showScreen(screenId, navElement, courseData = null) {
       if (courseData && courseData.id) {
         currentCourseId = courseData.id;
       }
-      
+
       setTimeout(() => {
         const overviewTab = document.getElementById("tab-btn-overview");
         if (overviewTab) {
@@ -281,12 +280,12 @@ async function showScreen(screenId, navElement, courseData = null) {
     if (screenId === "screen-lecture-analysis") {
       cacheOriginalInsights();
     }
-    
+
     // Load existing recommendations if we are on the planning or edit screen
     if ((screenId === "screen-lecture-planning" || screenId === "screen-lecture-edit") && currentLectureId) {
-        setTimeout(() => {
-            loadMaterialsAnalysis(currentLectureId);
-        }, 100);
+      setTimeout(() => {
+        loadMaterialsAnalysis(currentLectureId);
+      }, 100);
     }
 
     // Scroll to top
@@ -321,13 +320,13 @@ async function showModal(modalId) {
       // The showTopicDetail() function will handle its content.
     } else {
       existingModal.classList.remove("hidden");
-      
+
       // Auto-focus the first input in the modal if it exists
       const firstInput = existingModal.querySelector('input[type="text"], input[type="number"], textarea');
       if (firstInput) {
         setTimeout(() => firstInput.focus(), 100);
       }
-      
+
       return;
     }
   }
@@ -350,8 +349,8 @@ async function showModal(modalId) {
   if (modalFile) {
     try {
       // Add cache-busting for add-class modal to prevent stale cached versions
-      const url = modalId === "modal-add-class" 
-        ? `./modals/${modalFile}?v=${Date.now()}` 
+      const url = modalId === "modal-add-class"
+        ? `./modals/${modalFile}?v=${Date.now()}`
         : `./modals/${modalFile}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Failed to load ${modalFile}`);
@@ -364,7 +363,7 @@ async function showModal(modalId) {
       const newModal = document.getElementById(modalId);
       if (newModal) {
         newModal.classList.remove("hidden");
-        
+
         // Auto-focus the first input in the modal if it exists
         const firstInput = newModal.querySelector('input[type="text"], input[type="number"], textarea');
         if (firstInput) {
@@ -723,12 +722,12 @@ async function handleAddClass(event) {
       const errorData = await response
         .json()
         .catch(() => ({ detail: "Unknown error" }));
-      
+
       // Handle if detail is an object/array (common in FastAPI)
-      const errorMessage = typeof errorData.detail === 'object' 
-        ? JSON.stringify(errorData.detail, null, 2) 
+      const errorMessage = typeof errorData.detail === 'object'
+        ? JSON.stringify(errorData.detail, null, 2)
         : (errorData.detail || `HTTP error! status: ${response.status}`);
-        
+
       throw new Error(errorMessage);
     }
 
@@ -839,9 +838,8 @@ function createClassCard(classData) {
         <div class="flex justify-between items-start mb-4">
             <div>
                 <div class="text-xs text-gray-500">${classData.code || ""}</div>
-                <div class="text-lg font-semibold text-gray-900">${
-                  classData.name || ""
-                }</div>
+                <div class="text-lg font-semibold text-gray-900">${classData.name || ""
+    }</div>
             </div>
             <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -866,50 +864,163 @@ let uploadedVideoFile = null;
 let uploadedMaterialsFile = null;
 
 async function refreshTopicKnowledge() {
-  const topicContainer = document.getElementById("topic-knowledge-pills");
-  if (!topicContainer || !currentCourseId) return;
+  // Redirect to the new comprehensive function
+  await refreshCourseOverview();
+}
+
+async function refreshCourseOverview() {
+  // Get the container elements
+  const actionItemsContainer = document.getElementById("action-items-container");
+  const studentUnderstandingPills = document.getElementById("student-understanding-pills");
+  const courseCoveragePills = document.getElementById("course-coverage-pills");
+
+  // If we're not on the course hub overview tab, skip
+  if (!actionItemsContainer && !studentUnderstandingPills && !courseCoveragePills) {
+    return;
+  }
+
+  if (!currentCourseId) {
+    // Show empty state
+    if (actionItemsContainer) {
+      actionItemsContainer.innerHTML = `
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center col-span-2">
+          <p class="text-gray-500">No course selected. Please select a course to view overview data.</p>
+        </div>`;
+    }
+    return;
+  }
 
   try {
     const API_BASE_URL = "http://localhost:8001/api";
-    const response = await fetch(
-      `${API_BASE_URL}/classes/${currentCourseId}/topic-knowledge`
-    );
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/overview`);
 
-    const topics = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    // Clear only dynamically added pills
-    Array.from(topicContainer.children).forEach((pill) => {
-      if (!pill.hasAttribute("data-original-content")) {
-        pill.remove();
-      }
-    });
+    const data = await response.json();
 
-    // Add pills from API
-    topics.forEach((topic) => {
-      const pill = document.createElement("div");
-      let statusClass = "";
-      switch (topic.status) {
-        case "Strong":
-          statusClass = "topic-pill-strong";
-          break;
-        case "Developing":
-          statusClass = "topic-pill-developing";
-          break;
-        case "Struggling":
-          statusClass = "topic-pill-struggling";
-          break;
-        default:
-          statusClass = "topic-pill-neutral";
-      }
-      pill.className = statusClass;
-      pill.textContent = topic.name;
-      pill.onclick = () => showTopicDetail(topic.name, topic.status, pill);
-      topicContainer.appendChild(pill);
-    });
+    // Render Action Items
+    if (actionItemsContainer) {
+      renderActionItems(actionItemsContainer, data.action_items || []);
+    }
+
+    // Render Student Understanding Pills
+    if (studentUnderstandingPills) {
+      renderStudentUnderstandingPills(studentUnderstandingPills, data.student_understanding || []);
+    }
+
+    // Render Course Coverage Pills
+    if (courseCoveragePills) {
+      renderCourseCoveragePills(courseCoveragePills, data.course_coverage || []);
+    }
+
   } catch (error) {
-    console.error("Error refreshing topic knowledge:", error);
+    console.error("Error refreshing course overview:", error);
+
+    // Show error state
+    if (actionItemsContainer) {
+      actionItemsContainer.innerHTML = `
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center col-span-2">
+          <p class="text-gray-500">Unable to load overview data. Make sure lectures have been analyzed.</p>
+        </div>`;
+    }
+    if (studentUnderstandingPills) {
+      studentUnderstandingPills.innerHTML = `<p class="text-gray-500 text-sm">No topic data available yet. Analyze some lectures to see topic understanding.</p>`;
+    }
+    if (courseCoveragePills) {
+      courseCoveragePills.innerHTML = `<p class="text-gray-500 text-sm">No coverage data available yet. Analyze some lectures to see course coverage.</p>`;
+    }
   }
+}
+
+function renderActionItems(container, actionItems) {
+  if (!actionItems || actionItems.length === 0) {
+    container.innerHTML = `
+      <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center col-span-2">
+        <p class="text-gray-500">No action items yet. Analyze some lectures to get AI-generated recommendations.</p>
+      </div>`;
+    return;
+  }
+
+  const priorityConfig = {
+    critical: { border: "border-red-500", bg: "bg-red-100", text: "text-red-600", icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" },
+    warning: { border: "border-yellow-500", bg: "bg-yellow-100", text: "text-yellow-600", icon: "M12 9v3.75m9.303 3.376c-.866 1.5-2.217 3.374-1.948 3.374h-14.71c-1.73 0-2.813-1.874-1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" },
+    success: { border: "border-green-500", bg: "bg-green-100", text: "text-green-600", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" }
+  };
+
+  let html = "";
+  actionItems.slice(0, 4).forEach(item => {
+    const config = priorityConfig[item.priority] || priorityConfig.warning;
+    html += `
+      <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border-l-4 ${config.border}">
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-8 h-8 rounded-full ${config.bg} flex items-center justify-center mt-1">
+            <svg class="w-5 h-5 ${config.text}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="${config.icon}" />
+            </svg>
+          </span>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(item.title)}</h3>
+            <p class="text-gray-600 mb-2 text-sm">${escapeHtml(item.description).substring(0, 200)}${item.description.length > 200 ? '...' : ''}</p>
+            ${item.lecture_title ? `<p class="text-xs text-gray-400">From: ${escapeHtml(item.lecture_title)}</p>` : ''}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderStudentUnderstandingPills(container, topics) {
+  if (!topics || topics.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 text-sm">No topic data available yet. Analyze some lectures to see topic understanding.</p>`;
+    return;
+  }
+
+  const statusConfig = {
+    struggling: { class: "bg-red-500 text-white", display: "Struggling" },
+    developing: { class: "bg-yellow-500 text-white", display: "Developing" },
+    strong: { class: "bg-green-500 text-white", display: "Strong" }
+  };
+
+  let html = "";
+  topics.forEach(topic => {
+    const config = statusConfig[topic.status] || statusConfig.developing;
+    const escapedTopic = escapeHtml(topic.topic);
+    const escapedStatus = config.display;
+    html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${escapedStatus}', this)" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderCourseCoveragePills(container, coverage) {
+  if (!coverage || coverage.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 text-sm">No coverage data available yet. Analyze some lectures to see course coverage.</p>`;
+    return;
+  }
+
+  let html = "";
+  coverage.forEach(item => {
+    const escapedTopic = escapeHtml(item.topic);
+    if (item.covered) {
+      // Covered topics get the gradient style
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Covered', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+    } else {
+      // Planned topics get gray style
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Planned', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 hover:bg-gray-300 transition-colors">${escapedTopic}</button>`;
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function addNewLecture() {
@@ -931,7 +1042,7 @@ async function handleAddLecture(event) {
   const originalButtonText = submitButton.textContent;
 
   const lectureTitle = formData.get("lecture-name").trim();
-  
+
   if (!lectureTitle) {
     alert("Please enter a lecture name.");
     return;
@@ -1001,7 +1112,7 @@ async function handleAddLecture(event) {
           console.error("Error fetching course for breadcrumb:", error);
         }
       }
-      
+
       const titleInput = document.getElementById("lecture-title-input");
       const topicList = document.getElementById("lecture-topic-list");
       const fileInfo = document.getElementById("uploaded-file-info");
@@ -1022,11 +1133,11 @@ async function handleAddLecture(event) {
     }, 100);
   } catch (error) {
     console.error("Error creating lecture:", error);
-    
+
     // Re-enable submit button and reset text
     submitButton.disabled = false;
     submitButton.textContent = originalButtonText;
-    
+
     alert(
       `Failed to create lecture: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`
     );
@@ -1232,54 +1343,54 @@ async function analyzeMaterials(lectureId, materialsFile = null) {
 
     // Update the UI with extracted topics
     if (result.analysis && result.analysis.topics && result.analysis.topics.length > 0) {
-        // Pass the FULL rich topic objects!
-        updateTopicsList(result.analysis.topics);
+      // Pass the FULL rich topic objects!
+      updateTopicsList(result.analysis.topics);
     } else if (result.extracted_topics && result.extracted_topics.length > 0) {
-        // Fallback to string list
-        updateTopicsList(result.extracted_topics);
+      // Fallback to string list
+      updateTopicsList(result.extracted_topics);
     }
 
     // Handle Slide Recommendations
     if (result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
-        renderRecommendations(result.analysis.recommendations);
+      renderRecommendations(result.analysis.recommendations);
     }
 
     // Success alert logic
     const scrollPosition = window.scrollY;
     let message = "Materials analyzed successfully!";
     if (result.extracted_topics && result.extracted_topics.length > 0) {
-        message += ` Found ${result.extracted_topics.length} topics.`;
+      message += ` Found ${result.extracted_topics.length} topics.`;
     }
     if (result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
-        message += `\n\nCheck below for ${result.analysis.recommendations.length} slide improvement recommendations.`;
+      message += `\n\nCheck below for ${result.analysis.recommendations.length} slide improvement recommendations.`;
     }
-    
+
     alert(message);
-    
+
     setTimeout(() => {
-        window.scrollTo(0, scrollPosition);
-        // Scroll to recommendations if they exist
-        const recSection = document.getElementById("slide-recommendations-section");
-        if (recSection && result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
-            recSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+      window.scrollTo(0, scrollPosition);
+      // Scroll to recommendations if they exist
+      const recSection = document.getElementById("slide-recommendations-section");
+      if (recSection && result.analysis && result.analysis.recommendations && result.analysis.recommendations.length > 0) {
+        recSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }, 0);
 
     return result;
   } catch (error) {
     console.error("Error analyzing materials:", error);
     hideMaterialsLoadingScreen();
-    
+
     // Store scroll position before showing alert
     const scrollPosition = window.scrollY;
-    
+
     alert(
       `Failed to analyze materials: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`
     );
-    
+
     // Restore scroll position after alert is dismissed
     window.scrollTo(0, scrollPosition);
-    
+
     return null;
   }
 }
@@ -1347,24 +1458,24 @@ function updateTopicsList(topics) {
     const isObject = typeof topic === "object" && topic !== null;
     const topicName = isObject ? topic.name : topic;
     const colors = colorSchemes[index % colorSchemes.length];
-    
+
     // Create a container for the card
     const topicCard = document.createElement("div");
-    
+
     // Base classes for the card - using the color scheme
     topicCard.className = `group w-full ${colors.bg} border ${colors.border} rounded-lg p-3 hover:shadow-md transition-all cursor-pointer relative overflow-hidden`;
-    
+
     if (isObject) {
-        // RICH TOPIC CARD
-        const description = topic.description || "No description available.";
-        const subtopics = topic.subtopics || [];
-        const keyConcepts = topic.key_concepts || [];
-        const time = topic.estimated_time || "";
-        
-        // Unique ID for toggling
-        const topicId = "topic-" + Math.random().toString(36).substr(2, 9);
-        
-        topicCard.innerHTML = `
+      // RICH TOPIC CARD
+      const description = topic.description || "No description available.";
+      const subtopics = topic.subtopics || [];
+      const keyConcepts = topic.key_concepts || [];
+      const time = topic.estimated_time || "";
+
+      // Unique ID for toggling
+      const topicId = "topic-" + Math.random().toString(36).substr(2, 9);
+
+      topicCard.innerHTML = `
             <div class="flex justify-between items-start mb-1" onclick="toggleTopicDetails('${topicId}')">
                 <div class="flex flex-col gap-1 flex-grow min-w-0 mr-2">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -1410,9 +1521,9 @@ function updateTopicsList(topics) {
             </div>
         `;
     } else {
-        // SIMPLE TOPIC PILL (Legacy / Manual)
-        topicCard.className = `py-2 px-3 rounded-lg ${colors.bg} border ${colors.border} ${colors.text} text-sm font-medium flex items-center justify-between hover:shadow-sm transition-all`;
-        topicCard.innerHTML = `
+      // SIMPLE TOPIC PILL (Legacy / Manual)
+      topicCard.className = `py-2 px-3 rounded-lg ${colors.bg} border ${colors.border} ${colors.text} text-sm font-medium flex items-center justify-between hover:shadow-sm transition-all`;
+      topicCard.innerHTML = `
             <span>${topicName}</span>
             <button onclick="removeTopicPill(this)" class="text-gray-400 hover:text-red-600 ml-2">
                 <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -1421,22 +1532,22 @@ function updateTopicsList(topics) {
             </button>
         `;
     }
-    
+
     topicList.appendChild(topicCard);
   });
 }
 
 function toggleTopicDetails(id) {
-    const content = document.getElementById(id);
-    const btn = document.getElementById('btn-' + id);
-    
-    if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        if(btn) btn.classList.add('rotate-180');
-    } else {
-        content.classList.add('hidden');
-        if(btn) btn.classList.remove('rotate-180');
-    }
+  const content = document.getElementById(id);
+  const btn = document.getElementById('btn-' + id);
+
+  if (content.classList.contains('hidden')) {
+    content.classList.remove('hidden');
+    if (btn) btn.classList.add('rotate-180');
+  } else {
+    content.classList.add('hidden');
+    if (btn) btn.classList.remove('rotate-180');
+  }
 }
 
 function removeTopicPill(button) {
@@ -1845,7 +1956,7 @@ async function editLecture(lectureId) {
 
     const lecture = await response.json();
     currentLectureId = lectureId;
-    
+
     // Set currentCourseId from lecture
     if (lecture.classId) {
       currentCourseId = lecture.classId;
@@ -2222,7 +2333,7 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
 
   // Populate AI reflections
   populateAIReflections(analysis.ai_reflections || {});
-  
+
   // Populate student feedback
   populateStudentFeedback(responses, surveys);
 }
@@ -2249,11 +2360,10 @@ function populateTimeline(timeline, videoDuration) {
       const width =
         event.width_percent || (event.duration / videoDuration) * 100;
       const timeStr = formatTime(event.start_time);
-      html += `<div class="timeline-event bg-yellow-500" style="left: ${left}%; width: ${width}%;" title="${
-        event.title
-      } (${timeStr})" onclick="showTimelineInsight('clarity', ${JSON.stringify(
-        event
-      ).replace(/"/g, "&quot;")})"></div>`;
+      html += `<div class="timeline-event bg-yellow-500" style="left: ${left}%; width: ${width}%;" title="${event.title
+        } (${timeStr})" onclick="showTimelineInsight('clarity', ${JSON.stringify(
+          event
+        ).replace(/"/g, "&quot;")})"></div>`;
     });
     html += "</div>";
   }
@@ -2272,9 +2382,8 @@ function populateTimeline(timeline, videoDuration) {
         event.type === "question" ? "bg-blue-500" : "bg-green-500";
       const title =
         event.type === "question" ? "Student Question" : "Professor Answer";
-      html += `<div class="timeline-event ${bgColor}" style="left: ${left}%; width: ${width}%;" title="${title} (${timeStr})" onclick="showTimelineInsight('${
-        event.type
-      }', ${JSON.stringify(event).replace(/"/g, "&quot;")})"></div>`;
+      html += `<div class="timeline-event ${bgColor}" style="left: ${left}%; width: ${width}%;" title="${title} (${timeStr})" onclick="showTimelineInsight('${event.type
+        }', ${JSON.stringify(event).replace(/"/g, "&quot;")})"></div>`;
     });
     html += "</div>";
   }
@@ -2289,11 +2398,10 @@ function populateTimeline(timeline, videoDuration) {
       const width =
         event.width_percent || (event.duration / videoDuration) * 100;
       const timeStr = formatTime(event.start_time);
-      html += `<div class="timeline-event bg-green-500" style="left: ${left}%; width: ${width}%;" title="${
-        event.title
-      } (${timeStr})" onclick="showTimelineInsight('positive', ${JSON.stringify(
-        event
-      ).replace(/"/g, "&quot;")})"></div>`;
+      html += `<div class="timeline-event bg-green-500" style="left: ${left}%; width: ${width}%;" title="${event.title
+        } (${timeStr})" onclick="showTimelineInsight('positive', ${JSON.stringify(
+          event
+        ).replace(/"/g, "&quot;")})"></div>`;
     });
     html += "</div>";
   }
@@ -2317,21 +2425,19 @@ function populateTranscript(transcript) {
       item.type === "Success"
         ? "text-green-700"
         : item.type === "Opportunity"
-        ? "text-yellow-700"
-        : item.type === "Question"
-        ? "text-blue-600"
-        : "text-gray-700";
+          ? "text-yellow-700"
+          : item.type === "Question"
+            ? "text-blue-600"
+            : "text-gray-700";
     const speakerLabel =
       item.speaker === "Student"
         ? "[Student Question]"
         : item.speaker === "Professor" && item.type === "Answer"
-        ? "[Professor Answer]"
-        : "";
-    html += `<p><span class="font-semibold text-black">${
-      item.timestamp
-    }</span> ${
-      speakerLabel ? `<span class="font-semibold">${speakerLabel}</span> ` : ""
-    }<span class="${typeClass}">${item.text}</span></p>`;
+          ? "[Professor Answer]"
+          : "";
+    html += `<p><span class="font-semibold text-black">${item.timestamp
+      }</span> ${speakerLabel ? `<span class="font-semibold">${speakerLabel}</span> ` : ""
+      }<span class="${typeClass}">${item.text}</span></p>`;
   });
 
   transcriptContainer.innerHTML = html;
@@ -2365,24 +2471,24 @@ function populateTopicCoverage(topics, materialsAnalysis = null) {
     const statusIcon = isCovered
       ? `<span class="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center"><svg class="w-3 h-3 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>`
       : `<span class="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center"><svg class="w-3 h-3 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></span>`;
-    
-    const statusText = isCovered 
+
+    const statusText = isCovered
       ? `<span class="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium uppercase tracking-wide">Covered</span>`
       : `<span class="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full font-medium uppercase tracking-wide">Missed</span>`;
 
     // Try to find rich data from materialsAnalysis
     let richData = null;
     if (materialsAnalysis && materialsAnalysis.topics) {
-        // Loose matching logic
-        richData = materialsAnalysis.topics.find(t => 
-            t.name.toLowerCase().includes(topic.topic.toLowerCase()) || 
-            topic.topic.toLowerCase().includes(t.name.toLowerCase())
-        );
+      // Loose matching logic
+      richData = materialsAnalysis.topics.find(t =>
+        t.name.toLowerCase().includes(topic.topic.toLowerCase()) ||
+        topic.topic.toLowerCase().includes(t.name.toLowerCase())
+      );
     }
 
     const colors = colorSchemes[index % colorSchemes.length];
     const topicCard = document.createElement("div");
-    
+
     // Base style matching the planning stage
     topicCard.className = `group w-full ${colors.bg} border ${colors.border} rounded-lg p-3 hover:shadow-md transition-all cursor-pointer relative overflow-hidden`;
 
@@ -2393,11 +2499,11 @@ function populateTopicCoverage(topics, materialsAnalysis = null) {
     let description = "No description available.";
     let subtopics = [];
     let keyConcepts = [];
-    
+
     if (richData) {
-        description = richData.description || description;
-        subtopics = richData.subtopics || [];
-        keyConcepts = richData.key_concepts || [];
+      description = richData.description || description;
+      subtopics = richData.subtopics || [];
+      keyConcepts = richData.key_concepts || [];
     }
 
     topicCard.innerHTML = `
@@ -2466,27 +2572,27 @@ function populateAIReflections(reflections) {
     reflections.insights.forEach((insight, index) => {
       // Create a unique ID for this insight
       const insightId = insight.id || `insight-${index}-${insight.title?.replace(/\s+/g, '-').toLowerCase() || index}`;
-      
+
       const iconClass =
         insight.icon === "yellow"
           ? "bg-yellow-100 text-yellow-600"
           : insight.icon === "green"
-          ? "bg-green-100 text-green-600"
-          : "bg-red-100 text-red-600";
+            ? "bg-green-100 text-green-600"
+            : "bg-red-100 text-red-600";
 
       const iconSvg =
         insight.icon === "yellow"
           ? '<path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" />'
           : insight.icon === "green"
-          ? '<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" />'
-          : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
+            ? '<path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.563.563 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.528 4.707a.563.563 0 01-.84.622l-4.1-3.21a.563.563 0 00-.67 0l-4.1 3.21a.563.563 0 01-.84-.622l1.528-4.707a.563.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988H8.88a.563.563 0 00.475-.31l2.125-5.111z" />'
+            : '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />';
 
       const typeLabel =
         insight.type === "success"
           ? "Success"
           : insight.type === "opportunity"
-          ? "Opportunity"
-          : "Warning";
+            ? "Opportunity"
+            : "Warning";
 
       html += `
                 <li class="flex items-start gap-3 group" data-insight-id="${insightId}">
@@ -2540,7 +2646,7 @@ function populateAIReflections(reflections) {
 function populateStudentFeedback(responses, surveys) {
   const feedbackContainer = document.getElementById("student-feedback-content");
   if (!feedbackContainer) return;
-  
+
   if (!responses || responses.length === 0) {
     feedbackContainer.innerHTML = `
       <div class="text-center py-8 text-gray-500">
@@ -2552,16 +2658,16 @@ function populateStudentFeedback(responses, surveys) {
     `;
     return;
   }
-  
+
   // Get survey questions for reference
   const surveyMap = {};
   surveys.forEach(survey => {
     surveyMap[survey.survey_id] = survey;
   });
-  
+
   let html = `<div class="space-y-3">`;
   html += `<div class="text-sm text-gray-600 mb-4">${responses.length} response${responses.length !== 1 ? 's' : ''} received</div>`;
-  
+
   responses.forEach((response, index) => {
     const survey = surveyMap[response.survey_id];
     const submittedDate = new Date(response.submitted_at).toLocaleDateString('en-US', {
@@ -2573,7 +2679,7 @@ function populateStudentFeedback(responses, surveys) {
     });
     const responseId = `response-${index}`;
     const isOpen = index === 0; // First one open by default
-    
+
     html += `<div class="border border-gray-200 rounded-lg overflow-hidden">`;
     // Dropdown header
     html += `<button 
@@ -2588,20 +2694,20 @@ function populateStudentFeedback(responses, surveys) {
     html += `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />`;
     html += `</svg>`;
     html += `</button>`;
-    
+
     // Dropdown content
     html += `<div id="${responseId}-content" class="${isOpen ? '' : 'hidden'} border-t border-gray-200 p-4 bg-gray-50">`;
     html += `<div class="space-y-3">`;
-    
+
     if (survey && survey.questions) {
       survey.questions.forEach((question) => {
         const questionId = `q${question.id}`;
         const answer = response.responses[questionId];
-        
+
         if (answer !== undefined && answer !== null && answer !== '') {
           html += `<div class="border-l-2 border-purple-200 pl-3 py-2 bg-white rounded">`;
           html += `<div class="text-sm font-medium text-gray-700 mb-1">${question.question}</div>`;
-          
+
           if (question.type === "likert") {
             html += `<div class="text-lg font-semibold text-purple-600">${answer} / ${question.scale.max}</div>`;
           } else if (question.type === "multiple_choice") {
@@ -2611,7 +2717,7 @@ function populateStudentFeedback(responses, surveys) {
           } else if (question.type === "open_ended") {
             html += `<div class="text-sm text-gray-700 whitespace-pre-wrap">${answer}</div>`;
           }
-          
+
           html += `</div>`;
         }
       });
@@ -2624,12 +2730,12 @@ function populateStudentFeedback(responses, surveys) {
         html += `</div>`;
       });
     }
-    
+
     html += `</div>`;
     html += `</div>`;
     html += `</div>`;
   });
-  
+
   html += `</div>`;
   feedbackContainer.innerHTML = html;
 }
@@ -2637,7 +2743,7 @@ function populateStudentFeedback(responses, surveys) {
 function toggleFeedbackResponse(responseId) {
   const content = document.getElementById(`${responseId}-content`);
   const icon = document.getElementById(`${responseId}-icon`);
-  
+
   if (content && icon) {
     const isHidden = content.classList.contains('hidden');
     if (isHidden) {
@@ -2688,7 +2794,7 @@ async function submitForAnalysis() {
   // Disable button and show loading state with progress bar
   submitBtn.disabled = true;
   const originalText = submitBtn.innerHTML;
-  
+
   // Initial loading state
   submitBtn.innerHTML = `
     <div class="flex flex-col items-center w-full">
@@ -2710,12 +2816,12 @@ async function submitForAnalysis() {
     if (progress < 30) increment = Math.random() * 5;
     else if (progress < 60) increment = Math.random() * 2;
     else if (progress < 90) increment = Math.random() * 0.5;
-    
+
     progress = Math.min(progress + increment, 90); // Cap at 90% until done
-    
+
     const progressBar = document.getElementById('analysis-progress-bar');
     const progressText = document.getElementById('analysis-progress-text');
-    
+
     if (progressBar) progressBar.style.width = `${progress}%`;
     if (progressText) progressText.textContent = `${Math.round(progress)}%`;
   }, 500);
@@ -2753,7 +2859,7 @@ async function submitForAnalysis() {
     const progressText = document.getElementById('analysis-progress-text');
     if (progressBar) progressBar.style.width = "100%";
     if (progressText) progressText.textContent = "100%";
-    
+
     // Brief pause to show 100%
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -2829,10 +2935,10 @@ async function handleGenerateSurvey(event) {
   const form = event.target;
   const formData = new FormData(form);
   const professorInput = formData.get("professor-input")?.trim() || null;
-  
+
   // Close modal
   hideModal("modal-generate-survey");
-  
+
   // Generate survey with optional professor input
   await generateStudentSurvey(professorInput);
 }
@@ -2877,7 +2983,7 @@ async function generateStudentSurvey(professorInput = null) {
     if (professorInput) {
       requestBody.professor_input = professorInput;
     }
-    
+
     const response = await fetch(
       `${API_BASE_URL}/lectures/${currentLectureId}/generate-survey`,
       {
@@ -2936,11 +3042,11 @@ function openFeedbackModal(insightId, rating) {
   const titleElement = document.getElementById("feedback-modal-title");
   const labelElement = document.getElementById("feedback-label");
   const feedbackText = document.getElementById("feedback-text");
-  
+
   if (insightIdInput) insightIdInput.value = insightId;
   if (ratingInput) ratingInput.value = rating;
   if (feedbackText) feedbackText.value = "";
-  
+
   if (rating === "up") {
     if (titleElement) titleElement.textContent = "Thumbs Up";
     if (labelElement) labelElement.textContent = "Why did you like this reflection?";
@@ -2948,7 +3054,7 @@ function openFeedbackModal(insightId, rating) {
     if (titleElement) titleElement.textContent = "Thumbs Down";
     if (labelElement) labelElement.textContent = "Why didn't you like this reflection?";
   }
-  
+
   showModal("modal-feedback");
 }
 
@@ -2962,12 +3068,12 @@ async function handleFeedbackSubmit(event) {
   const insightId = formData.get("insight-id");
   const rating = formData.get("rating");
   const feedbackText = formData.get("feedback-text")?.trim() || "";
-  
+
   if (!currentCourseId) {
     alert("No course selected.");
     return;
   }
-  
+
   try {
     const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/feedback`, {
@@ -2982,20 +3088,20 @@ async function handleFeedbackSubmit(event) {
         lecture_id: currentLectureId,
       }),
     });
-    
+
     if (!response.ok) {
       throw new Error("Failed to save feedback");
     }
-    
+
     hideModal("modal-feedback");
-    
+
     // Show a subtle success indicator
     const insightElement = document.querySelector(`[data-insight-id="${insightId}"]`);
     if (insightElement) {
       const buttons = insightElement.querySelectorAll("button");
       buttons.forEach(btn => {
         if ((rating === "up" && btn.onclick.toString().includes("'up'")) ||
-            (rating === "down" && btn.onclick.toString().includes("'down'"))) {
+          (rating === "down" && btn.onclick.toString().includes("'down'"))) {
           btn.classList.add("opacity-100");
           btn.querySelector("svg").classList.add(rating === "up" ? "text-green-600" : "text-red-600");
         }
@@ -3039,7 +3145,7 @@ async function viewStudentSurvey(survey) {
     if (survey.lecture_id) {
       currentLectureId = survey.lecture_id;
     }
-    
+
     // If survey doesn't have questions, fetch the full survey data
     let fullSurvey = survey;
     if (!survey.questions && survey.survey_id) {
@@ -3095,7 +3201,7 @@ async function populateSurveyScreen(survey) {
       console.error("Error fetching course for breadcrumb:", error);
     }
   }
-  
+
   // Update title and subtitle
   const titleElement = document.getElementById("survey-title");
   const subtitleElement = document.getElementById("survey-subtitle");
@@ -3127,12 +3233,10 @@ async function populateSurveyScreen(survey) {
   let html = "";
 
   survey.questions.forEach((question, index) => {
-    html += `<div class="pb-6 ${
-      index < survey.questions.length - 1 ? "border-b border-gray-200" : ""
-    }">`;
-    html += `<h3 class="text-lg font-semibold text-gray-900 mb-3">${
-      index + 1
-    }. ${question.question}</h3>`;
+    html += `<div class="pb-6 ${index < survey.questions.length - 1 ? "border-b border-gray-200" : ""
+      }">`;
+    html += `<h3 class="text-lg font-semibold text-gray-900 mb-3">${index + 1
+      }. ${question.question}</h3>`;
 
     if (question.type === "likert") {
       // Likert scale question
@@ -3223,18 +3327,18 @@ function copySurveyLink() {
 async function loadSurveyForStudent(surveyId) {
   try {
     const API_BASE_URL = "http://localhost:8001/api";
-    
+
     // Fetch the survey
     const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}`);
     if (!response.ok) {
       throw new Error(`Failed to load survey: ${response.status}`);
     }
-    
+
     const survey = await response.json();
-    
+
     // Navigate to survey-taking screen
     await showScreen("screen-survey-take", null);
-    
+
     // Wait for screen to load, then populate
     setTimeout(() => {
       populateSurveyTakePage(survey);
@@ -3249,36 +3353,34 @@ function populateSurveyTakePage(survey) {
   // Update title and subtitle
   const titleElement = document.getElementById("survey-take-title");
   const subtitleElement = document.getElementById("survey-take-subtitle");
-  
+
   if (titleElement) {
     titleElement.textContent = `${survey.lecture_title} - Comprehension Survey`;
   }
-  
+
   if (subtitleElement) {
     subtitleElement.textContent =
       survey.summary ||
       "Help us understand how well you've grasped the lecture concepts";
   }
-  
+
   // Populate questions
   const questionsContainer = document.getElementById("survey-take-questions-container");
   if (!questionsContainer) return;
-  
+
   let html = "";
-  
+
   survey.questions.forEach((question, index) => {
-    html += `<div class="pb-6 ${
-      index < survey.questions.length - 1 ? "border-b border-gray-200" : ""
-    }">`;
-    html += `<h3 class="text-lg font-semibold text-gray-900 mb-3">${
-      index + 1
-    }. ${question.question}</h3>`;
-    
+    html += `<div class="pb-6 ${index < survey.questions.length - 1 ? "border-b border-gray-200" : ""
+      }">`;
+    html += `<h3 class="text-lg font-semibold text-gray-900 mb-3">${index + 1
+      }. ${question.question}</h3>`;
+
     if (question.type === "likert") {
       // Likert scale question
       html += '<div class="space-y-2">';
       html += '<div class="flex justify-between items-center gap-2">';
-      
+
       for (let i = question.scale.min; i <= question.scale.max; i++) {
         html += `
           <label class="flex-1 cursor-pointer">
@@ -3289,7 +3391,7 @@ function populateSurveyTakePage(survey) {
           </label>
         `;
       }
-      
+
       html += "</div>";
       html += `<div class="flex justify-between text-xs text-gray-500 mt-1">`;
       html += `<span>${question.scale.min_label}</span>`;
@@ -3322,12 +3424,12 @@ function populateSurveyTakePage(survey) {
         ></textarea>
       `;
     }
-    
+
     html += "</div>";
   });
-  
+
   questionsContainer.innerHTML = html;
-  
+
   // Add form submit handler
   const form = document.getElementById("survey-take-form");
   if (form) {
@@ -3342,15 +3444,15 @@ async function submitSurveyResponse(surveyId, lectureId) {
   try {
     const surveyForm = document.getElementById("survey-take-form");
     if (!surveyForm) return;
-    
+
     const formData = new FormData(surveyForm);
     const responses = {};
     const studentName = formData.get("student_name") || "Anonymous";
-    
+
     // Collect all responses
     for (const [key, value] of formData.entries()) {
       if (key === "student_name") continue;
-      
+
       if (responses[key]) {
         // Multiple values (checkboxes)
         if (Array.isArray(responses[key])) {
@@ -3362,7 +3464,7 @@ async function submitSurveyResponse(surveyId, lectureId) {
         responses[key] = value;
       }
     }
-    
+
     const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}/submit`, {
       method: "POST",
@@ -3377,36 +3479,36 @@ async function submitSurveyResponse(surveyId, lectureId) {
         submitted_at: new Date().toISOString(),
       }),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.detail || "Failed to submit survey");
     }
-    
+
     // Show success message
     const successDiv = document.getElementById("survey-submit-success");
     const errorDiv = document.getElementById("survey-submit-error");
-    
+
     if (successDiv) successDiv.classList.remove("hidden");
     if (errorDiv) errorDiv.classList.add("hidden");
     if (surveyForm) surveyForm.style.display = "none";
-    
+
     // Scroll to success message
     if (successDiv) {
       successDiv.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   } catch (error) {
     console.error("Error submitting survey:", error);
-    
+
     // Show error message
     const successDiv = document.getElementById("survey-submit-success");
     const errorDiv = document.getElementById("survey-submit-error");
     const errorMessage = document.getElementById("survey-error-message");
-    
+
     if (errorDiv) errorDiv.classList.remove("hidden");
     if (successDiv) successDiv.classList.add("hidden");
     if (errorMessage) errorMessage.textContent = error.message;
-    
+
     // Scroll to error message
     if (errorDiv) {
       errorDiv.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -3420,12 +3522,12 @@ function selectProfileOption(element, group) {
   // Find all buttons in the same group (siblings or within the same container context)
   const container = element.parentElement;
   const buttons = container.querySelectorAll('.profile-option-card');
-  
+
   // Remove active state from all
   buttons.forEach(btn => {
     btn.classList.remove('border-indigo-500', 'bg-indigo-50/50', 'border-teal-500', 'bg-teal-50/50');
     btn.classList.add('border-gray-100');
-    
+
     // Reset the check dot
     const dot = btn.querySelector('.check-dot');
     if (dot) {
@@ -3468,7 +3570,7 @@ function updatePersonaLabel(value) {
   const label = document.getElementById('persona-description');
   if (!label) return;
 
-  switch(parseInt(value)) {
+  switch (parseInt(value)) {
     case 1:
       label.textContent = "Supportive Cheerleader: Focuses on encouragement, strengths, and positive reinforcement.";
       break;
@@ -3483,7 +3585,7 @@ function updatePersonaLabel(value) {
 
 function saveCourseProfile(button) {
   const originalText = button.innerHTML;
-  
+
   // Show loading state
   button.disabled = true;
   button.innerHTML = `
@@ -3502,7 +3604,7 @@ function saveCourseProfile(button) {
     `;
     button.classList.remove('bg-gray-900', 'hover:bg-gray-800');
     button.classList.add('bg-green-600', 'hover:bg-green-500');
-    
+
     setTimeout(() => {
       button.disabled = false;
       button.innerHTML = originalText;
@@ -3516,49 +3618,49 @@ function saveCourseProfile(button) {
  * Renders recommendations to the UI
  */
 function renderRecommendations(recommendations) {
-    const recommendationsSection = document.getElementById("slide-recommendations-section");
-    const recommendationsList = document.getElementById("recommendations-list");
-    const placeholder = document.getElementById("recommendations-placeholder");
-    const content = document.getElementById("recommendations-content");
-    
-    if (!recommendationsList) return;
-    
-    // Helper to get icon
-    const getIconForType = (type) => {
-        const normalizedType = (type || "").toLowerCase();
-        if (normalizedType.includes("visual")) {
-            return `<div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+  const recommendationsSection = document.getElementById("slide-recommendations-section");
+  const recommendationsList = document.getElementById("recommendations-list");
+  const placeholder = document.getElementById("recommendations-placeholder");
+  const content = document.getElementById("recommendations-content");
+
+  if (!recommendationsList) return;
+
+  // Helper to get icon
+  const getIconForType = (type) => {
+    const normalizedType = (type || "").toLowerCase();
+    if (normalizedType.includes("visual")) {
+      return `<div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </div>`;
-        } else if (normalizedType.includes("text")) {
-            return `<div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
+    } else if (normalizedType.includes("text")) {
+      return `<div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </div>`;
-        } else if (normalizedType.includes("clarity")) {
-            return `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+    } else if (normalizedType.includes("clarity")) {
+      return `<div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>`;
-        } else {
-                return `<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+    } else {
+      return `<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
             </div>`;
-        }
-    };
+    }
+  };
 
-    // Helper to get badge class
-    const getBadgeClass = (type) => {
-            const normalizedType = (type || "").toLowerCase();
-            if (normalizedType.includes("visual")) return "bg-purple-100 text-purple-800";
-            if (normalizedType.includes("text")) return "bg-yellow-100 text-yellow-800";
-            if (normalizedType.includes("clarity")) return "bg-blue-100 text-blue-800";
-            return "bg-green-100 text-green-800";
-    };
+  // Helper to get badge class
+  const getBadgeClass = (type) => {
+    const normalizedType = (type || "").toLowerCase();
+    if (normalizedType.includes("visual")) return "bg-purple-100 text-purple-800";
+    if (normalizedType.includes("text")) return "bg-yellow-100 text-yellow-800";
+    if (normalizedType.includes("clarity")) return "bg-blue-100 text-blue-800";
+    return "bg-green-100 text-green-800";
+  };
 
-    // Clear previous
-    recommendationsList.innerHTML = "";
+  // Clear previous
+  recommendationsList.innerHTML = "";
 
-    recommendations.forEach(rec => {
-        const html = `
+  recommendations.forEach(rec => {
+    const html = `
         <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow animate-fade-in">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
@@ -3575,59 +3677,59 @@ function renderRecommendations(recommendations) {
             </div>
         </div>
         `;
-        recommendationsList.innerHTML += html;
-    });
-    
-    // Toggle views
-    if (placeholder) placeholder.classList.add("hidden");
-    if (content) content.classList.remove("hidden");
-    if (recommendationsSection) {
-        recommendationsSection.classList.remove("hidden");
-        recommendationsSection.classList.add("animate-fade-in");
-    }
+    recommendationsList.innerHTML += html;
+  });
+
+  // Toggle views
+  if (placeholder) placeholder.classList.add("hidden");
+  if (content) content.classList.remove("hidden");
+  if (recommendationsSection) {
+    recommendationsSection.classList.remove("hidden");
+    recommendationsSection.classList.add("animate-fade-in");
+  }
 }
 
 /**
  * Loads existing materials analysis for a lecture
  */
 async function loadMaterialsAnalysis(lectureId) {
-    if (!lectureId) return;
-    
-    try {
-        const API_BASE_URL = "http://localhost:8001/api";
-        const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}/materials-analysis`);
-        
-        if (response.ok) {
-            const analysisData = await response.json();
-            
-            // Check for recommendations
-            if (analysisData.recommendations && analysisData.recommendations.length > 0) {
-                renderRecommendations(analysisData.recommendations);
-            }
-            
-            // Also update topics if present
-            if (analysisData.topics && analysisData.topics.length > 0) {
-                // Pass full objects for rich rendering
-                updateTopicsList(analysisData.topics);
-            }
-        }
-    } catch (error) {
-        // Silent fail if no analysis exists yet
-        console.log("No existing materials analysis found or error loading it.");
+  if (!lectureId) return;
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}/materials-analysis`);
+
+    if (response.ok) {
+      const analysisData = await response.json();
+
+      // Check for recommendations
+      if (analysisData.recommendations && analysisData.recommendations.length > 0) {
+        renderRecommendations(analysisData.recommendations);
+      }
+
+      // Also update topics if present
+      if (analysisData.topics && analysisData.topics.length > 0) {
+        // Pass full objects for rich rendering
+        updateTopicsList(analysisData.topics);
+      }
     }
+  } catch (error) {
+    // Silent fail if no analysis exists yet
+    console.log("No existing materials analysis found or error loading it.");
+  }
 }
 
 // --- Recommendations UI Toggles ---
 
 function toggleRecommendations() {
-    const body = document.getElementById('recommendations-body');
-    const chevron = document.getElementById('recommendations-chevron');
-    
-    if (body.classList.contains('hidden')) {
-        body.classList.remove('hidden');
-        chevron.classList.add('rotate-180');
-    } else {
-        body.classList.add('hidden');
-        chevron.classList.remove('rotate-180');
-    }
+  const body = document.getElementById('recommendations-body');
+  const chevron = document.getElementById('recommendations-chevron');
+
+  if (body.classList.contains('hidden')) {
+    body.classList.remove('hidden');
+    chevron.classList.add('rotate-180');
+  } else {
+    body.classList.add('hidden');
+    chevron.classList.remove('rotate-180');
+  }
 }
