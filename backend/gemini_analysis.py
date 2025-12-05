@@ -11,9 +11,13 @@ from pathlib import Path
 from typing import Dict, Any, List
 import os
 import time
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure Gemini API
-GEMINI_API_KEY = "AIzaSyBog80IvI0YEfXUlPHQ0HcvVxOk_5KDYKQ"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 def get_client():
     """Get the Gemini client"""
