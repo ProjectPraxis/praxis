@@ -3,7 +3,7 @@ FastAPI backend server for Praxis application
 Handles class management API endpoints
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict
@@ -515,6 +515,7 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
     # Get lecture details
     lecture_title = lecture.get("title", "Lecture")
     topics = lecture.get("topics", [])
+    class_id = lecture.get("classId") or lecture.get("class_id")
     
     # Load materials analysis if available
     materials_analysis = None
@@ -526,14 +527,26 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
         except:
             pass
     
+    # Load professor feedback for this course if available
+    professor_feedback = None
+    if class_id:
+        feedback_file = ANALYSIS_DIR / f"course_{class_id}_feedback.json"
+        if feedback_file.exists():
+            try:
+                with open(feedback_file, 'r') as f:
+                    professor_feedback = json.load(f)
+            except:
+                pass
+    
     try:
-        # Analyze the video using Gemini with materials context
+        # Analyze the video using Gemini with materials context and professor feedback
         analysis_result = analyze_lecture_video(
             video_path=video_path,
             lecture_id=lecture_id,
             lecture_title=lecture_title,
             topics=topics,
-            materials_analysis=materials_analysis
+            materials_analysis=materials_analysis,
+            professor_feedback=professor_feedback
         )
         
         # Check for errors
@@ -701,7 +714,7 @@ def get_lecture_analysis(lecture_id: str):
 
 
 @app.post("/api/lectures/{lecture_id}/generate-survey/")
-async def generate_lecture_survey(lecture_id: str):
+async def generate_lecture_survey(lecture_id: str, request: Request = None):
     """
     Generate a student comprehension survey for a lecture using Gemini AI.
     The survey is based on the lecture analysis and helps identify concepts that need reinforcement.
@@ -720,6 +733,15 @@ async def generate_lecture_survey(lecture_id: str):
     
     lecture_title = lecture.get("title", "Lecture")
     
+    # Get professor input from request body if provided
+    professor_input = None
+    if request:
+        try:
+            body = await request.json()
+            professor_input = body.get("professor_input")
+        except:
+            pass
+    
     # Load the lecture analysis if available
     analysis_data = None
     analysis_path = lecture.get("analysisPath")
@@ -735,7 +757,8 @@ async def generate_lecture_survey(lecture_id: str):
         survey_data = generate_student_survey(
             lecture_id=lecture_id,
             lecture_title=lecture_title,
-            analysis_data=analysis_data
+            analysis_data=analysis_data,
+            professor_input=professor_input
         )
         
         # Check for errors
@@ -949,6 +972,74 @@ def get_lecture_survey_responses(lecture_id: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading survey responses: {str(e)}")
+
+
+@app.post("/api/classes/{class_id}/feedback")
+async def save_professor_feedback(class_id: str, request: Request):
+    """
+    Save professor feedback on AI reflections for a course.
+    Feedback is stored per course and used to guide future video analysis.
+    """
+    try:
+        body = await request.json()
+        insight_id = body.get("insight_id")
+        rating = body.get("rating")  # "up" or "down"
+        feedback_text = body.get("feedback_text", "")
+        lecture_id = body.get("lecture_id")
+        
+        if not insight_id or not rating:
+            raise HTTPException(status_code=400, detail="insight_id and rating are required")
+        
+        # Load existing feedback or create new
+        feedback_file = ANALYSIS_DIR / f"course_{class_id}_feedback.json"
+        feedback_data = {"feedback": []}
+        
+        if feedback_file.exists():
+            try:
+                with open(feedback_file, 'r') as f:
+                    feedback_data = json.load(f)
+            except:
+                pass
+        
+        # Add new feedback entry
+        feedback_entry = {
+            "insight_id": insight_id,
+            "rating": rating,
+            "feedback_text": feedback_text,
+            "lecture_id": lecture_id,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        feedback_data["feedback"].append(feedback_entry)
+        
+        # Save feedback
+        with open(feedback_file, 'w') as f:
+            json.dump(feedback_data, f, indent=2)
+        
+        return {"status": "success", "message": "Feedback saved"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving feedback: {str(e)}")
+
+
+@app.get("/api/classes/{class_id}/feedback")
+async def get_professor_feedback(class_id: str):
+    """
+    Get all professor feedback for a course.
+    """
+    try:
+        feedback_file = ANALYSIS_DIR / f"course_{class_id}_feedback.json"
+        
+        if not feedback_file.exists():
+            return {"feedback": []}
+        
+        with open(feedback_file, 'r') as f:
+            feedback_data = json.load(f)
+        
+        return feedback_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading feedback: {str(e)}")
 
 
 if __name__ == "__main__":
