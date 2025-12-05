@@ -13,7 +13,7 @@ import os
 import time
 
 # Configure Gemini API
-GEMINI_API_KEY = "AIzaSyDGHHE4_TRcb6-4rTSfJzfUSAj7iG97FdQ"
+GEMINI_API_KEY = "AIzaSyBog80IvI0YEfXUlPHQ0HcvVxOk_5KDYKQ"
 
 def get_client():
     """Get the Gemini client"""

@@ -430,5 +430,59 @@
         "created_at": "2023-10-27T10:00:00Z"
       }
     ]
+  },
+  {
+    "id": "3cf1dede-c79b-4cb1-a4b9-1986bd8bd7a4",
+    "title": "hagyu",
+    "topics": [
+      "The Resolution: From Adversary to Mentor",
+      "The Climax: Overcoming the Academic Gauntlet",
+      "The Challenge: The Makeup Exam as a Test of Character",
+      "The Protagonist's Background: Justification and Reputation",
+      "The Catalyst: Academic Responsibility and Consequences"
+    ],
+    "hasSlides": true,
+    "fileName": "384090ea-8ea0-4977-9749-dfe7e888448b.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/384090ea-8ea0-4977-9749-dfe7e888448b.pdf",
+    "hasVideo": false,
+    "videoName": null,
+    "videoPath": null,
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-12-05T15:24:03.110018",
+    "hasAnalysis": false,
+    "analysisPath": null,
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/3cf1dede-c79b-4cb1-a4b9-1986bd8bd7a4_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "f1632466-d5fc-488c-83cd-806e58e6026f",
+    "title": "jassassso",
+    "topics": [
+      "The Climax: The Makeup Exam",
+      "The Gauntlet is Thrown: The Professor's Challenge",
+      "Building the Legend: Reputation and Expectations",
+      "The Inciting Incident: The Sleeper's Origin",
+      "The Legend Solidified: A New Beginning",
+      "Resolution and Mentorship: From Adversary to Ally"
+    ],
+    "hasSlides": true,
+    "fileName": "1df62356-18ed-44f8-85cc-8e2a82968bdd.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/1df62356-18ed-44f8-85cc-8e2a82968bdd.pdf",
+    "hasVideo": true,
+    "videoName": "ba44dd77-2399-4740-ad3f-af3bc7a27f9c.mp4",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/ba44dd77-2399-4740-ad3f-af3bc7a27f9c.mp4",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-12-05T15:28:32.903323",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/f1632466-d5fc-488c-83cd-806e58e6026f_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/f1632466-d5fc-488c-83cd-806e58e6026f_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "comp-survey-89451",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/f1632466-d5fc-488c-83cd-806e58e6026f_survey_comp-survey-89451.json",
+        "created_at": "2023-11-15T14:30:00Z"
+      }
+    ]
   }
 ]

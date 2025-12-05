@@ -476,6 +476,14 @@ function showInsight(insightType) {
                         <h4 class="font-semibold text-gray-800">[00:50:07] Rushed Theory</h4>
                         <p class="text-gray-600">The definitions of dataset shift, covariate shift, and label shift were presented *extremely* rapidly. This is a high-risk area for student confusion.</p>
                         <p class="text-gray-600 mt-2 font-medium">Suggestion: Create a 5-minute recap video or handout that visually defines these terms.</p>
+                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
+                            <button onclick="openFeedbackModal('clarity', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
+                            </button>
+                            <button onclick="openFeedbackModal('clarity', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
       break;
@@ -487,6 +495,14 @@ function showInsight(insightType) {
                     <div>
                         <h4 class="font-semibold text-gray-800">[00:10:59] Student Question</h4>
                         <p class="text-gray-600">LaRue asked if email open time could be used as a label for 'importance'.</p>
+                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
+                            <button onclick="openFeedbackModal('question', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
+                            </button>
+                            <button onclick="openFeedbackModal('question', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
       break;
@@ -498,6 +514,14 @@ function showInsight(insightType) {
                     <div>
                         <h4 class="font-semibold text-gray-800">[00:11:09] Socratic Answer</h4>
                         <p class="text-gray-600">This was a model response. You validated the idea ("Great, okay...") and then used a Socratic question to lead the class to the problem ("What's the obvious problem with that?").</p>
+                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
+                            <button onclick="openFeedbackModal('answer', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
+                            </button>
+                            <button onclick="openFeedbackModal('answer', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
       break;
@@ -509,6 +533,14 @@ function showInsight(insightType) {
                     <div>
                         <h4 class="font-semibold text-gray-800">[00:13:20] Good Joke</h4>
                         <p class="text-gray-600">The "I'm told kids today don't use email..." joke landed well. These moments are great for building rapport and making the content more engaging.</p>
+                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
+                            <button onclick="openFeedbackModal('joke', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
+                            </button>
+                            <button onclick="openFeedbackModal('joke', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
+                            </button>
+                        </div>
                     </div>
                 </li>`;
       break;
