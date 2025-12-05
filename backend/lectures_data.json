@@ -201,13 +201,13 @@
     "hasSlides": true,
     "fileName": "21f37ddc-ee9f-4952-9fc4-31112ba916e9.pdf",
     "filePath": "/Users/siamms/Documents/praxis/backend/uploads/21f37ddc-ee9f-4952-9fc4-31112ba916e9.pdf",
-    "hasVideo": false,
-    "videoName": null,
-    "videoPath": null,
+    "hasVideo": true,
+    "videoName": "b37df592-3782-402d-aae4-327715c0e116.mp4",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/b37df592-3782-402d-aae4-327715c0e116.mp4",
     "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
     "createdAt": "2025-11-21T14:47:33.716690",
-    "hasAnalysis": false,
-    "analysisPath": null,
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/dd4eeaa1-6a84-4389-9123-7c4009c17c32_analysis.json",
     "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/dd4eeaa1-6a84-4389-9123-7c4009c17c32_materials_analysis.json",
     "hasMaterialsAnalysis": true
   },
@@ -398,6 +398,36 @@
         "survey_id": "8b3d5a4c-2f9e-4e1a-8f6b-0c7d9e2a1b3f",
         "path": "/Users/siamms/Documents/praxis/backend/data/analyses/1e0ffb40-7bad-4c16-9d97-a33039d47a11_survey_8b3d5a4c-2f9e-4e1a-8f6b-0c7d9e2a1b3f.json",
         "created_at": "2023-10-27T10:30:00Z"
+      }
+    ]
+  },
+  {
+    "id": "186bfda9-03b6-4a13-8378-63a4b6160de1",
+    "title": "Fynd",
+    "topics": [
+      "High-Fidelity Prototype and Key Features",
+      "Design Process and Prototyping",
+      "Usability Testing and Iteration",
+      "Introduction to FYND: A Micro-Wellness Integration System",
+      "Problem Definition and User Research"
+    ],
+    "hasSlides": true,
+    "fileName": "0d584e37-83a3-4789-8410-6cba9121c357.pdf",
+    "filePath": "/Users/siamms/Documents/praxis/backend/uploads/0d584e37-83a3-4789-8410-6cba9121c357.pdf",
+    "hasVideo": true,
+    "videoName": "d7a91e48-8c9a-4f95-8ef4-edf626071f88.mp4",
+    "videoPath": "/Users/siamms/Documents/praxis/backend/uploads/d7a91e48-8c9a-4f95-8ef4-edf626071f88.mp4",
+    "classId": "e8cc5896-f547-4609-a9b8-1365b5480111",
+    "createdAt": "2025-12-03T14:37:48.018472",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/186bfda9-03b6-4a13-8378-63a4b6160de1_analysis.json",
+    "materialsAnalysisPath": "/Users/siamms/Documents/praxis/backend/data/analyses/186bfda9-03b6-4a13-8378-63a4b6160de1_materials_analysis.json",
+    "hasMaterialsAnalysis": true,
+    "surveys": [
+      {
+        "survey_id": "b3f0e1a2-c4d5-4e6f-8a9b-0123456789ab",
+        "path": "/Users/siamms/Documents/praxis/backend/data/analyses/186bfda9-03b6-4a13-8378-63a4b6160de1_survey_b3f0e1a2-c4d5-4e6f-8a9b-0123456789ab.json",
+        "created_at": "2023-10-27T10:00:00Z"
       }
     ]
   }
