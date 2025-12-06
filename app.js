@@ -605,7 +605,7 @@ function toggleVisibility(elementId) {
   }
 }
 
-async function showTopicDetail(topicName, status, buttonElement) {
+async function showTopicDetail(topicName, status, lectureId, buttonElement) {
   // Ensure the modal shell is loaded
   await showModal("modal-topic-detail");
 
@@ -623,44 +623,60 @@ async function showTopicDetail(topicName, status, buttonElement) {
     case "Struggling":
       statusColorClass = "bg-red-500";
       break;
+    case "Covered":
+      statusColorClass = "bg-green-500";
+      break;
+    case "Planned":
+      statusColorClass = "bg-gray-400";
+      break;
     default:
       statusColorClass = "bg-gray-500";
   }
 
-  // Placeholders
-  let keyConcepts =
-    "AI should fetch brief definition from lecture notes/summary for this topic.";
-  let examples =
-    "AI should fetch examples related to this topic from lectures, e.g., COMPAS for Fairness.";
-  let lectureMoments =
-    "AI should list relevant slides/timestamps. E.g., Lecture 4, Slides 47-51 for Data Shift.";
-  let assignmentConnections =
-    "AI should list connections to assignments. E.g., A2 Data Section for Data Source Selection.";
-  let aiReflection =
-    "AI add brief note on common student misconceptions or teaching tips for this topic.";
+  // Default values
+  let keyConcepts = "No key concepts available yet. Analyze a video to generate this content.";
+  let examples = "No examples available yet.";
+  let lectureMoments = "No lecture moments identified yet.";
+  let assignmentConnections = "No assignment connections available.";
+  let aiReflection = "No AI reflection available yet.";
+  let notes = "";
 
-  // Specific Examples from Prompt
-  if (topicName.includes("Data Shift")) {
-    lectureMoments =
-      "Lecture 4, Slides 47-51. <br><strong>Note:</strong> This section was identified as rushed in the lecture analysis, potentially impacting comprehension.";
-    aiReflection =
-      "<strong>Common confusion:</strong> Differentiating when P(x) changes (covariate) vs. when P(y) changes (label) vs. when P(y|x) changes (concept).";
-  }
-  if (
-    topicName.includes("Data Preparation") ||
-    topicName.includes("Data Understanding") ||
-    topicName.includes("Data Documentation")
-  ) {
-    lectureMoments =
-      "Lecture 4. <br><strong>Note:</strong> This topic was deferred due to time constraints in Lecture 4. Ensure coverage in Lecture 5.";
-  }
-  if (topicName.includes("Appropriate Data Source Selection")) {
-    assignmentConnections =
-      "<strong>Assignment 2: Full Proposal, Section 4 (Data).</strong> <br><strong>Feedback Insight:</strong> Average score was 6/10. Common issue: Selected data sources (e.g., YouTube) didn't match the target context (small interactive courses).";
-  }
-  if (topicName.includes("Justifying AI")) {
-    assignmentConnections =
-      "<strong>Assignment 2: Full Proposal, Introduction.</strong> <br><strong>Feedback Insight:</strong> Average score was 2.5/5. Common issue: Weak justification for why AI/ML was necessary compared to simpler alternatives.";
+  // Try to find topic data from current lecture's analysis
+  // Use passed lectureId or fall back to currentLectureId
+  const targetLectureId = lectureId || currentLectureId;
+  if (targetLectureId) {
+    try {
+      const API_BASE_URL = "http://localhost:8001/api";
+      const lectureRes = await fetch(`${API_BASE_URL}/lectures/${targetLectureId}`);
+      if (lectureRes.ok) {
+        const lecture = await lectureRes.json();
+
+        // Check video analysis for topic coverage
+        if (lecture.analysisPath) {
+          try {
+            const analysisRes = await fetch(`${API_BASE_URL}/lectures/${targetLectureId}/analysis`);
+            if (analysisRes.ok) {
+              const analysis = await analysisRes.json();
+              const topicData = (analysis.topic_coverage || []).find(
+                t => t.topic && t.topic.toLowerCase() === topicName.toLowerCase()
+              );
+
+              if (topicData) {
+                keyConcepts = topicData.key_concepts || keyConcepts;
+                examples = topicData.examples || examples;
+                lectureMoments = topicData.lecture_moments || lectureMoments;
+                aiReflection = topicData.ai_reflection || aiReflection;
+                notes = topicData.notes || "";
+              }
+            }
+          } catch (e) {
+            console.log("Could not fetch video analysis:", e);
+          }
+        }
+      }
+    } catch (e) {
+      console.log("Could not fetch lecture data:", e);
+    }
   }
 
   // Construct HTML
@@ -670,11 +686,11 @@ async function showTopicDetail(topicName, status, buttonElement) {
             <h3 class="text-2xl font-bold text-gray-900">${topicName}</h3>
             <span class="text-sm font-medium text-gray-500">(${status})</span>
         </div>
+        ${notes ? `<p class="text-gray-500 text-sm italic mb-4">${notes}</p>` : ""}
         <div class="space-y-5">
             <div><h4 class="font-semibold text-gray-700">Key Concepts</h4><p class="text-gray-600 text-sm mt-1">${keyConcepts}</p></div>
             <div><h4 class="font-semibold text-gray-700">Examples</h4><p class="text-gray-600 text-sm mt-1">${examples}</p></div>
             <div><h4 class="font-semibold text-gray-700">Relevant Lecture Moments</h4><p class="text-gray-600 text-sm mt-1">${lectureMoments}</p></div>
-            <div><h4 class="font-semibold text-gray-700">Assignment Connections</h4><p class="text-gray-600 text-sm mt-1">${assignmentConnections}</p></div>
             <div><h4 class="font-semibold text-gray-700">AI Reflection</h4><p class="text-gray-600 text-sm mt-1">${aiReflection}</p></div>
         </div>
     `;
@@ -989,7 +1005,8 @@ function renderStudentUnderstandingPills(container, topics) {
     const config = statusConfig[topic.status] || statusConfig.developing;
     const escapedTopic = escapeHtml(topic.topic);
     const escapedStatus = config.display;
-    html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${escapedStatus}', this)" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+    const lectureIdAttr = topic.lecture_id ? `'${topic.lecture_id}'` : 'null';
+    html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${escapedStatus}', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
   });
 
   container.innerHTML = html;
@@ -1004,12 +1021,13 @@ function renderCourseCoveragePills(container, coverage) {
   let html = "";
   coverage.forEach(item => {
     const escapedTopic = escapeHtml(item.topic);
+    const lectureIdAttr = item.lecture_id ? `'${item.lecture_id}'` : 'null';
     if (item.covered) {
       // Covered topics get the gradient style
-      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Covered', this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Covered', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
     } else {
       // Planned topics get gray style
-      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Planned', this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 hover:bg-gray-300 transition-colors">${escapedTopic}</button>`;
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Planned', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 hover:bg-gray-300 transition-colors">${escapedTopic}</button>`;
     }
   });
 

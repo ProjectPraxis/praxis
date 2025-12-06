@@ -38,5 +38,15 @@
     "semester": "Spring 2025",
     "description": "",
     "createdAt": "2025-12-05T16:32:08.299621"
+  },
+  {
+    "id": "ff0b0d5d-1f27-4de6-804b-054d3c49522b",
+    "code": "007",
+    "name": "Yogee test 2",
+    "totalLectures": 0,
+    "currentLecture": 0,
+    "semester": "Summer 2025",
+    "description": "",
+    "createdAt": "2025-12-06T02:14:40.391679"
   }
 ]

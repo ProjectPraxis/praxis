@@ -25,27 +25,3 @@ chmod +x start_api.sh
 
 The API will be available at `http://localhost:8001`
 
-API Documentation (Swagger UI): `http://localhost:8001/docs`
-
-## 3. API Endpoints
-
-### Classes
-- `GET /api/classes` - Get all classes
-- `POST /api/classes` - Create a new class
-- `GET /api/classes/{class_id}` - Get a specific class
-- `PUT /api/classes/{class_id}` - Update a class
-- `DELETE /api/classes/{class_id}` - Delete a class
-
-### Lectures
-- `GET /api/lectures` - Get all lectures (optional query param: `class_id`)
-- `POST /api/lectures` - Create a new lecture (with optional file upload)
-- `GET /api/lectures/{lecture_id}` - Get a specific lecture
-- `PUT /api/lectures/{lecture_id}` - Update a lecture (with optional file upload)
-- `DELETE /api/lectures/{lecture_id}` - Delete a lecture
-- `GET /api/lectures/{lecture_id}/file` - Download lecture slides file
-
-## 4. Install ffmpeg (for audio decoding - if needed for other features)
-
-macOS: `brew install ffmpeg`
-
-Ubuntu: `sudo apt install ffmpeg`

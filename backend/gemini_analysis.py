@@ -13,8 +13,9 @@ import os
 import time
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env file in the same directory as this script
+ENV_PATH = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=ENV_PATH)
 
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -427,7 +428,11 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
                 {{
                     "topic": "Topic Name",
                     "covered": true,
-                    "notes": "Brief notes on how well it was covered"
+                    "notes": "Brief notes on how well it was covered",
+                    "key_concepts": "A concise 1-2 sentence definition/summary of this topic based on the lecture content",
+                    "examples": "Specific examples mentioned in the lecture for this topic (e.g., 'COMPAS algorithm for bias in criminal justice')",
+                    "lecture_moments": "Relevant timestamps or slide references where this topic was discussed (e.g., 'Discussed at 12:30-15:45')",
+                    "ai_reflection": "Teaching insight: common student misconceptions, tips for better understanding, or areas that need reinforcement"
                 }}
             ],
             "ai_reflections": {{

@@ -578,5 +578,74 @@
     "analysisPath": null,
     "materialsAnalysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/8aae6bc9-5bb6-41ea-b5b5-1e1a581b98c6_materials_analysis.json",
     "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "64986119-11b2-4cc7-84d5-e4a661d811f8",
+    "title": "yogee3-hcd",
+    "topics": [
+      "Design Thinking and the Human-Centered Design Process",
+      "Basic Principles of Interaction",
+      "Fundamentals of Action",
+      "Introduction to Human-Centered Design (HCD)",
+      "Applying HCD Principles to AI Design"
+    ],
+    "hasSlides": true,
+    "fileName": "b864608d-6d34-4021-befa-f990fa8ad7d5.pdf",
+    "filePath": "/Users/yogee/Documents/JHU/praxis/backend/uploads/b864608d-6d34-4021-befa-f990fa8ad7d5.pdf",
+    "hasVideo": true,
+    "videoName": "4ef8aebe-a122-450e-8eae-be017fc491cd.mp4",
+    "videoPath": "/Users/yogee/Documents/JHU/praxis/backend/uploads/4ef8aebe-a122-450e-8eae-be017fc491cd.mp4",
+    "classId": "bbff56be-804f-4ffd-8207-39cff373cc3c",
+    "createdAt": "2025-12-06T01:30:41.465671",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/64986119-11b2-4cc7-84d5-e4a661d811f8_analysis.json",
+    "materialsAnalysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/64986119-11b2-4cc7-84d5-e4a661d811f8_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "09a281fc-e007-4ed4-ad27-89b5eeb7075e",
+    "title": "yogee3-hcd2",
+    "topics": [
+      "Introduction to Human Centered Design (HCD)",
+      "Design Thinking and the Human-Centered Design Process",
+      "Fundamentals of Action and Interaction Models",
+      "Basic Principles of Interaction Design",
+      "Design in AI: Applying Interaction Principles"
+    ],
+    "hasSlides": true,
+    "fileName": "0472ac91-a50e-439d-84c8-df49f2038744.pdf",
+    "filePath": "/Users/yogee/Documents/JHU/praxis/backend/uploads/0472ac91-a50e-439d-84c8-df49f2038744.pdf",
+    "hasVideo": false,
+    "videoName": null,
+    "videoPath": null,
+    "classId": "bbff56be-804f-4ffd-8207-39cff373cc3c",
+    "createdAt": "2025-12-06T02:12:36.285956",
+    "hasAnalysis": false,
+    "analysisPath": null,
+    "materialsAnalysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/09a281fc-e007-4ed4-ad27-89b5eeb7075e_materials_analysis.json",
+    "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "11e44717-defa-4233-b1b6-b040644933ec",
+    "title": "yogee3-hcd2",
+    "topics": [
+      "Introduction to Human Centered Design (HCD)",
+      "Design Thinking and the Human-Centered Design Process",
+      "Fundamentals of Action and Interaction Models",
+      "Basic Principles of Interaction",
+      "Applying Design Principles to AI Systems"
+    ],
+    "hasSlides": true,
+    "fileName": "675a58d6-b05d-4275-9c09-9d1294e21b38.pdf",
+    "filePath": "/Users/yogee/Documents/JHU/praxis/backend/uploads/675a58d6-b05d-4275-9c09-9d1294e21b38.pdf",
+    "hasVideo": true,
+    "videoName": "97cd07d5-6beb-4fcd-a83a-4fa9d1fea969.mp4",
+    "videoPath": "/Users/yogee/Documents/JHU/praxis/backend/uploads/97cd07d5-6beb-4fcd-a83a-4fa9d1fea969.mp4",
+    "classId": "ff0b0d5d-1f27-4de6-804b-054d3c49522b",
+    "createdAt": "2025-12-06T02:14:51.835933",
+    "hasAnalysis": true,
+    "analysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/11e44717-defa-4233-b1b6-b040644933ec_analysis.json",
+    "materialsAnalysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/11e44717-defa-4233-b1b6-b040644933ec_materials_analysis.json",
+    "hasMaterialsAnalysis": true
   }
 ]
