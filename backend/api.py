@@ -974,6 +974,192 @@ def get_lecture_survey_responses(lecture_id: str):
         raise HTTPException(status_code=500, detail=f"Error loading survey responses: {str(e)}")
 
 
+def _infer_topic_status(notes: str) -> str:
+    """
+    Infer topic understanding status from coverage notes.
+    Returns: 'struggling', 'developing', or 'strong'
+    """
+    if not notes:
+        return "developing"
+    
+    notes_lower = notes.lower()
+    
+    # Check for struggling indicators
+    struggling_keywords = ["rushed", "skipped", "missed", "confused", "unclear", 
+                          "not covered", "deferred", "incomplete", "poorly", "briefly"]
+    for keyword in struggling_keywords:
+        if keyword in notes_lower:
+            return "struggling"
+    
+    # Check for strong indicators
+    strong_keywords = ["well covered", "thoroughly", "excellent", "clear", "good understanding",
+                      "detailed", "comprehensive", "in-depth", "strong", "mastered"]
+    for keyword in strong_keywords:
+        if keyword in notes_lower:
+            return "strong"
+    
+    return "developing"
+
+
+@app.get("/api/classes/{class_id}/overview")
+def get_class_overview(class_id: str):
+    """
+    Aggregate topic data across all lectures for a class.
+    Returns data for Student Understanding and Course Coverage sections.
+    """
+    # Verify the class exists
+    classes = load_classes()
+    class_found = False
+    for c in classes:
+        if c["id"] == class_id:
+            class_found = True
+            break
+    
+    if not class_found:
+        raise HTTPException(status_code=404, detail="Class not found")
+    
+    # Get all lectures for this class
+    lectures = load_lectures()
+    class_lectures = [l for l in lectures if l.get("classId") == class_id]
+    
+    # Aggregate data from analyses
+    all_topics = {}  # topic_name -> {covered: bool, notes: str, status: str, lecture_id: str}
+    all_action_items = []  # List of action items from analyses
+    
+    for lecture in class_lectures:
+        lecture_id = lecture.get("id")
+        lecture_title = lecture.get("title", "Lecture")
+        
+        # Load video analysis if available
+        analysis_path = lecture.get("analysisPath")
+        if analysis_path and Path(analysis_path).exists():
+            try:
+                with open(analysis_path, 'r') as f:
+                    analysis_data = json.load(f)
+                
+                # Extract topic coverage
+                if "topic_coverage" in analysis_data:
+                    for topic_item in analysis_data["topic_coverage"]:
+                        topic_name = topic_item.get("topic", "")
+                        if not topic_name:
+                            continue
+                        
+                        covered = topic_item.get("covered", False)
+                        notes = topic_item.get("notes", "")
+                        status = _infer_topic_status(notes)
+                        
+                        # Update or add topic (later lectures override earlier ones)
+                        all_topics[topic_name] = {
+                            "covered": covered,
+                            "notes": notes,
+                            "status": status,
+                            "lecture_id": lecture_id,
+                            "lecture_title": lecture_title
+                        }
+                
+                # Extract action items from ai_reflections
+                if "ai_reflections" in analysis_data:
+                    reflections = analysis_data["ai_reflections"]
+                    if "action_items" in reflections:
+                        for item in reflections["action_items"]:
+                            priority = item.get("priority", "Should Do")
+                            # Normalize priority
+                            if "must" in priority.lower():
+                                priority_level = "critical"
+                            elif "continue" in priority.lower():
+                                priority_level = "success"
+                            else:
+                                priority_level = "warning"
+                            
+                            all_action_items.append({
+                                "priority": priority_level,
+                                "title": item.get("item", "")[:100],  # Truncate long items
+                                "description": item.get("item", ""),
+                                "lecture_id": lecture_id,
+                                "lecture_title": lecture_title
+                            })
+                    
+                    # Also extract insights as potential action items
+                    if "insights" in reflections:
+                        for insight in reflections["insights"][:3]:  # Limit to top 3
+                            insight_type = insight.get("type", "opportunity")
+                            if insight_type == "opportunity" or insight.get("icon") == "yellow":
+                                priority_level = "warning"
+                            elif insight_type == "success" or insight.get("icon") == "green":
+                                priority_level = "success"
+                            else:
+                                priority_level = "critical"
+                            
+                            all_action_items.append({
+                                "priority": priority_level,
+                                "title": insight.get("title", ""),
+                                "description": insight.get("description", ""),
+                                "lecture_id": lecture_id,
+                                "lecture_title": lecture_title
+                            })
+                            
+            except (json.JSONDecodeError, IOError):
+                pass
+        
+        # Also load materials analysis for additional topics
+        materials_path = lecture.get("materialsAnalysisPath")
+        if materials_path and Path(materials_path).exists():
+            try:
+                with open(materials_path, 'r') as f:
+                    materials_data = json.load(f)
+                
+                if "topics" in materials_data:
+                    for topic_item in materials_data["topics"]:
+                        topic_name = topic_item.get("name", "")
+                        if not topic_name:
+                            continue
+                        
+                        # Only add if not already in all_topics (video analysis takes precedence)
+                        if topic_name not in all_topics:
+                            all_topics[topic_name] = {
+                                "covered": False,  # From materials = planned, not yet covered
+                                "notes": topic_item.get("description", ""),
+                                "status": "developing",
+                                "lecture_id": lecture_id,
+                                "lecture_title": lecture_title
+                            }
+            except (json.JSONDecodeError, IOError):
+                pass
+    
+    # Format for response
+    student_understanding = []
+    course_coverage = []
+    
+    for topic_name, topic_data in all_topics.items():
+        student_understanding.append({
+            "topic": topic_name,
+            "status": topic_data["status"],
+            "notes": topic_data["notes"],
+            "lecture_id": topic_data["lecture_id"]
+        })
+        
+        course_coverage.append({
+            "topic": topic_name,
+            "covered": topic_data["covered"],
+            "lecture_id": topic_data["lecture_id"]
+        })
+    
+    # Sort: struggling first, then developing, then strong
+    status_order = {"struggling": 0, "developing": 1, "strong": 2}
+    student_understanding.sort(key=lambda x: status_order.get(x["status"], 1))
+    
+    # Sort action items: critical first
+    priority_order = {"critical": 0, "warning": 1, "success": 2}
+    all_action_items.sort(key=lambda x: priority_order.get(x["priority"], 1))
+    
+    return {
+        "student_understanding": student_understanding,
+        "course_coverage": course_coverage,
+        "action_items": all_action_items[:6],  # Limit to top 6
+        "total_lectures_analyzed": len([l for l in class_lectures if l.get("hasAnalysis")])
+    }
+
+
 @app.post("/api/classes/{class_id}/feedback")
 async def save_professor_feedback(class_id: str, request: Request):
     """
