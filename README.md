@@ -22,3 +22,9 @@ chmod +x start_api.sh
 
 The API will be available at `http://localhost:8001`
 
+## 3. Start the Frontend
+python3 -m http.server 8000
+
+the frontend will be available at `http://localhost:8000`
+
+
