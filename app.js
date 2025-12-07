@@ -887,11 +887,10 @@ async function refreshTopicKnowledge() {
 async function refreshCourseOverview() {
   // Get the container elements
   const actionItemsContainer = document.getElementById("action-items-container");
-  const studentUnderstandingPills = document.getElementById("student-understanding-pills");
-  const courseCoveragePills = document.getElementById("course-coverage-pills");
+  const unifiedTopicPills = document.getElementById("unified-topic-pills");
 
   // If we're not on the course hub overview tab, skip
-  if (!actionItemsContainer && !studentUnderstandingPills && !courseCoveragePills) {
+  if (!actionItemsContainer && !unifiedTopicPills) {
     return;
   }
 
@@ -921,14 +920,9 @@ async function refreshCourseOverview() {
       renderActionItems(actionItemsContainer, data.action_items || []);
     }
 
-    // Render Student Understanding Pills
-    if (studentUnderstandingPills) {
-      renderStudentUnderstandingPills(studentUnderstandingPills, data.student_understanding || []);
-    }
-
-    // Render Course Coverage Pills
-    if (courseCoveragePills) {
-      renderCourseCoveragePills(courseCoveragePills, data.course_coverage || []);
+    // Render Unified Topic Pills (merge student understanding and course coverage)
+    if (unifiedTopicPills) {
+      renderUnifiedTopicPills(unifiedTopicPills, data.student_understanding || [], data.course_coverage || []);
     }
 
   } catch (error) {
@@ -941,11 +935,8 @@ async function refreshCourseOverview() {
           <p class="text-gray-500">Unable to load overview data. Make sure lectures have been analyzed.</p>
         </div>`;
     }
-    if (studentUnderstandingPills) {
-      studentUnderstandingPills.innerHTML = `<p class="text-gray-500 text-sm">No topic data available yet. Analyze some lectures to see topic understanding.</p>`;
-    }
-    if (courseCoveragePills) {
-      courseCoveragePills.innerHTML = `<p class="text-gray-500 text-sm">No coverage data available yet. Analyze some lectures to see course coverage.</p>`;
+    if (unifiedTopicPills) {
+      unifiedTopicPills.innerHTML = `<p class="text-gray-500 text-sm">No topic data available yet. Analyze some lectures to see topics.</p>`;
     }
   }
 }
@@ -988,6 +979,83 @@ function renderActionItems(container, actionItems) {
   container.innerHTML = html;
 }
 
+// Unified topic pills - shows covered topics with understanding colors, uncovered as grey
+function renderUnifiedTopicPills(container, studentUnderstanding, courseCoverage) {
+  // Build a map of topic -> understanding status from analyzed topics
+  const understandingMap = {};
+  (studentUnderstanding || []).forEach(item => {
+    understandingMap[item.topic.toLowerCase()] = {
+      status: item.status,
+      lecture_id: item.lecture_id
+    };
+  });
+
+  // Merge coverage data with understanding data
+  const allTopics = [];
+  const seenTopics = new Set();
+
+  // First, add all topics from course coverage (this includes both covered and planned)
+  (courseCoverage || []).forEach(item => {
+    const topicLower = item.topic.toLowerCase();
+    if (!seenTopics.has(topicLower)) {
+      seenTopics.add(topicLower);
+      const understanding = understandingMap[topicLower];
+      allTopics.push({
+        topic: item.topic,
+        covered: item.covered,
+        status: understanding ? understanding.status : null,
+        lecture_id: item.lecture_id || (understanding ? understanding.lecture_id : null)
+      });
+    }
+  });
+
+  // Add any topics from student understanding that weren't in coverage
+  (studentUnderstanding || []).forEach(item => {
+    const topicLower = item.topic.toLowerCase();
+    if (!seenTopics.has(topicLower)) {
+      seenTopics.add(topicLower);
+      allTopics.push({
+        topic: item.topic,
+        covered: true, // If it's in understanding, it was analyzed
+        status: item.status,
+        lecture_id: item.lecture_id
+      });
+    }
+  });
+
+  if (allTopics.length === 0) {
+    container.innerHTML = `<p class="text-gray-500 text-sm">No topics available yet. Analyze some lectures to see topic coverage.</p>`;
+    return;
+  }
+
+  const statusConfig = {
+    strong: { class: "bg-green-500 text-white", display: "Strong" },
+    developing: { class: "bg-yellow-500 text-white", display: "Developing" },
+    struggling: { class: "bg-red-500 text-white", display: "Struggling" }
+  };
+
+  let html = "";
+  allTopics.forEach(item => {
+    const escapedTopic = escapeHtml(item.topic);
+    const lectureIdAttr = item.lecture_id ? `'${item.lecture_id}'` : 'null';
+
+    if (item.covered && item.status) {
+      // Covered topic with understanding status - show colored
+      const config = statusConfig[item.status] || statusConfig.developing;
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${config.display}', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+    } else if (item.covered) {
+      // Covered but no understanding data yet - show as developing
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Developing', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+    } else {
+      // Not covered yet - show greyed out
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Not Covered', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full bg-gray-300 text-gray-600 font-medium border border-gray-400 hover:bg-gray-400 transition-colors">${escapedTopic}</button>`;
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+// Keep old functions for backward compatibility (they may be used elsewhere)
 function renderStudentUnderstandingPills(container, topics) {
   if (!topics || topics.length === 0) {
     container.innerHTML = `<p class="text-gray-500 text-sm">No topic data available yet. Analyze some lectures to see topic understanding.</p>`;
@@ -1023,10 +1091,8 @@ function renderCourseCoveragePills(container, coverage) {
     const escapedTopic = escapeHtml(item.topic);
     const lectureIdAttr = item.lecture_id ? `'${item.lecture_id}'` : 'null';
     if (item.covered) {
-      // Covered topics get the gradient style
       html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Covered', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full text-white font-medium shadow-sm course-coverage-gradient hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
     } else {
-      // Planned topics get gray style
       html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Planned', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full text-gray-700 font-medium bg-gray-200 border border-gray-300 hover:bg-gray-300 transition-colors">${escapedTopic}</button>`;
     }
   });
