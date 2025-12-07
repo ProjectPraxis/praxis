@@ -8,16 +8,19 @@ source venv/bin/activate
 pip install -r requirements.txt     
 
 ```
+## 2. Setup MongoDB
 
-## 2. Start the API Server
+Edit the `.env` file and add your MongoDB connection string:
+
+```env
+MONGODB_URL=mongodb+srv://username:<db_password>@praxis.zh1q0mm.mongodb.net/?appName=Praxis
+MONGODB_DB_NAME=Praxis
+
+## 3. Start the API Server
 
 ```bash
-# Option 1: Run directly
+# Run directly
 python api.py
-
-# Option 2: Use the startup script (make it executable first)
-chmod +x start_api.sh
-./start_api.sh
 ```
 
 The API will be available at `http://localhost:8001`

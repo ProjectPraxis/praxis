@@ -647,5 +647,20 @@
     "analysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/11e44717-defa-4233-b1b6-b040644933ec_analysis.json",
     "materialsAnalysisPath": "/Users/yogee/Documents/JHU/praxis/backend/data/analyses/11e44717-defa-4233-b1b6-b040644933ec_materials_analysis.json",
     "hasMaterialsAnalysis": true
+  },
+  {
+    "id": "9e790368-3473-4b77-ab14-cf1deb032996",
+    "title": "hihi",
+    "topics": [],
+    "hasSlides": true,
+    "fileName": "6f262fc0-2914-47ed-888c-2a3a9f2a94e4.pdf",
+    "filePath": "/Users/yogee/Documents/JHU/praxis/backend/uploads/6f262fc0-2914-47ed-888c-2a3a9f2a94e4.pdf",
+    "hasVideo": false,
+    "videoName": null,
+    "videoPath": null,
+    "classId": "ff0b0d5d-1f27-4de6-804b-054d3c49522b",
+    "createdAt": "2025-12-07T17:34:04.043045",
+    "hasAnalysis": false,
+    "analysisPath": null
   }
 ]

@@ -6,3 +6,5 @@ pydantic
 python-multipart
 google-genai
 python-dotenv
+motor
+pymongo

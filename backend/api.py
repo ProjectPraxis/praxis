@@ -15,6 +15,15 @@ from pathlib import Path
 import shutil
 import os
 from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result, generate_student_survey, save_survey
+from database import (
+    connect_to_mongo, close_mongo_connection, get_classes_collection, 
+    get_lectures_collection, get_feedback_collection, get_surveys_collection, 
+    get_survey_responses_collection, save_analysis_to_db, get_analysis_from_db,
+    save_materials_analysis_to_db, get_materials_analysis_doc, save_survey_to_db,
+    get_survey_from_db
+)
+from bson import ObjectId
+from bson.errors import InvalidId
 
 app = FastAPI(title="Praxis API", version="1.0.0")
 
@@ -28,13 +37,11 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# Data file paths
-DATA_FILE = Path(__file__).parent / "classes_data.json"
-LECTURES_FILE = Path(__file__).parent / "lectures_data.json"
+# File paths (for file uploads only, data is in MongoDB)
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)  # Create uploads directory if it doesn't exist
 ANALYSIS_DIR = Path(__file__).parent / "data" / "analyses"
-ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)  # Create analyses directory if it doesn't exist
+ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)  # Create analyses directory if it doesn't exist (for file storage if needed)
 
 
 # Pydantic models for request/response
@@ -81,39 +88,136 @@ class LectureResponse(BaseModel):
     analysisPath: Optional[str] = None
 
 
-def load_classes() -> List[dict]:
-    """Load classes from JSON file"""
-    if DATA_FILE.exists():
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    return []
+# MongoDB helper functions
+async def get_all_classes() -> List[dict]:
+    """Get all classes from MongoDB"""
+    collection = get_classes_collection()
+    cursor = collection.find({})
+    classes = await cursor.to_list(length=None)
+    # Convert ObjectId to string for JSON serialization
+    for cls in classes:
+        if "_id" in cls:
+            cls["id"] = str(cls.pop("_id"))
+    return classes
 
 
-def save_classes(classes: List[dict]):
-    """Save classes to JSON file"""
-    with open(DATA_FILE, 'w') as f:
-        json.dump(classes, f, indent=2)
+async def get_class_by_id(class_id: str) -> Optional[dict]:
+    """Get a class by ID from MongoDB"""
+    collection = get_classes_collection()
+    try:
+        class_doc = await collection.find_one({"_id": class_id})
+        if class_doc:
+            class_doc["id"] = str(class_doc.pop("_id"))
+        return class_doc
+    except:
+        return None
 
 
-def load_lectures() -> List[dict]:
-    """Load lectures from JSON file"""
-    if LECTURES_FILE.exists():
-        try:
-            with open(LECTURES_FILE, 'r') as f:
-                content = f.read().strip()
-                if not content:
-                    return []
-                return json.loads(content)
-        except (json.JSONDecodeError, ValueError):
-            # If file is corrupted or empty, return empty list
-            return []
-    return []
+async def create_class_doc(class_data: dict) -> dict:
+    """Create a new class in MongoDB"""
+    collection = get_classes_collection()
+    class_id = str(uuid.uuid4())
+    class_data["_id"] = class_id
+    await collection.insert_one(class_data)
+    class_data["id"] = class_data.pop("_id")
+    return class_data
 
 
-def save_lectures(lectures: List[dict]):
-    """Save lectures to JSON file"""
-    with open(LECTURES_FILE, 'w') as f:
-        json.dump(lectures, f, indent=2)
+async def update_class(class_id: str, update_data: dict) -> Optional[dict]:
+    """Update a class in MongoDB"""
+    collection = get_classes_collection()
+    result = await collection.find_one_and_update(
+        {"_id": class_id},
+        {"$set": update_data},
+        return_document=True
+    )
+    if result:
+        result["id"] = str(result.pop("_id"))
+    return result
+
+
+async def delete_class(class_id: str) -> bool:
+    """Delete a class from MongoDB"""
+    collection = get_classes_collection()
+    result = await collection.delete_one({"_id": class_id})
+    return result.deleted_count > 0
+
+
+async def get_all_lectures() -> List[dict]:
+    """Get all lectures from MongoDB"""
+    collection = get_lectures_collection()
+    cursor = collection.find({})
+    lectures = await cursor.to_list(length=None)
+    # Convert ObjectId to string for JSON serialization
+    for lecture in lectures:
+        if "_id" in lecture:
+            lecture["id"] = str(lecture.pop("_id"))
+    return lectures
+
+
+async def get_lecture_by_id(lecture_id: str) -> Optional[dict]:
+    """Get a lecture by ID from MongoDB"""
+    collection = get_lectures_collection()
+    try:
+        lecture_doc = await collection.find_one({"_id": lecture_id})
+        if lecture_doc:
+            lecture_doc["id"] = str(lecture_doc.pop("_id"))
+        return lecture_doc
+    except:
+        return None
+
+
+async def get_lectures_by_class_id(class_id: str) -> List[dict]:
+    """Get all lectures for a specific class"""
+    collection = get_lectures_collection()
+    cursor = collection.find({"classId": class_id})
+    lectures = await cursor.to_list(length=None)
+    for lecture in lectures:
+        if "_id" in lecture:
+            lecture["id"] = str(lecture.pop("_id"))
+    return lectures
+
+
+async def create_lecture_doc(lecture_data: dict) -> dict:
+    """Create a new lecture in MongoDB"""
+    collection = get_lectures_collection()
+    lecture_id = str(uuid.uuid4())
+    lecture_data["_id"] = lecture_id
+    await collection.insert_one(lecture_data)
+    lecture_data["id"] = lecture_data.pop("_id")
+    return lecture_data
+
+
+async def update_lecture_doc(lecture_id: str, update_data: dict) -> Optional[dict]:
+    """Update a lecture in MongoDB"""
+    collection = get_lectures_collection()
+    result = await collection.find_one_and_update(
+        {"_id": lecture_id},
+        {"$set": update_data},
+        return_document=True
+    )
+    if result:
+        result["id"] = str(result.pop("_id"))
+    return result
+
+
+async def delete_lecture(lecture_id: str) -> bool:
+    """Delete a lecture from MongoDB"""
+    collection = get_lectures_collection()
+    result = await collection.delete_one({"_id": lecture_id})
+    return result.deleted_count > 0
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Connect to MongoDB on startup"""
+    await connect_to_mongo()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close MongoDB connection on shutdown"""
+    await close_mongo_connection()
 
 
 @app.get("/")
@@ -123,20 +227,17 @@ def read_root():
 
 
 @app.get("/api/classes", response_model=List[ClassResponse])
-def get_classes():
+async def get_classes():
     """Get all classes"""
-    classes = load_classes()
+    classes = await get_all_classes()
     return classes
 
 
 @app.post("/api/classes", response_model=ClassResponse, status_code=201)
-def create_class(class_data: ClassCreate):
+async def create_class(class_data: ClassCreate):
     """Create a new class"""
-    classes = load_classes()
-    
     # Create new class object
     new_class = {
-        "id": str(uuid.uuid4()),
         "code": class_data.code,
         "name": class_data.name,
         "totalLectures": class_data.totalLectures,
@@ -146,59 +247,53 @@ def create_class(class_data: ClassCreate):
         "createdAt": datetime.now().isoformat()
     }
     
-    classes.append(new_class)
-    save_classes(classes)
-    
-    return new_class
+    created_class = await create_class_doc(new_class)
+    return created_class
 
 
 @app.get("/api/classes/{class_id}", response_model=ClassResponse)
-def get_class(class_id: str):
+async def get_class(class_id: str):
     """Get a specific class by ID"""
-    classes = load_classes()
-    for class_item in classes:
-        if class_item["id"] == class_id:
-            return class_item
-    raise HTTPException(status_code=404, detail="Class not found")
+    class_item = await get_class_by_id(class_id)
+    if not class_item:
+        raise HTTPException(status_code=404, detail="Class not found")
+    return class_item
 
 
 @app.put("/api/classes/{class_id}", response_model=ClassResponse)
-def update_class(class_id: str, class_data: ClassCreate):
+async def update_class_endpoint(class_id: str, class_data: ClassCreate):
     """Update a class"""
-    classes = load_classes()
-    for i, class_item in enumerate(classes):
-        if class_item["id"] == class_id:
-            classes[i].update({
-                "code": class_data.code,
-                "name": class_data.name,
-                "totalLectures": class_data.totalLectures,
-                "semester": class_data.semester,
-                "description": class_data.description
-            })
-            save_classes(classes)
-            return classes[i]
-    raise HTTPException(status_code=404, detail="Class not found")
+    update_data = {
+        "code": class_data.code,
+        "name": class_data.name,
+        "totalLectures": class_data.totalLectures,
+        "semester": class_data.semester,
+        "description": class_data.description
+    }
+    updated_class = await update_class(class_id, update_data)
+    if not updated_class:
+        raise HTTPException(status_code=404, detail="Class not found")
+    return updated_class
 
 
 @app.delete("/api/classes/{class_id}", status_code=204)
-def delete_class(class_id: str):
+async def delete_class_endpoint(class_id: str):
     """Delete a class"""
-    classes = load_classes()
-    for i, class_item in enumerate(classes):
-        if class_item["id"] == class_id:
-            classes.pop(i)
-            save_classes(classes)
-            return
-    raise HTTPException(status_code=404, detail="Class not found")
+    deleted = await delete_class(class_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Class not found")
+    return
 
 
 # Lecture endpoints
 @app.get("/api/lectures", response_model=List[LectureResponse], response_model_exclude_unset=False, response_model_exclude_none=False)
-def get_lectures(class_id: Optional[str] = None):
+async def get_lectures(class_id: Optional[str] = None):
     """Get all lectures, optionally filtered by class_id"""
-    lectures = load_lectures()
     if class_id:
-        lectures = [l for l in lectures if l.get("classId") == class_id]
+        lectures = await get_lectures_by_class_id(class_id)
+    else:
+        lectures = await get_all_lectures()
+    
     # Sort by creation date, newest first
     lectures.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
     # Ensure all lectures have hasAnalysis and analysisPath fields, even if None
@@ -211,18 +306,17 @@ def get_lectures(class_id: Optional[str] = None):
 
 
 @app.get("/api/lectures/{lecture_id}", response_model=LectureResponse, response_model_exclude_unset=False, response_model_exclude_none=False)
-def get_lecture(lecture_id: str):
+async def get_lecture(lecture_id: str):
     """Get a specific lecture by ID"""
-    lectures = load_lectures()
-    for lecture in lectures:
-        if lecture["id"] == lecture_id:
-            # Ensure hasAnalysis and analysisPath fields are present
-            if "hasAnalysis" not in lecture:
-                lecture["hasAnalysis"] = False
-            if "analysisPath" not in lecture:
-                lecture["analysisPath"] = None
-            return lecture
-    raise HTTPException(status_code=404, detail="Lecture not found")
+    lecture = await get_lecture_by_id(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    # Ensure hasAnalysis and analysisPath fields are present
+    if "hasAnalysis" not in lecture:
+        lecture["hasAnalysis"] = False
+    if "analysisPath" not in lecture:
+        lecture["analysisPath"] = None
+    return lecture
 
 
 @app.post("/api/lectures", response_model=LectureResponse, status_code=201)
@@ -234,8 +328,6 @@ async def create_lecture(
     video: Optional[UploadFile] = File(None)
 ):
     """Create a new lecture with optional file upload"""
-    lectures = load_lectures()
-    
     # Parse topics from JSON string
     try:
         topics_list = json.loads(topics) if topics else []
@@ -270,7 +362,6 @@ async def create_lecture(
     
     # Create new lecture object
     new_lecture = {
-        "id": str(uuid.uuid4()),
         "title": title,
         "topics": topics_list,
         "hasSlides": file is not None and file.filename is not None,
@@ -285,10 +376,8 @@ async def create_lecture(
         "analysisPath": None
     }
     
-    lectures.append(new_lecture)
-    save_lectures(lectures)
-    
-    return new_lecture
+    created_lecture = await create_lecture_doc(new_lecture)
+    return created_lecture
 
 
 @app.put("/api/lectures/{lecture_id}", response_model=LectureResponse)
@@ -301,191 +390,184 @@ async def update_lecture(
     video: Optional[UploadFile] = File(None)
 ):
     """Update a lecture with optional file upload"""
-    lectures = load_lectures()
+    # Get existing lecture
+    existing_lecture = await get_lecture_by_id(lecture_id)
+    if not existing_lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
     
-    for i, lecture in enumerate(lectures):
-        if lecture["id"] == lecture_id:
-            # Parse topics from JSON string
+    # Parse topics from JSON string
+    try:
+        topics_list = json.loads(topics) if topics else []
+    except:
+        topics_list = []
+    
+    # Handle slides file upload (if new file provided)
+    file_path = existing_lecture.get("filePath")
+    file_name = existing_lecture.get("fileName")
+    if file and file.filename:
+        # Delete old file if exists
+        if file_path and Path(file_path).exists():
             try:
-                topics_list = json.loads(topics) if topics else []
+                os.remove(file_path)
             except:
-                topics_list = []
-            
-            # Handle slides file upload (if new file provided)
-            file_path = lecture.get("filePath")
-            file_name = lecture.get("fileName")
-            if file and file.filename:
-                # Delete old file if exists
-                if file_path and Path(file_path).exists():
-                    try:
-                        os.remove(file_path)
-                    except:
-                        pass
-                
-                # Save new file
-                file_ext = Path(file.filename).suffix
-                file_name = f"{uuid.uuid4()}{file_ext}"
-                file_path = str(UPLOAD_DIR / file_name)
-                
-                with open(file_path, "wb") as buffer:
-                    shutil.copyfileobj(file.file, buffer)
-            
-            # Handle video file upload (if new file provided)
-            video_path = lecture.get("videoPath")
-            video_name = lecture.get("videoName")
-            if video and video.filename:
-                # Delete old video if exists
-                if video_path and Path(video_path).exists():
-                    try:
-                        os.remove(video_path)
-                    except:
-                        pass
-                
-                # Save new video
-                video_ext = Path(video.filename).suffix
-                video_name = f"{uuid.uuid4()}{video_ext}"
-                video_path = str(UPLOAD_DIR / video_name)
-                
-                with open(video_path, "wb") as buffer:
-                    shutil.copyfileobj(video.file, buffer)
-            
-            # Update lecture (preserve hasAnalysis and analysisPath if they exist)
-            update_data = {
-                "title": title,
-                "topics": topics_list,
-                "hasSlides": file_path is not None,
-                "fileName": file_name,
-                "filePath": file_path,
-                "hasVideo": video_path is not None,
-                "videoName": video_name,
-                "videoPath": video_path,
-                "classId": classId
-            }
-            # Preserve existing analysis status if not being updated
-            if "hasAnalysis" in lecture:
-                update_data["hasAnalysis"] = lecture.get("hasAnalysis", False)
-            if "analysisPath" in lecture:
-                update_data["analysisPath"] = lecture.get("analysisPath")
-            lectures[i].update(update_data)
-            
-            save_lectures(lectures)
-            return lectures[i]
+                pass
+        
+        # Save new file
+        file_ext = Path(file.filename).suffix
+        file_name = f"{uuid.uuid4()}{file_ext}"
+        file_path = str(UPLOAD_DIR / file_name)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
     
-    raise HTTPException(status_code=404, detail="Lecture not found")
+    # Handle video file upload (if new file provided)
+    video_path = existing_lecture.get("videoPath")
+    video_name = existing_lecture.get("videoName")
+    if video and video.filename:
+        # Delete old video if exists
+        if video_path and Path(video_path).exists():
+            try:
+                os.remove(video_path)
+            except:
+                pass
+        
+        # Save new video
+        video_ext = Path(video.filename).suffix
+        video_name = f"{uuid.uuid4()}{video_ext}"
+        video_path = str(UPLOAD_DIR / video_name)
+        
+        with open(video_path, "wb") as buffer:
+            shutil.copyfileobj(video.file, buffer)
+    
+    # Update lecture (preserve hasAnalysis and analysisPath if they exist)
+    update_data = {
+        "title": title,
+        "topics": topics_list,
+        "hasSlides": file_path is not None,
+        "fileName": file_name,
+        "filePath": file_path,
+        "hasVideo": video_path is not None,
+        "videoName": video_name,
+        "videoPath": video_path,
+        "classId": classId
+    }
+    # Preserve existing analysis status if not being updated
+    if "hasAnalysis" in existing_lecture:
+        update_data["hasAnalysis"] = existing_lecture.get("hasAnalysis", False)
+    if "analysisPath" in existing_lecture:
+        update_data["analysisPath"] = existing_lecture.get("analysisPath")
+    
+    updated_lecture = await update_lecture_doc(lecture_id, update_data)
+    return updated_lecture
 
 
 @app.delete("/api/lectures/{lecture_id}", status_code=204)
-def delete_lecture(lecture_id: str):
+async def delete_lecture_endpoint(lecture_id: str):
     """Delete a lecture and its associated files"""
-    lectures = load_lectures()
-    for i, lecture in enumerate(lectures):
-        if lecture["id"] == lecture_id:
-            # Delete associated slides file if exists
-            file_path = lecture.get("filePath")
-            if file_path and Path(file_path).exists():
-                try:
-                    os.remove(file_path)
-                except:
-                    pass
-            
-            # Delete associated video file if exists
-            video_path = lecture.get("videoPath")
-            if video_path and Path(video_path).exists():
-                try:
-                    os.remove(video_path)
-                except:
-                    pass
-            
-            lectures.pop(i)
-            save_lectures(lectures)
-            return
-    raise HTTPException(status_code=404, detail="Lecture not found")
+    # Get lecture before deleting
+    lecture = await get_lecture_by_id(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    # Delete associated slides file if exists
+    file_path = lecture.get("filePath")
+    if file_path and Path(file_path).exists():
+        try:
+            os.remove(file_path)
+        except:
+            pass
+    
+    # Delete associated video file if exists
+    video_path = lecture.get("videoPath")
+    if video_path and Path(video_path).exists():
+        try:
+            os.remove(video_path)
+        except:
+            pass
+    
+    # Delete from database
+    deleted = await delete_lecture(lecture_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    return
 
 
 @app.get("/api/lectures/{lecture_id}/file")
-def download_lecture_file(lecture_id: str):
+async def download_lecture_file(lecture_id: str):
     """Download the lecture slides file"""
-    lectures = load_lectures()
-    for lecture in lectures:
-        if lecture["id"] == lecture_id:
-            file_path = lecture.get("filePath")
-            if file_path and Path(file_path).exists():
-                return FileResponse(
-                    file_path,
-                    filename=lecture.get("fileName", "slides.pdf"),
-                    media_type="application/octet-stream"
-                )
-            raise HTTPException(status_code=404, detail="File not found")
-    raise HTTPException(status_code=404, detail="Lecture not found")
+    lecture = await get_lecture_by_id(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    file_path = lecture.get("filePath")
+    if file_path and Path(file_path).exists():
+        return FileResponse(
+            file_path,
+            filename=lecture.get("fileName", "slides.pdf"),
+            media_type="application/octet-stream"
+        )
+    raise HTTPException(status_code=404, detail="File not found")
 
 
 @app.get("/api/lectures/{lecture_id}/video")
-def get_lecture_video(lecture_id: str):
+async def get_lecture_video(lecture_id: str):
     """Get the lecture video file"""
-    lectures = load_lectures()
-    for lecture in lectures:
-        if lecture["id"] == lecture_id:
-            video_path = lecture.get("videoPath")
-            if not video_path:
-                raise HTTPException(status_code=404, detail=f"Video path not set for lecture {lecture_id}")
-            
-            video_path_obj = Path(video_path)
-            if not video_path_obj.exists():
-                # Try to find the file in the uploads directory as a fallback
-                video_name = lecture.get("videoName")
-                if video_name:
-                    fallback_path = UPLOAD_DIR / video_name
-                    if fallback_path.exists():
-                        video_path_obj = fallback_path
-                        video_path = str(fallback_path)
-                    else:
-                        raise HTTPException(
-                            status_code=404, 
-                            detail=f"Video file not found at {video_path} or {fallback_path}"
-                        )
-                else:
-                    raise HTTPException(
-                        status_code=404, 
-                        detail=f"Video file not found at {video_path}"
-                    )
-            
-            # Determine media type based on file extension
-            ext = video_path_obj.suffix.lower()
-            media_types = {
-                '.mp4': 'video/mp4',
-                '.mov': 'video/quicktime',
-                '.avi': 'video/x-msvideo',
-                '.mkv': 'video/x-matroska',
-                '.webm': 'video/webm',
-                '.flv': 'video/x-flv',
-                '.wmv': 'video/x-ms-wmv'
-            }
-            media_type = media_types.get(ext, 'video/mp4')
-            
-            return FileResponse(
-                str(video_path_obj),
-                filename=lecture.get("videoName", "video.mp4"),
-                media_type=media_type
+    lecture = await get_lecture_by_id(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    video_path = lecture.get("videoPath")
+    if not video_path:
+        raise HTTPException(status_code=404, detail=f"Video path not set for lecture {lecture_id}")
+    
+    video_path_obj = Path(video_path)
+    if not video_path_obj.exists():
+        # Try to find the file in the uploads directory as a fallback
+        video_name = lecture.get("videoName")
+        if video_name:
+            fallback_path = UPLOAD_DIR / video_name
+            if fallback_path.exists():
+                video_path_obj = fallback_path
+                video_path = str(fallback_path)
+            else:
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"Video file not found at {video_path} or {fallback_path}"
+                )
+        else:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Video file not found at {video_path}"
             )
-    raise HTTPException(status_code=404, detail="Lecture not found")
+    
+    # Determine media type based on file extension
+    ext = video_path_obj.suffix.lower()
+    media_types = {
+        '.mp4': 'video/mp4',
+        '.mov': 'video/quicktime',
+        '.avi': 'video/x-msvideo',
+        '.mkv': 'video/x-matroska',
+        '.webm': 'video/webm',
+        '.flv': 'video/x-flv',
+        '.wmv': 'video/x-ms-wmv'
+    }
+    media_type = media_types.get(ext, 'video/mp4')
+    
+    return FileResponse(
+        str(video_path_obj),
+        filename=lecture.get("videoName", "video.mp4"),
+        media_type=media_type
+    )
 
 
 @app.post("/api/lectures/{lecture_id}/analyze")
 async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(None)):
     """
     Analyze a lecture video using Gemini 2.5 Pro API.
-    Saves the analysis result to a JSON file in the analyses directory.
+    Saves the analysis result to MongoDB.
     If video is not provided, uses the existing video from the lecture.
     """
-    lectures = load_lectures()
-    lecture = None
-    
-    # Find the lecture
-    for l in lectures:
-        if l["id"] == lecture_id:
-            lecture = l
-            break
-    
+    lecture = await get_lecture_by_id(lecture_id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
     
@@ -502,13 +584,11 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
             shutil.copyfileobj(video.file, buffer)
         
         # Update lecture with new video path
-        for i, l in enumerate(lectures):
-            if l["id"] == lecture_id:
-                lectures[i]["videoPath"] = video_path
-                lectures[i]["videoName"] = video_name
-                lectures[i]["hasVideo"] = True
-                save_lectures(lectures)
-                break
+        await update_lecture_doc(lecture_id, {
+            "videoPath": video_path,
+            "videoName": video_name,
+            "hasVideo": True
+        })
     elif not video_path or not Path(video_path).exists():
         raise HTTPException(status_code=400, detail="No video file available. Please upload a video first.")
     
@@ -517,26 +597,19 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
     topics = lecture.get("topics", [])
     class_id = lecture.get("classId") or lecture.get("class_id")
     
-    # Load materials analysis if available
+    # Load materials analysis if available (from MongoDB)
     materials_analysis = None
-    materials_analysis_path = lecture.get("materialsAnalysisPath")
-    if materials_analysis_path and Path(materials_analysis_path).exists():
-        try:
-            with open(materials_analysis_path, 'r') as f:
-                materials_analysis = json.load(f)
-        except:
-            pass
+    materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
+    if materials_analysis_doc:
+        materials_analysis = materials_analysis_doc.get("analysis_data")
     
-    # Load professor feedback for this course if available
+    # Load professor feedback for this course if available (from MongoDB)
     professor_feedback = None
     if class_id:
-        feedback_file = ANALYSIS_DIR / f"course_{class_id}_feedback.json"
-        if feedback_file.exists():
-            try:
-                with open(feedback_file, 'r') as f:
-                    professor_feedback = json.load(f)
-            except:
-                pass
+        feedback_collection = get_feedback_collection()
+        feedback_doc = await feedback_collection.find_one({"class_id": class_id})
+        if feedback_doc:
+            professor_feedback = {"feedback": feedback_doc.get("feedback", [])}
     
     try:
         # Analyze the video using Gemini with materials context and professor feedback
@@ -553,22 +626,21 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
         if "error" in analysis_result:
             raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result['error']}")
         
-        # Save the analysis result to JSON file
-        analysis_file_path = save_analysis_result(analysis_result, ANALYSIS_DIR)
+        # Save the analysis result to MongoDB (via gemini_analysis)
+        # Note: save_analysis_result is now async and saves to MongoDB
+        from gemini_analysis import save_analysis_result
+        await save_analysis_result(analysis_result)
         
-        # Update lecture with analysis file path
-        for i, l in enumerate(lectures):
-            if l["id"] == lecture_id:
-                lectures[i]["analysisPath"] = analysis_file_path
-                lectures[i]["hasAnalysis"] = True
-                save_lectures(lectures)
-                break
+        # Update lecture with analysis status
+        await update_lecture_doc(lecture_id, {
+            "hasAnalysis": True,
+            "analysisPath": None  # No longer using file paths
+        })
         
         return {
             "status": "success",
             "lecture_id": lecture_id,
-            "analysis": analysis_result,
-            "analysis_file": analysis_file_path
+            "analysis": analysis_result
         }
         
     except Exception as e:
@@ -579,17 +651,9 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
 async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = File(None)):
     """
     Analyze lecture materials (PDF, PowerPoint, etc.) using Gemini to extract intended topics.
-    Saves the analysis result and updates the lecture with extracted topics.
+    Saves the analysis result to MongoDB and updates the lecture with extracted topics.
     """
-    lectures = load_lectures()
-    lecture = None
-    
-    # Find the lecture
-    for l in lectures:
-        if l["id"] == lecture_id:
-            lecture = l
-            break
-    
+    lecture = await get_lecture_by_id(lecture_id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
     
@@ -606,13 +670,11 @@ async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = F
             shutil.copyfileobj(materials.file, buffer)
         
         # Update lecture with new materials path
-        for i, l in enumerate(lectures):
-            if l["id"] == lecture_id:
-                lectures[i]["filePath"] = materials_path
-                lectures[i]["fileName"] = file_name
-                lectures[i]["hasSlides"] = True
-                save_lectures(lectures)
-                break
+        await update_lecture_doc(lecture_id, {
+            "filePath": materials_path,
+            "fileName": file_name,
+            "hasSlides": True
+        })
     elif not materials_path or not Path(materials_path).exists():
         raise HTTPException(status_code=400, detail="No materials file available. Please upload materials first.")
     
@@ -631,8 +693,9 @@ async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = F
         if "error" in analysis_result:
             raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result['error']}")
         
-        # Save the materials analysis result to JSON file
-        materials_analysis_file_path = save_materials_analysis_result(analysis_result, ANALYSIS_DIR)
+        # Save the materials analysis result to MongoDB (via gemini_analysis)
+        from gemini_analysis import save_materials_analysis_result
+        await save_materials_analysis_result(analysis_result)
         
         # Extract topic names for the lecture topics field
         extracted_topics = []
@@ -640,24 +703,22 @@ async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = F
             for topic in analysis_result["topics"]:
                 extracted_topics.append(topic["name"])
         
-        # Update lecture with materials analysis file path and extracted topics
-        for i, l in enumerate(lectures):
-            if l["id"] == lecture_id:
-                lectures[i]["materialsAnalysisPath"] = materials_analysis_file_path
-                lectures[i]["hasMaterialsAnalysis"] = True
-                # Merge with existing topics (avoid duplicates)
-                existing_topics = set(lectures[i].get("topics", []))
-                for topic in extracted_topics:
-                    existing_topics.add(topic)
-                lectures[i]["topics"] = list(existing_topics)
-                save_lectures(lectures)
-                break
+        # Get existing lecture to merge topics
+        existing_lecture = await get_lecture_by_id(lecture_id)
+        existing_topics = set(existing_lecture.get("topics", []))
+        for topic in extracted_topics:
+            existing_topics.add(topic)
+        
+        # Update lecture with materials analysis status and merged topics
+        await update_lecture_doc(lecture_id, {
+            "hasMaterialsAnalysis": True,
+            "topics": list(existing_topics)
+        })
         
         return {
             "status": "success",
             "lecture_id": lecture_id,
             "analysis": analysis_result,
-            "materials_analysis_file": materials_analysis_file_path,
             "extracted_topics": extracted_topics
         }
         
@@ -666,51 +727,32 @@ async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = F
 
 
 @app.get("/api/lectures/{lecture_id}/materials-analysis")
-def get_materials_analysis(lecture_id: str):
-    """Get the materials analysis result for a lecture"""
-    lectures = load_lectures()
-    lecture = None
-    
-    for l in lectures:
-        if l["id"] == lecture_id:
-            lecture = l
-            break
-    
+async def get_materials_analysis(lecture_id: str):
+    """Get the materials analysis result for a lecture from MongoDB"""
+    lecture = await get_lecture_by_id(lecture_id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
     
-    materials_analysis_path = lecture.get("materialsAnalysisPath")
-    if not materials_analysis_path or not Path(materials_analysis_path).exists():
-        raise HTTPException(status_code=404, detail="Materials analysis not found")
+    materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
+    if not materials_analysis_doc:
+        # Return empty object instead of 404 - materials analysis is optional
+        return {}
     
-    with open(materials_analysis_path, 'r') as f:
-        analysis_data = json.load(f)
-    
-    return analysis_data
+    return materials_analysis_doc.get("analysis_data", {})
 
 
 @app.get("/api/lectures/{lecture_id}/analysis")
-def get_lecture_analysis(lecture_id: str):
-    """Get the analysis result for a lecture"""
-    lectures = load_lectures()
-    lecture = None
-    
-    for l in lectures:
-        if l["id"] == lecture_id:
-            lecture = l
-            break
-    
+async def get_lecture_analysis(lecture_id: str):
+    """Get the analysis result for a lecture from MongoDB"""
+    lecture = await get_lecture_by_id(lecture_id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
     
-    analysis_path = lecture.get("analysisPath")
-    if not analysis_path or not Path(analysis_path).exists():
+    analysis_doc = await get_analysis_from_db(lecture_id)
+    if not analysis_doc:
         raise HTTPException(status_code=404, detail="Analysis not found")
     
-    with open(analysis_path, 'r') as f:
-        analysis_data = json.load(f)
-    
-    return analysis_data
+    return analysis_doc.get("analysis_data", {})
 
 
 @app.post("/api/lectures/{lecture_id}/generate-survey/")
@@ -719,15 +761,7 @@ async def generate_lecture_survey(lecture_id: str, request: Request = None):
     Generate a student comprehension survey for a lecture using Gemini AI.
     The survey is based on the lecture analysis and helps identify concepts that need reinforcement.
     """
-    lectures = load_lectures()
-    lecture = None
-    
-    # Find the lecture
-    for l in lectures:
-        if l["id"] == lecture_id:
-            lecture = l
-            break
-    
+    lecture = await get_lecture_by_id(lecture_id)
     if not lecture:
         raise HTTPException(status_code=404, detail="Lecture not found")
     
@@ -742,15 +776,11 @@ async def generate_lecture_survey(lecture_id: str, request: Request = None):
         except:
             pass
     
-    # Load the lecture analysis if available
+    # Load the lecture analysis if available (from MongoDB)
     analysis_data = None
-    analysis_path = lecture.get("analysisPath")
-    if analysis_path and Path(analysis_path).exists():
-        try:
-            with open(analysis_path, 'r') as f:
-                analysis_data = json.load(f)
-        except:
-            pass
+    analysis_doc = await get_analysis_from_db(lecture_id)
+    if analysis_doc:
+        analysis_data = analysis_doc.get("analysis_data")
     
     try:
         # Generate survey using Gemini
@@ -765,27 +795,15 @@ async def generate_lecture_survey(lecture_id: str, request: Request = None):
         if "error" in survey_data:
             raise HTTPException(status_code=500, detail=f"Survey generation failed: {survey_data['error']}")
         
-        # Save the survey to JSON file
-        survey_file_path = save_survey(survey_data, ANALYSIS_DIR)
-        
-        # Update lecture with survey file path
-        for i, l in enumerate(lectures):
-            if l["id"] == lecture_id:
-                if "surveys" not in lectures[i]:
-                    lectures[i]["surveys"] = []
-                lectures[i]["surveys"].append({
-                    "survey_id": survey_data.get("survey_id"),
-                    "path": survey_file_path,
-                    "created_at": survey_data.get("created_at")
-                })
-                save_lectures(lectures)
-                break
+        # Save the survey to MongoDB (via gemini_analysis)
+        from gemini_analysis import save_survey
+        survey_id = survey_data.get("survey_id")
+        await save_survey(survey_data)
         
         return {
             "status": "success",
             "lecture_id": lecture_id,
-            "survey": survey_data,
-            "survey_file": survey_file_path
+            "survey": survey_data
         }
         
     except Exception as e:
@@ -793,61 +811,28 @@ async def generate_lecture_survey(lecture_id: str, request: Request = None):
 
 
 @app.get("/api/lectures/{lecture_id}/surveys")
-def get_lecture_surveys(lecture_id: str):
-    """Get all surveys for a lecture by scanning the analysis directory."""
+async def get_lecture_surveys(lecture_id: str):
+    """Get all surveys for a lecture from MongoDB"""
+    collection = get_surveys_collection()
+    cursor = collection.find({"survey_data.lecture_id": lecture_id})
+    surveys = await cursor.to_list(length=None)
     
-    # We don't need to load the main lectures file, just scan the directory
-    # for survey files matching the lecture_id. This is more robust.
-    
+    # Extract survey_data from each document
     survey_list = []
+    for doc in surveys:
+        survey_data = doc.get("survey_data", {})
+        survey_list.append(survey_data)
     
-    if not ANALYSIS_DIR.exists():
-        # If the directory doesn't exist, no surveys can be found.
-        return []
-        
-    for survey_file in ANALYSIS_DIR.glob(f"{lecture_id}_survey_*.json"):
-        if survey_file.is_file():
-            try:
-                with open(survey_file, 'r') as f:
-                    survey_data = json.load(f)
-                    survey_list.append(survey_data)
-            except (json.JSONDecodeError, IOError):
-                # Ignore corrupted or unreadable files
-                pass
-    
-    # If no surveys are found, return an empty list.
-    # The frontend will correctly interpret this as "no surveys exist".
-    if not survey_list:
-        return []
-        
     return survey_list
 
 
 @app.get("/api/surveys/{survey_id}")
-def get_survey_by_id(survey_id: str):
-    """Get a specific survey by its ID (for shareable links)"""
-    # Search through all lecture surveys
-    lectures = load_lectures()
-    
-    for lecture in lectures:
-        surveys = lecture.get("surveys", [])
-        for survey_info in surveys:
-            if survey_info.get("survey_id") == survey_id:
-                survey_path = survey_info.get("path")
-                if survey_path and Path(survey_path).exists():
-                    with open(survey_path, 'r') as f:
-                        return json.load(f)
-    
-    # Also check the analysis directory directly
-    for survey_file in ANALYSIS_DIR.glob(f"*_survey_{survey_id}.json"):
-        if survey_file.is_file():
-            try:
-                with open(survey_file, 'r') as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError):
-                pass
-    
-    raise HTTPException(status_code=404, detail="Survey not found")
+async def get_survey_by_id(survey_id: str):
+    """Get a specific survey by its ID (for shareable links) from MongoDB"""
+    survey_doc = await get_survey_from_db(survey_id)
+    if not survey_doc:
+        raise HTTPException(status_code=404, detail="Survey not found")
+    return survey_doc.get("survey_data", {})
 
 
 # Directory for survey responses
@@ -867,39 +852,17 @@ class SurveyResponse(BaseModel):
 async def submit_survey_response(survey_id: str, response_data: SurveyResponse):
     """Submit a survey response from a student"""
     try:
-        # Verify the survey exists
-        survey = None
-        lectures = load_lectures()
-        
-        for lecture in lectures:
-            surveys = lecture.get("surveys", [])
-            for survey_info in surveys:
-                if survey_info.get("survey_id") == survey_id:
-                    survey_path = survey_info.get("path")
-                    if survey_path and Path(survey_path).exists():
-                        with open(survey_path, 'r') as f:
-                            survey = json.load(f)
-                        break
-            if survey:
-                break
-        
-        # Also check the analysis directory directly
-        if not survey:
-            for survey_file in ANALYSIS_DIR.glob(f"*_survey_{survey_id}.json"):
-                if survey_file.is_file():
-                    try:
-                        with open(survey_file, 'r') as f:
-                            survey = json.load(f)
-                        break
-                    except (json.JSONDecodeError, IOError):
-                        pass
-        
-        if not survey:
+        # Verify the survey exists (from MongoDB)
+        survey_doc = await get_survey_from_db(survey_id)
+        if not survey_doc:
             raise HTTPException(status_code=404, detail="Survey not found")
+        
+        survey = survey_doc.get("survey_data", {})
         
         # Create response data
         response_id = str(uuid.uuid4())
         response_record = {
+            "_id": response_id,
             "response_id": response_id,
             "survey_id": survey_id,
             "lecture_id": response_data.lecture_id,
@@ -909,10 +872,9 @@ async def submit_survey_response(survey_id: str, response_data: SurveyResponse):
             "submitted_at": response_data.submitted_at,
         }
         
-        # Save response to file
-        response_file = SURVEY_RESPONSES_DIR / f"{survey_id}_{response_id}.json"
-        with open(response_file, 'w') as f:
-            json.dump(response_record, f, indent=2)
+        # Save response to MongoDB
+        responses_collection = get_survey_responses_collection()
+        await responses_collection.insert_one(response_record)
         
         return {
             "status": "success",
@@ -927,43 +889,17 @@ async def submit_survey_response(survey_id: str, response_data: SurveyResponse):
 
 
 @app.get("/api/lectures/{lecture_id}/survey-responses")
-def get_lecture_survey_responses(lecture_id: str):
-    """Get all survey responses for a lecture"""
+async def get_lecture_survey_responses(lecture_id: str):
+    """Get all survey responses for a lecture from MongoDB"""
     try:
-        responses = []
+        responses_collection = get_survey_responses_collection()
+        cursor = responses_collection.find({"lecture_id": lecture_id})
+        responses = await cursor.to_list(length=None)
         
-        # Find all surveys for this lecture
-        lectures = load_lectures()
-        survey_ids = set()
-        
-        for lecture in lectures:
-            if lecture.get("id") == lecture_id:
-                surveys = lecture.get("surveys", [])
-                for survey_info in surveys:
-                    survey_ids.add(survey_info.get("survey_id"))
-                break
-        
-        # Also check analysis directory for surveys
-        for survey_file in ANALYSIS_DIR.glob(f"{lecture_id}_survey_*.json"):
-            if survey_file.is_file():
-                try:
-                    with open(survey_file, 'r') as f:
-                        survey_data = json.load(f)
-                        survey_ids.add(survey_data.get("survey_id"))
-                except (json.JSONDecodeError, IOError):
-                    pass
-        
-        # Load all responses for these surveys
-        for survey_id in survey_ids:
-            for response_file in SURVEY_RESPONSES_DIR.glob(f"{survey_id}_*.json"):
-                if response_file.is_file():
-                    try:
-                        with open(response_file, 'r') as f:
-                            response_data = json.load(f)
-                            if response_data.get("lecture_id") == lecture_id:
-                                responses.append(response_data)
-                    except (json.JSONDecodeError, IOError):
-                        pass
+        # Remove MongoDB _id and use response_id
+        for response in responses:
+            if "_id" in response:
+                del response["_id"]
         
         # Sort by submission time (newest first)
         responses.sort(key=lambda x: x.get("submitted_at", ""), reverse=True)
@@ -1002,25 +938,18 @@ def _infer_topic_status(notes: str) -> str:
 
 
 @app.get("/api/classes/{class_id}/overview")
-def get_class_overview(class_id: str):
+async def get_class_overview(class_id: str):
     """
     Aggregate topic data across all lectures for a class.
     Returns data for Student Understanding and Course Coverage sections.
     """
     # Verify the class exists
-    classes = load_classes()
-    class_found = False
-    for c in classes:
-        if c["id"] == class_id:
-            class_found = True
-            break
-    
-    if not class_found:
+    class_doc = await get_class_by_id(class_id)
+    if not class_doc:
         raise HTTPException(status_code=404, detail="Class not found")
     
     # Get all lectures for this class
-    lectures = load_lectures()
-    class_lectures = [l for l in lectures if l.get("classId") == class_id]
+    class_lectures = await get_lectures_by_class_id(class_id)
     
     # Aggregate data from analyses
     all_topics = {}  # topic_name -> {covered: bool, notes: str, status: str, lecture_id: str}
@@ -1030,12 +959,11 @@ def get_class_overview(class_id: str):
         lecture_id = lecture.get("id")
         lecture_title = lecture.get("title", "Lecture")
         
-        # Load video analysis if available
-        analysis_path = lecture.get("analysisPath")
-        if analysis_path and Path(analysis_path).exists():
+        # Load video analysis if available (from MongoDB)
+        analysis_doc = await get_analysis_from_db(lecture_id)
+        if analysis_doc:
             try:
-                with open(analysis_path, 'r') as f:
-                    analysis_data = json.load(f)
+                analysis_data = analysis_doc.get("analysis_data", {})
                 
                 # Extract topic coverage
                 if "topic_coverage" in analysis_data:
@@ -1101,12 +1029,11 @@ def get_class_overview(class_id: str):
             except (json.JSONDecodeError, IOError):
                 pass
         
-        # Also load materials analysis for additional topics
-        materials_path = lecture.get("materialsAnalysisPath")
-        if materials_path and Path(materials_path).exists():
+        # Also load materials analysis for additional topics (from MongoDB)
+        materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
+        if materials_analysis_doc:
             try:
-                with open(materials_path, 'r') as f:
-                    materials_data = json.load(f)
+                materials_data = materials_analysis_doc.get("analysis_data", {})
                 
                 if "topics" in materials_data:
                     for topic_item in materials_data["topics"]:
@@ -1176,16 +1103,12 @@ async def save_professor_feedback(class_id: str, request: Request):
         if not insight_id or not rating:
             raise HTTPException(status_code=400, detail="insight_id and rating are required")
         
-        # Load existing feedback or create new
-        feedback_file = ANALYSIS_DIR / f"course_{class_id}_feedback.json"
-        feedback_data = {"feedback": []}
+        # Load existing feedback or create new (from MongoDB)
+        feedback_collection = get_feedback_collection()
+        feedback_doc = await feedback_collection.find_one({"class_id": class_id})
         
-        if feedback_file.exists():
-            try:
-                with open(feedback_file, 'r') as f:
-                    feedback_data = json.load(f)
-            except:
-                pass
+        if not feedback_doc:
+            feedback_doc = {"class_id": class_id, "feedback": []}
         
         # Add new feedback entry
         feedback_entry = {
@@ -1196,11 +1119,14 @@ async def save_professor_feedback(class_id: str, request: Request):
             "created_at": datetime.now().isoformat()
         }
         
-        feedback_data["feedback"].append(feedback_entry)
+        feedback_doc["feedback"].append(feedback_entry)
         
-        # Save feedback
-        with open(feedback_file, 'w') as f:
-            json.dump(feedback_data, f, indent=2)
+        # Save feedback to MongoDB
+        await feedback_collection.update_one(
+            {"class_id": class_id},
+            {"$set": feedback_doc},
+            upsert=True
+        )
         
         return {"status": "success", "message": "Feedback saved"}
         
@@ -1214,15 +1140,13 @@ async def get_professor_feedback(class_id: str):
     Get all professor feedback for a course.
     """
     try:
-        feedback_file = ANALYSIS_DIR / f"course_{class_id}_feedback.json"
+        feedback_collection = get_feedback_collection()
+        feedback_doc = await feedback_collection.find_one({"class_id": class_id})
         
-        if not feedback_file.exists():
+        if not feedback_doc:
             return {"feedback": []}
         
-        with open(feedback_file, 'r') as f:
-            feedback_data = json.load(f)
-        
-        return feedback_data
+        return {"feedback": feedback_doc.get("feedback", [])}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading feedback: {str(e)}")
