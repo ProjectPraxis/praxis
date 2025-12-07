@@ -560,48 +560,42 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
             pass
 
 
-def save_analysis_result(analysis_data: Dict[str, Any], output_dir: Path) -> str:
+async def save_analysis_result(analysis_data: Dict[str, Any], output_dir: Path = None) -> str:
     """
-    Save analysis result to a JSON file.
+    Save analysis result to MongoDB.
     
     Args:
         analysis_data: The analysis data dictionary
-        output_dir: Directory to save the JSON file
+        output_dir: Deprecated - kept for backward compatibility, not used
     
     Returns:
-        Path to the saved JSON file
+        lecture_id (for backward compatibility)
     """
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from database import save_analysis_to_db
     
     lecture_id = analysis_data.get("lecture_id", "unknown")
-    output_file = output_dir / f"{lecture_id}_analysis.json"
+    await save_analysis_to_db(lecture_id, analysis_data)
     
-    with open(output_file, 'w') as f:
-        json.dump(analysis_data, f, indent=2)
-    
-    return str(output_file)
+    return lecture_id
 
 
-def save_materials_analysis_result(analysis_data: Dict[str, Any], output_dir: Path) -> str:
+async def save_materials_analysis_result(analysis_data: Dict[str, Any], output_dir: Path = None) -> str:
     """
-    Save materials analysis result to a JSON file.
+    Save materials analysis result to MongoDB.
     
     Args:
         analysis_data: The analysis data dictionary
-        output_dir: Directory to save the JSON file
+        output_dir: Deprecated - kept for backward compatibility, not used
     
     Returns:
-        Path to the saved JSON file
+        lecture_id (for backward compatibility)
     """
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from database import save_materials_analysis_to_db
     
     lecture_id = analysis_data.get("lecture_id", "unknown")
-    output_file = output_dir / f"{lecture_id}_materials_analysis.json"
+    await save_materials_analysis_to_db(lecture_id, analysis_data)
     
-    with open(output_file, 'w') as f:
-        json.dump(analysis_data, f, indent=2)
-    
-    return str(output_file)
+    return lecture_id
 
 
 def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: Dict[str, Any] = None, professor_input: str = None) -> Dict[str, Any]:
@@ -777,26 +771,21 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         }
 
 
-def save_survey(survey_data: Dict[str, Any], output_dir: Path) -> str:
+async def save_survey(survey_data: Dict[str, Any], output_dir: Path = None) -> str:
     """
-    Save survey to a JSON file.
+    Save survey to MongoDB.
     
     Args:
         survey_data: The survey data dictionary
-        output_dir: Directory to save the JSON file
+        output_dir: Deprecated - kept for backward compatibility, not used
     
     Returns:
-        Path to the saved JSON file
+        survey_id (for backward compatibility)
     """
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from database import save_survey_to_db
     
     survey_id = survey_data.get("survey_id", "unknown")
-    lecture_id = survey_data.get("lecture_id", "unknown")
-    # Use consistent naming pattern: {lecture_id}_survey_{survey_id}.json
-    output_file = output_dir / f"{lecture_id}_survey_{survey_id}.json"
+    await save_survey_to_db(survey_id, survey_data)
     
-    with open(output_file, 'w') as f:
-        json.dump(survey_data, f, indent=2)
-    
-    return str(output_file)
+    return survey_id
 
