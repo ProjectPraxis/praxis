@@ -913,6 +913,7 @@ async def get_lecture_survey_responses(lecture_id: str):
 def _infer_topic_status(notes: str) -> str:
     """
     Infer topic understanding status from coverage notes.
+    Priority: struggling > developing > strong (negative terms take precedence)
     Returns: 'struggling', 'developing', or 'strong'
     """
     if not notes:
@@ -920,16 +921,30 @@ def _infer_topic_status(notes: str) -> str:
     
     notes_lower = notes.lower()
     
-    # Check for struggling indicators
+    # Check for struggling indicators FIRST (highest priority)
     struggling_keywords = ["rushed", "skipped", "missed", "confused", "unclear", 
-                          "not covered", "deferred", "incomplete", "poorly", "briefly"]
+                          "not covered", "deferred", "incomplete", "poorly", "briefly",
+                          "insufficient", "lack", "missing", "failed", "problematic"]
     for keyword in struggling_keywords:
         if keyword in notes_lower:
             return "struggling"
     
-    # Check for strong indicators
-    strong_keywords = ["well covered", "thoroughly", "excellent", "clear", "good understanding",
-                      "detailed", "comprehensive", "in-depth", "strong", "mastered"]
+    # Check for developing/partial indicators SECOND (medium priority)
+    # These override "strong" keywords if present - but be specific to avoid false positives
+    developing_keywords = ["partially covered", "partial coverage", "some aspects", 
+                          "basic coverage", "introductory level", "limited coverage",
+                          "could be improved", "needs more", "room for improvement", 
+                          "surface level", "overview only", "not fully"]
+    for keyword in developing_keywords:
+        if keyword in notes_lower:
+            return "developing"
+    
+    # Check for strong indicators LAST (only if no negative terms found)
+    strong_keywords = ["well covered", "thoroughly", "excellent", "clear explanation",
+                      "detailed", "comprehensive", "in-depth", "strong", "mastered",
+                      "extensively", "fully covered", "complete coverage", "covered well",
+                      "effectively covered", "explains", "demonstrates", "explores",
+                      "addresses", "discusses", "presents", "introduces the"]
     for keyword in strong_keywords:
         if keyword in notes_lower:
             return "strong"

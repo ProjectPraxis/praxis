@@ -651,8 +651,8 @@ async function showTopicDetail(topicName, status, lectureId, buttonElement) {
       if (lectureRes.ok) {
         const lecture = await lectureRes.json();
 
-        // Check video analysis for topic coverage
-        if (lecture.analysisPath) {
+        // Check video analysis for topic coverage (use hasAnalysis for MongoDB compatibility)
+        if (lecture.hasAnalysis || lecture.analysisPath) {
           try {
             const analysisRes = await fetch(`${API_BASE_URL}/lectures/${targetLectureId}/analysis`);
             if (analysisRes.ok) {
@@ -1030,7 +1030,7 @@ function renderUnifiedTopicPills(container, studentUnderstanding, courseCoverage
 
   const statusConfig = {
     strong: { class: "bg-green-500 text-white", display: "Strong" },
-    developing: { class: "bg-yellow-500 text-white", display: "Developing" },
+    developing: { class: "bg-yellow-500 text-white", display: "Good" },
     struggling: { class: "bg-red-500 text-white", display: "Struggling" }
   };
 
@@ -1040,14 +1040,14 @@ function renderUnifiedTopicPills(container, studentUnderstanding, courseCoverage
     const lectureIdAttr = item.lecture_id ? `'${item.lecture_id}'` : 'null';
 
     if (item.covered && item.status) {
-      // Covered topic with understanding status - show colored
+      // Covered in video with understanding status - show colored based on understanding
       const config = statusConfig[item.status] || statusConfig.developing;
       html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${config.display}', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
     } else if (item.covered) {
-      // Covered but no understanding data yet - show as developing
+      // Covered in video but no understanding data yet - show as developing
       html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Developing', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
     } else {
-      // Not covered yet - show greyed out
+      // Not covered in video yet (only in slides/materials) - show greyed out
       html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Not Covered', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full bg-gray-300 text-gray-600 font-medium border border-gray-400 hover:bg-gray-400 transition-colors">${escapedTopic}</button>`;
     }
   });
@@ -1064,7 +1064,7 @@ function renderStudentUnderstandingPills(container, topics) {
 
   const statusConfig = {
     struggling: { class: "bg-red-500 text-white", display: "Struggling" },
-    developing: { class: "bg-yellow-500 text-white", display: "Developing" },
+    developing: { class: "bg-yellow-500 text-white", display: "Good" },
     strong: { class: "bg-green-500 text-white", display: "Strong" }
   };
 
