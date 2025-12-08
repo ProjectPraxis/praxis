@@ -60,7 +60,47 @@ document.addEventListener("DOMContentLoaded", () => {
   if (historyBackButton) {
     historyBackButton.addEventListener("click", handleBackButton);
   }
+
+  // --- Dark Mode Toggle ---
+  initDarkMode();
 });
+
+// Dark mode initialization and toggle
+function initDarkMode() {
+  const toggle = document.getElementById("dark-mode-toggle");
+  const sunIcon = document.getElementById("sun-icon");
+  const moonIcon = document.getElementById("moon-icon");
+
+  if (!toggle) return;
+
+  // Check for saved preference or system preference
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    document.body.classList.add("dark");
+    updateDarkModeIcons(true);
+  }
+
+  toggle.addEventListener("click", () => {
+    const isDark = document.body.classList.toggle("dark");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    updateDarkModeIcons(isDark);
+  });
+}
+
+function updateDarkModeIcons(isDark) {
+  const sunIcon = document.getElementById("sun-icon");
+  const moonIcon = document.getElementById("moon-icon");
+
+  if (isDark) {
+    sunIcon?.classList.remove("hidden");
+    moonIcon?.classList.add("hidden");
+  } else {
+    sunIcon?.classList.add("hidden");
+    moonIcon?.classList.remove("hidden");
+  }
+}
 
 // --- Helper function to navigate to course hub with course data ---
 async function navigateToCourseHub(courseId) {
