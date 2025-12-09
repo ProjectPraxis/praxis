@@ -13,8 +13,9 @@ import os
 import time
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env file in the same directory as this script
+ENV_PATH = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=ENV_PATH)
 
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -29,7 +30,7 @@ def get_model():
         return genai.GenerativeModel('gemini-2.5-pro')
     except:
         # Fallback to 1.5 Pro if 2.5 Pro is not available
-        return genai.GenerativeModel('gemini-1.5-flash')
+        return genai.GenerativeModel('gemini-1.5-pro')
 
 
 def format_time(seconds: float) -> str:
@@ -169,7 +170,7 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
         for attempt in range(max_retries):
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model="gemini-2.5-flash",
                     contents=contents,
                     config=config
                 )
@@ -427,7 +428,11 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
                 {{
                     "topic": "Topic Name",
                     "covered": true,
-                    "notes": "Brief notes on how well it was covered"
+                    "notes": "Brief notes on how well it was covered",
+                    "key_concepts": "A concise 1-2 sentence definition/summary of this topic based on the lecture content",
+                    "examples": "Specific examples mentioned in the lecture for this topic (e.g., 'COMPAS algorithm for bias in criminal justice')",
+                    "lecture_moments": "Relevant timestamps or slide references where this topic was discussed (e.g., 'Discussed at 12:30-15:45')",
+                    "ai_reflection": "Teaching insight: common student misconceptions, tips for better understanding, or areas that need reinforcement"
                 }}
             ],
             "ai_reflections": {{
@@ -486,7 +491,7 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         for attempt in range(max_retries):
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model="gemini-2.5-flash",
                     contents=contents,
                     config=config
                 )
@@ -555,48 +560,42 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
             pass
 
 
-def save_analysis_result(analysis_data: Dict[str, Any], output_dir: Path) -> str:
+async def save_analysis_result(analysis_data: Dict[str, Any], output_dir: Path = None) -> str:
     """
-    Save analysis result to a JSON file.
+    Save analysis result to MongoDB.
     
     Args:
         analysis_data: The analysis data dictionary
-        output_dir: Directory to save the JSON file
+        output_dir: Deprecated - kept for backward compatibility, not used
     
     Returns:
-        Path to the saved JSON file
+        lecture_id (for backward compatibility)
     """
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from database import save_analysis_to_db
     
     lecture_id = analysis_data.get("lecture_id", "unknown")
-    output_file = output_dir / f"{lecture_id}_analysis.json"
+    await save_analysis_to_db(lecture_id, analysis_data)
     
-    with open(output_file, 'w') as f:
-        json.dump(analysis_data, f, indent=2)
-    
-    return str(output_file)
+    return lecture_id
 
 
-def save_materials_analysis_result(analysis_data: Dict[str, Any], output_dir: Path) -> str:
+async def save_materials_analysis_result(analysis_data: Dict[str, Any], output_dir: Path = None) -> str:
     """
-    Save materials analysis result to a JSON file.
+    Save materials analysis result to MongoDB.
     
     Args:
         analysis_data: The analysis data dictionary
-        output_dir: Directory to save the JSON file
+        output_dir: Deprecated - kept for backward compatibility, not used
     
     Returns:
-        Path to the saved JSON file
+        lecture_id (for backward compatibility)
     """
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from database import save_materials_analysis_to_db
     
     lecture_id = analysis_data.get("lecture_id", "unknown")
-    output_file = output_dir / f"{lecture_id}_materials_analysis.json"
+    await save_materials_analysis_to_db(lecture_id, analysis_data)
     
-    with open(output_file, 'w') as f:
-        json.dump(analysis_data, f, indent=2)
-    
-    return str(output_file)
+    return lecture_id
 
 
 def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: Dict[str, Any] = None, professor_input: str = None) -> Dict[str, Any]:
@@ -718,7 +717,7 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         # Generate survey with Gemini
         print("Generating student survey with Gemini...")
         response = client.models.generate_content(
-            model="gemini-2.5-pro",
+            model="gemini-2.5-flash",
             contents=contents,
             config=config
         )
@@ -772,26 +771,21 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         }
 
 
-def save_survey(survey_data: Dict[str, Any], output_dir: Path) -> str:
+async def save_survey(survey_data: Dict[str, Any], output_dir: Path = None) -> str:
     """
-    Save survey to a JSON file.
+    Save survey to MongoDB.
     
     Args:
         survey_data: The survey data dictionary
-        output_dir: Directory to save the JSON file
+        output_dir: Deprecated - kept for backward compatibility, not used
     
     Returns:
-        Path to the saved JSON file
+        survey_id (for backward compatibility)
     """
-    output_dir.mkdir(parents=True, exist_ok=True)
+    from database import save_survey_to_db
     
     survey_id = survey_data.get("survey_id", "unknown")
-    lecture_id = survey_data.get("lecture_id", "unknown")
-    # Use consistent naming pattern: {lecture_id}_survey_{survey_id}.json
-    output_file = output_dir / f"{lecture_id}_survey_{survey_id}.json"
+    await save_survey_to_db(survey_id, survey_data)
     
-    with open(output_file, 'w') as f:
-        json.dump(survey_data, f, indent=2)
-    
-    return str(output_file)
+    return survey_id
 
