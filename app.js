@@ -494,7 +494,8 @@ function showPdfModal(pdfUrl) {
 // --- THIS IS THE CORRECTED FUNCTION ---
 // ---
 // ---
-function showInsight(insightType) {
+// showInsight - Now uses dynamic data from timeline events
+function showInsight(insightType, eventData = null) {
   const panel = document.getElementById("insight-content");
   const title = document.getElementById("dynamic-insight-panel-title");
   let content = "";
@@ -505,85 +506,78 @@ function showInsight(insightType) {
         All Reflections
         </button>`;
 
+  // Helper to format timestamp from seconds
+  const formatTimestamp = (seconds) => {
+    if (!seconds && seconds !== 0) return "";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `[${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}]`;
+  };
+
+  // Get data from event or use defaults
+  const timestamp = eventData?.start_time ? formatTimestamp(eventData.start_time) : "";
+  const eventTitle = eventData?.title || "AI Insight";
+  const description = eventData?.description || eventData?.content || "No additional details available.";
+  const suggestion = eventData?.suggestion || "";
+  const insightId = eventData?.id || insightType;
+
+  // Determine styling based on type
+  let iconBgClass = "bg-gray-100";
+  let iconTextClass = "text-gray-600";
+  let iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" />';
+
   switch (insightType) {
     case "clarity":
       newTitle = "Clarity Insight";
-      content = `
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" /></svg></span>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">[00:50:07] Rushed Theory</h4>
-                        <p class="text-gray-600">The definitions of dataset shift, covariate shift, and label shift were presented *extremely* rapidly. This is a high-risk area for student confusion.</p>
-                        <p class="text-gray-600 mt-2 font-medium">Suggestion: Create a 5-minute recap video or handout that visually defines these terms.</p>
-                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
-                            <button onclick="openFeedbackModal('clarity', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
-                            </button>
-                            <button onclick="openFeedbackModal('clarity', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                </li>`;
+      iconBgClass = "bg-yellow-100";
+      iconTextClass = "text-yellow-600";
+      iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" />';
       break;
     case "question":
       newTitle = "Interaction Insight";
-      content = `
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></span>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">[00:10:59] Student Question</h4>
-                        <p class="text-gray-600">LaRue asked if email open time could be used as a label for 'importance'.</p>
-                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
-                            <button onclick="openFeedbackModal('question', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
-                            </button>
-                            <button onclick="openFeedbackModal('question', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                </li>`;
+      iconBgClass = "bg-blue-100";
+      iconTextClass = "text-blue-600";
+      iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />';
       break;
     case "answer":
       newTitle = "Interaction Insight";
-      content = `
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></span>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">[00:11:09] Socratic Answer</h4>
-                        <p class="text-gray-600">This was a model response. You validated the idea ("Great, okay...") and then used a Socratic question to lead the class to the problem ("What's the obvious problem with that?").</p>
-                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
-                            <button onclick="openFeedbackModal('answer', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
-                            </button>
-                            <button onclick="openFeedbackModal('answer', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                </li>`;
+      iconBgClass = "bg-green-100";
+      iconTextClass = "text-green-600";
+      iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />';
       break;
     case "joke":
+    case "positive":
       newTitle = "Positive Moment";
-      content = `
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center mt-1"><svg class="w-5 h-5 text-pink-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75s.168-.75.375.75.375.336.375.75zm-.75 0h.008v.008H9v-.008zm4.5 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375.75.375.336.375.75zm-.75 0h.008v.008H13.5v-.008z" /></svg></span>
-                    <div>
-                        <h4 class="font-semibold text-gray-800">[00:13:20] Good Joke</h4>
-                        <p class="text-gray-600">The "I'm told kids today don't use email..." joke landed well. These moments are great for building rapport and making the content more engaging.</p>
-                        <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
-                            <button onclick="openFeedbackModal('joke', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
-                            </button>
-                            <button onclick="openFeedbackModal('joke', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                </li>`;
+      iconBgClass = "bg-pink-100";
+      iconTextClass = "text-pink-600";
+      iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75s.168-.75.375-.75.375.336.375.75zm-.75 0h.008v.008H9v-.008zm4.5 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.75 0h.008v.008H13.5v-.008z" />';
       break;
+    default:
+      newTitle = "AI Insight";
   }
+
+  // Build the content dynamically
+  content = `
+    <li class="flex items-start gap-3">
+        <span class="flex-shrink-0 w-8 h-8 rounded-full ${iconBgClass} flex items-center justify-center mt-1">
+            <svg class="w-5 h-5 ${iconTextClass}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                ${iconSvg}
+            </svg>
+        </span>
+        <div>
+            <h4 class="font-semibold text-gray-800">${timestamp} ${eventTitle}</h4>
+            <p class="text-gray-600">${description}</p>
+            ${suggestion ? `<p class="text-gray-600 mt-2 font-medium">Suggestion: ${suggestion}</p>` : ''}
+            <div class="flex gap-2 mt-3 border-t border-gray-100 pt-2">
+                <button onclick="openFeedbackModal('${insightId}', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-green-600 transition-colors" title="Helpful">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a2.25 2.25 0 012.25 2.25V7.38a2.25 2.25 0 01-2.25 2.25H15M6.633 10.5H2.25A2.25 2.25 0 000 12.75v6a2.25 2.25 0 002.25 2.25h4.383m0-9H15m0 0c.806 0 1.533.446 2.031 1.08a9.041 9.041 0 012.861 2.4c.723.384 1.35.956 1.653 1.715a4.498 4.498 0 00.322 1.672V19.5a2.25 2.25 0 01-2.25 2.25H15" /></svg>
+                </button>
+                <button onclick="openFeedbackModal('${insightId}', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 transition-colors" title="Not Helpful">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15h2.25m8.024-9.75c.011.05.028.1.052.148.591 1.2.924 2.55.924 3.977a8.96 8.96 0 01-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398C20.613 14.547 19.833 15 19 15h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 00.303-.54m.023-8.25H16.48a4.5 4.5 0 01-1.423-2.3l-2.052-4.102a2.534 2.534 0 01.141-2.732.75.75 0 01.502-.278h5.87c.455 0 .863.236 1.109.607l.143.224c.455.713.56 1.581.29 2.347l-1.043 3.012zM7.5 15a2.25 2.25 0 002.25 2.25m-2.25-2.25A2.25 2.25 0 015.25 12.75v-6a2.25 2.25 0 012.25-2.25H9.75" /></svg>
+                </button>
+            </div>
+        </div>
+    </li>`;
 
   title.innerHTML = newTitle;
   panel.innerHTML = backButton + '<ul class="space-y-4">' + content + "</ul>";
@@ -2892,8 +2886,8 @@ function formatTime(seconds) {
 }
 
 function showTimelineInsight(type, event) {
-  // This can be enhanced to show specific insights when clicking timeline events
-  showInsight(type);
+  // Pass the dynamic event data to showInsight
+  showInsight(type, event);
 }
 
 async function submitForAnalysis() {
