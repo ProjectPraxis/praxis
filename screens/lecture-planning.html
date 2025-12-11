@@ -1,184 +1,279 @@
 <div id="screen-lecture-planning" class="screen space-y-8">
     <div class="text-sm text-gray-600">
-        <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))" class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
-        <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))" class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
+        <span onclick="showScreen('screen-home-dashboard', document.getElementById('nav-home'))"
+            class="hover:underline cursor-pointer">Home</span> <span class="mx-1">&gt;</span>
+        <span onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))"
+            class="hover:underline cursor-pointer">ML: AI System Design</span> <span class="mx-1">&gt;</span>
         <span class="font-medium text-gray-800">Plan: Project Proposals</span>
     </div>
-    <h1 class="text-4xl font-bold text-gray-900">Plan Lecture 4: Project Proposals</h1>
+    <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-gray-900">Plan Lecture 4: Project Proposals</h1>
+        <div class="flex gap-3">
+            <button onclick="showLectureAnalysis(currentLectureId)"
+                class="flex items-center gap-2 text-gray-700 font-semibold py-2 px-4 rounded-lg bg-white border border-gray-300 shadow-sm hover:bg-gray-50 transition-colors">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M10.5 19.5h3m-6.75 2.25h10.5a2.25 2.25 0 002.25-2.25v-15a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 4.5v15a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                View Analysis
+            </button>
+            <button onclick="showModal('modal-generate-survey')"
+                class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:opacity-90 transition-opacity">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                </svg>
+                Generate Student Survey
+            </button>
+            <button onclick="openLectureRewind(currentLectureId)"
+                class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
+                </svg>
+                Launch Lecture Rewind
+            </button>
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Main Workspace: Materials & Topics -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Upload Section -->
-                <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-gray-800">Upload Materials</h2>
-                        <button id="analyze-materials-btn" onclick="event.stopPropagation(); analyzeMaterials(currentLectureId);" class="hidden text-xs font-medium text-white py-1.5 px-3 rounded-md primary-gradient hover:opacity-90 transition-opacity shadow-sm">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                                </svg>
-                                Analyze
-                            </span>
-                        </button>
-                    </div>
-                    <div class="mt-2 flex-grow flex flex-col justify-center rounded-lg border border-dashed border-gray-300 px-4 py-6 bg-gray-50/50 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer relative group"
-                         onclick="if(event.target.tagName !== 'LABEL' && event.target.tagName !== 'INPUT' && !event.target.closest('label') && !event.target.closest('button')) { document.getElementById('materials-file-upload').click(); }"
-                         ondrop="handleMaterialsDrop(event)" 
-                         ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-50');" 
-                         ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');">
-                        
-                        <!-- Default State -->
-                        <div id="upload-prompt" class="text-center transition-opacity duration-200">
-                            <div class="w-10 h-10 mx-auto bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                                </svg>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Main Workspace: Materials & Topics -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Upload Section -->
+                        <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md flex flex-col h-full">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-semibold text-gray-800">Upload Materials</h2>
+                                <button id="analyze-materials-btn"
+                                    onclick="event.stopPropagation(); analyzeMaterials(currentLectureId);"
+                                    class="hidden text-xs font-medium text-white py-1.5 px-3 rounded-md primary-gradient hover:opacity-90 transition-opacity shadow-sm">
+                                    <span class="flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                                        </svg>
+                                        Analyze
+                                    </span>
+                                </button>
                             </div>
-                            <p class="text-sm font-medium text-gray-700">Click to upload slides</p>
-                            <p class="text-xs text-gray-500 mt-1">PDF or PowerPoint</p>
-                            <input id="materials-file-upload" name="materials-file-upload" type="file" accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" class="sr-only" onchange="handleMaterialsUploadWithButton(event)">
-                        </div>
+                            <div class="mt-2 flex-grow flex flex-col justify-center rounded-lg border border-dashed border-gray-300 px-4 py-6 bg-gray-50/50 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer relative group"
+                                onclick="if(event.target.tagName !== 'LABEL' && event.target.tagName !== 'INPUT' && !event.target.closest('label') && !event.target.closest('button')) { document.getElementById('materials-file-upload').click(); }"
+                                ondrop="handleMaterialsDrop(event)"
+                                ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-50');"
+                                ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');">
 
-                        <!-- Uploaded State -->
-                        <div id="uploaded-materials-info" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg p-4">
-                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                                <svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <!-- Default State -->
+                                <div id="upload-prompt" class="text-center transition-opacity duration-200">
+                                    <div
+                                        class="w-10 h-10 mx-auto bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                        <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-700">Click to upload slides</p>
+                                    <p class="text-xs text-gray-500 mt-1">PDF or PowerPoint</p>
+                                    <input id="materials-file-upload" name="materials-file-upload" type="file"
+                                        accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                                        class="sr-only" onchange="handleMaterialsUploadWithButton(event)">
+                                </div>
+
+                                <!-- Uploaded State -->
+                                <div id="uploaded-materials-info"
+                                    class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg p-4">
+                                    <div
+                                        class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                                        <svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <span id="uploaded-materials-name"
+                                        class="text-sm font-medium text-gray-900 text-center break-all max-w-full mb-3"></span>
+                                    <button onclick="removeUploadedMaterialsFile(event)"
+                                        class="text-xs text-red-600 hover:text-red-800 hover:underline flex items-center gap-1">
+                                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg>
+                                        Remove file
+                                    </button>
+                                </div>
                             </div>
-                            <span id="uploaded-materials-name" class="text-sm font-medium text-gray-900 text-center break-all max-w-full mb-3"></span>
-                            <button onclick="removeUploadedMaterialsFile(event)" class="text-xs text-red-600 hover:text-red-800 hover:underline flex items-center gap-1">
-                                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                </svg>
-                                Remove file
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                        </section>
 
-                <!-- Topics Section -->
-                <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md flex flex-col h-full">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Desired Coverage</h2>
-                    
-                    <!-- Scrollable Topic Container -->
-                    <div class="flex-grow relative min-h-[300px]">
-                        <div id="manual-topic-list" class="absolute inset-0 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                            <!-- Default content for planning screen -->
-                            <div class="py-2 px-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium flex items-center justify-between">
-                                <span>Proposal Structure</span>
+                        <!-- Topics Section -->
+                        <section class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md flex flex-col h-full">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Desired Coverage</h2>
+
+                            <!-- Scrollable Topic Container -->
+                            <div class="flex-grow relative min-h-[300px]">
+                                <div id="manual-topic-list"
+                                    class="absolute inset-0 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                                    <!-- Default content for planning screen -->
+                                    <div
+                                        class="py-2 px-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium flex items-center justify-between">
+                                        <span>Proposal Structure</span>
+                                    </div>
+                                    <div
+                                        class="py-2 px-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium flex items-center justify-between">
+                                        <span>Data Plan</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="py-2 px-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium flex items-center justify-between">
-                                <span>Data Plan</span>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <div class="flex gap-2">
+                                    <input type="text" id="manual-topic-input"
+                                        class="flex-1 min-w-0 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-3 py-1.5"
+                                        placeholder="Add topic manually..."
+                                        onkeypress="if(event.key === 'Enter') addManualTopic()">
+                                    <button onclick="addManualTopic()"
+                                        class="p-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors">
+                                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="flex gap-2">
-                            <input type="text" id="manual-topic-input" class="flex-1 min-w-0 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-3 py-1.5" placeholder="Add topic manually..." onkeypress="if(event.key === 'Enter') addManualTopic()">
-                            <button onclick="addManualTopic()" class="p-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 transition-colors">
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- AI Slide Coach Recommendations (Collapsible) -->
-            <section id="slide-recommendations-section" class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300">
-                <!-- Header (Always Visible) -->
-                <div class="p-4 bg-gradient-to-r from-indigo-50 to-white border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-indigo-50/50 transition-colors" onclick="toggleRecommendations()">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900">AI Slide Coach</h2>
-                            <p id="recommendations-subtitle" class="text-xs text-gray-500">Upload slides to get feedback</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span id="recommendation-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">0 Tips</span>
-                        <svg id="recommendations-chevron" class="w-5 h-5 text-gray-400 transform transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </div>
-                </div>
-                
-                <!-- Body (Collapsible) -->
-                <div id="recommendations-body" class="hidden border-t border-gray-100 bg-gray-50/50">
-                    <div class="p-6">
-                        <div id="recommendations-placeholder" class="text-center py-6">
-                            <p class="text-sm text-gray-500 max-w-sm mx-auto">Upload your materials above and click "Analyze". Praxis will review your slides and provide actionable "quick wins".</p>
-                        </div>
-
-                        <div id="recommendations-content" class="hidden">
-                            <div id="recommendations-list" class="space-y-3">
-                                <!-- Recommendations will be injected here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Post-Lecture: Video Upload (Compact until needed) -->
-            <section class="bg-white rounded-xl shadow-lg border-2 border-indigo-100 overflow-hidden transition-all hover:shadow-xl">
-                 <div class="p-5 bg-gradient-to-r from-indigo-50 to-white border-b border-indigo-100 flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-sm">
-                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900">Post-Lecture: Video Analysis</h3>
-                            <p class="text-sm text-gray-500">Upload recording to generate insights</p>
-                        </div>
-                    </div>
-                 </div>
-                 <div class="p-8">
-                    <div id="video-upload-area-planning" class="flex justify-center rounded-xl border-2 border-dashed border-indigo-200 px-6 py-12 bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-400 transition-all cursor-pointer group" 
-                             onclick="if(event.target.tagName !== 'LABEL' && event.target.tagName !== 'INPUT' && !event.target.closest('label')) { document.getElementById('lecture-video-upload-planning').click(); }"
-                             ondrop="handleVideoDrop(event)" 
-                             ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-100');" 
-                             ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-100');">
-                            <div class="text-center transform transition-transform group-hover:scale-105">
-                                <div class="mx-auto w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:shadow-md">
-                                    <svg class="w-8 h-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    <!-- AI Slide Coach Recommendations (Collapsible) -->
+                    <section id="slide-recommendations-section"
+                        class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300">
+                        <!-- Header (Always Visible) -->
+                        <div class="p-4 bg-gradient-to-r from-indigo-50 to-white border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-indigo-50/50 transition-colors"
+                            onclick="toggleRecommendations()">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                                     </svg>
                                 </div>
-                                <div class="mt-3 flex flex-col items-center text-sm leading-6 text-gray-600 justify-center">
-                                    <label for="lecture-video-upload-planning" class="relative cursor-pointer rounded-md font-bold text-indigo-600 hover:text-indigo-500 text-lg" onclick="event.stopPropagation()">
-                                        <span>Upload Video Recording</span>
-                                        <input id="lecture-video-upload-planning" name="lecture-video-upload-planning" type="file" accept="video/*,.mp4,.mov,.avi,.mkv,.webm,.flv,.wmv" class="sr-only" onchange="handleVideoUpload(event)">
-                                    </label>
-                                    <p class="pl-1 mt-1">Drag and drop or click to browse</p>
-                                    <p class="text-xs text-gray-400 mt-2">MP4, MOV, AVI up to 2GB</p>
+                                <div>
+                                    <h2 class="text-lg font-bold text-gray-900">AI Slide Coach</h2>
+                                    <p id="recommendations-subtitle" class="text-xs text-gray-500">Upload slides to get
+                                        feedback</p>
                                 </div>
-                                <div id="uploaded-video-info-planning" class="mt-4 hidden">
-                                    <div class="flex items-center justify-center gap-2 text-sm text-green-600 bg-green-50 py-2 px-4 rounded-full inline-flex">
-                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-                                        <span id="uploaded-video-name-planning" class="truncate max-w-[200px]"></span>
-                                        <button onclick="removeUploadedVideoFile()" class="ml-2 text-red-500 hover:text-red-700">
-                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span id="recommendation-badge"
+                                    class="hidden px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">0
+                                    Tips</span>
+                                <svg id="recommendations-chevron"
+                                    class="w-5 h-5 text-gray-400 transform transition-transform duration-300"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Body (Collapsible) -->
+                        <div id="recommendations-body" class="hidden border-t border-gray-100 bg-gray-50/50">
+                            <div class="p-6">
+                                <div id="recommendations-placeholder" class="text-center py-6">
+                                    <p class="text-sm text-gray-500 max-w-sm mx-auto">Upload your materials above and
+                                        click "Analyze". Praxis will review your slides and provide actionable "quick
+                                        wins".</p>
+                                </div>
+
+                                <div id="recommendations-content" class="hidden">
+                                    <div id="recommendations-list" class="space-y-3">
+                                        <!-- Recommendations will be injected here -->
                                     </div>
                                 </div>
                             </div>
                         </div>
-                 </div>
-            </section>
+                    </section>
+
+                    <!-- Post-Lecture: Video Upload (Compact until needed) -->
+                    <section
+                        class="bg-white rounded-xl shadow-lg border-2 border-indigo-100 overflow-hidden transition-all hover:shadow-xl">
+                        <div
+                            class="p-5 bg-gradient-to-r from-indigo-50 to-white border-b border-indigo-100 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-sm">
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">Post-Lecture: Video Analysis</h3>
+                                    <p class="text-sm text-gray-500">Upload recording to generate insights</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-8">
+                            <div id="video-upload-area-planning"
+                                class="flex justify-center rounded-xl border-2 border-dashed border-indigo-200 px-6 py-12 bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-400 transition-all cursor-pointer group"
+                                onclick="if(event.target.tagName !== 'LABEL' && event.target.tagName !== 'INPUT' && !event.target.closest('label')) { document.getElementById('lecture-video-upload-planning').click(); }"
+                                ondrop="handleVideoDrop(event)"
+                                ondragover="event.preventDefault(); event.currentTarget.classList.add('border-indigo-500', 'bg-indigo-100');"
+                                ondragleave="event.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-100');">
+                                <div class="text-center transform transition-transform group-hover:scale-105">
+                                    <div
+                                        class="mx-auto w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:shadow-md">
+                                        <svg class="w-8 h-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                        </svg>
+                                    </div>
+                                    <div
+                                        class="mt-3 flex flex-col items-center text-sm leading-6 text-gray-600 justify-center">
+                                        <label for="lecture-video-upload-planning"
+                                            class="relative cursor-pointer rounded-md font-bold text-indigo-600 hover:text-indigo-500 text-lg"
+                                            onclick="event.stopPropagation()">
+                                            <span>Upload Video Recording</span>
+                                            <input id="lecture-video-upload-planning"
+                                                name="lecture-video-upload-planning" type="file"
+                                                accept="video/*,.mp4,.mov,.avi,.mkv,.webm,.flv,.wmv" class="sr-only"
+                                                onchange="handleVideoUpload(event)">
+                                        </label>
+                                        <p class="pl-1 mt-1">Drag and drop or click to browse</p>
+                                        <p class="text-xs text-gray-400 mt-2">MP4, MOV, AVI up to 2GB</p>
+                                    </div>
+                                    <div id="uploaded-video-info-planning" class="mt-4 hidden">
+                                        <div
+                                            class="flex items-center justify-center gap-2 text-sm text-green-600 bg-green-50 py-2 px-4 rounded-full inline-flex">
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M4.5 12.75l6 6 9-13.5" />
+                                            </svg>
+                                            <span id="uploaded-video-name-planning"
+                                                class="truncate max-w-[200px]"></span>
+                                            <button onclick="removeUploadedVideoFile()"
+                                                class="ml-2 text-red-500 hover:text-red-700">
+                                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
