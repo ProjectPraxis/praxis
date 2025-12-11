@@ -20,7 +20,7 @@ from database import (
     get_lectures_collection, get_feedback_collection, get_surveys_collection, 
     get_survey_responses_collection, save_analysis_to_db, get_analysis_from_db,
     save_materials_analysis_to_db, get_materials_analysis_doc, save_survey_to_db,
-    get_survey_from_db
+    get_survey_from_db, get_assignments_collection
 )
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -86,6 +86,28 @@ class LectureResponse(BaseModel):
     createdAt: str
     hasAnalysis: Optional[bool] = False
     analysisPath: Optional[str] = None
+
+
+class AssignmentCreate(BaseModel):
+    title: str
+    dueDate: str
+    description: Optional[str] = ""
+    type: str # 'Essay', 'Problem Set', 'Reading', 'Project'
+    classId: str
+
+
+class AssignmentResponse(BaseModel):
+    id: str
+    title: str
+    dueDate: str
+    description: str
+    type: str
+    classId: str
+    createdAt: str
+    status: str = "Active" # Active, Completed, Past Due
+    hasFile: Optional[bool] = False
+    fileName: Optional[str] = None
+    filePath: Optional[str] = None
 
 
 # MongoDB helper functions
@@ -1166,6 +1188,123 @@ async def get_professor_feedback(class_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading feedback: {str(e)}")
 
+
+# Assignment helper functions
+async def get_assignments_by_class_id(class_id: str) -> List[dict]:
+    """Get all assignments for a specific class"""
+    collection = get_assignments_collection()
+    cursor = collection.find({"classId": class_id})
+    assignments = await cursor.to_list(length=None)
+    for assignment in assignments:
+        if "_id" in assignment:
+            assignment["id"] = str(assignment.pop("_id"))
+    return assignments
+
+async def create_assignment_doc(assignment_data: dict) -> dict:
+    """Create a new assignment in MongoDB"""
+    collection = get_assignments_collection()
+    assignment_id = str(uuid.uuid4())
+    assignment_data["_id"] = assignment_id
+    await collection.insert_one(assignment_data)
+    assignment_data["id"] = assignment_data.pop("_id")
+    return assignment_data
+
+async def delete_assignment_doc(assignment_id: str) -> bool:
+    """Delete an assignment from MongoDB"""
+    collection = get_assignments_collection()
+    result = await collection.delete_one({"_id": assignment_id})
+    return result.deleted_count > 0
+
+# Assignment Endpoints
+@app.get("/api/assignments", response_model=List[AssignmentResponse])
+async def get_assignments(class_id: str):
+    """Get all assignments for a class"""
+    assignments = await get_assignments_by_class_id(class_id)
+    # Sort by due date (closest first)
+    try:
+        assignments.sort(key=lambda x: x.get("dueDate", ""))
+    except:
+        pass # Handle potential sorting errors gracefully
+    return assignments
+
+@app.post("/api/assignments", response_model=AssignmentResponse, status_code=201)
+async def create_assignment(
+    title: str = Form(...),
+    dueDate: str = Form(...),
+    description: Optional[str] = Form(""),
+    type: str = Form(...),
+    classId: str = Form(...),
+    file: Optional[UploadFile] = File(None)
+):
+    """Create a new assignment with optional file upload"""
+    
+    # Handle file upload
+    file_path = None
+    file_name = None
+    if file and file.filename:
+        # Generate unique filename
+        file_ext = Path(file.filename).suffix
+        file_name = f"{uuid.uuid4()}{file_ext}"
+        file_path = str(UPLOAD_DIR / file_name)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+    new_assignment = {
+        "title": title,
+        "dueDate": dueDate,
+        "description": description,
+        "type": type,
+        "classId": classId,
+        "createdAt": datetime.now().isoformat(),
+        "status": "Active",
+        "hasFile": file is not None and file.filename is not None,
+        "fileName": file_name,
+        "filePath": file_path
+    }
+    created_assignment = await create_assignment_doc(new_assignment)
+    return created_assignment
+
+@app.get("/api/assignments/{assignment_id}/file")
+async def download_assignment_file(assignment_id: str):
+    """Download the assignment file"""
+    # Get assignment directly to check file path
+    # We can't reuse get_assignments_by_class_id effectively here without filtering
+    # So we'll fetch from collection directly for now or implement a get_assignment_by_id
+    collection = get_assignments_collection()
+    assignment = await collection.find_one({"_id": assignment_id})
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    file_path = assignment.get("filePath")
+    if file_path and Path(file_path).exists():
+        return FileResponse(
+            file_path,
+            filename=assignment.get("fileName", "assignment.pdf"),
+            media_type="application/octet-stream"
+        )
+    raise HTTPException(status_code=404, detail="File not found")
+
+@app.delete("/api/assignments/{assignment_id}", status_code=204)
+async def delete_assignment(assignment_id: str):
+    """Delete an assignment and its file"""
+    # Get assignment to find file path
+    collection = get_assignments_collection()
+    assignment = await collection.find_one({"_id": assignment_id})
+    
+    if assignment:
+        file_path = assignment.get("filePath")
+        if file_path and Path(file_path).exists():
+            try:
+                os.remove(file_path)
+            except:
+                pass
+
+    deleted = await delete_assignment_doc(assignment_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    return
 
 if __name__ == "__main__":
     import uvicorn
