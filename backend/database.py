@@ -80,6 +80,11 @@ def get_survey_responses_collection():
     return get_database()["survey_responses"]
 
 
+def get_assignments_collection():
+    """Get assignments collection"""
+    return get_database()["assignments"]
+
+
 def get_feedback_collection():
     """Get professor feedback collection"""
     return get_database()["feedback"]

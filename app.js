@@ -34,6 +34,7 @@ const modalFileMap = {
   "modal-add-lecture": "add-lecture.html",
   "modal-generate-survey": "generate-survey.html",
   "modal-feedback": "feedback-modal.html",
+  "modal-add-assignment": "add-assignment.html",
 };
 
 // --- DOMContentLoaded (Initialization) ---
@@ -464,6 +465,8 @@ function showTab(tabId, tabElement) {
     setTimeout(() => {
       refreshLecturesList();
     }, 50);
+  } else if (tabId === "tab-assignments") {
+    showAssignmentsTab();
   }
 }
 
@@ -4072,3 +4075,153 @@ function formatTimestamp(seconds) {
 
 // Make globally available
 window.openLectureRewind = openLectureRewind;
+
+// --- Assignment Functions ---
+
+async function showAssignmentsTab() {
+  if (!currentCourseId) return;
+
+  const listContainer = document.getElementById("assignments-list");
+  if (listContainer) {
+    listContainer.innerHTML = `
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md text-center">
+            <p class="text-gray-500">Loading assignments...</p>
+        </div>`;
+  }
+
+  await fetchAssignments(currentCourseId);
+}
+
+async function fetchAssignments(courseId) {
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/assignments?class_id=${courseId}`);
+
+    if (response.ok) {
+      const assignments = await response.json();
+      renderAssignments(assignments);
+    } else {
+      console.error("Failed to fetch assignments");
+      document.getElementById("assignments-list").innerHTML =
+        `<p class="text-red-500 text-center">Error loading assignments.</p>`;
+    }
+  } catch (error) {
+    console.error("Error fetching assignments:", error);
+  }
+}
+
+function renderAssignments(assignments) {
+  const listContainer = document.getElementById("assignments-list");
+  if (!listContainer) return;
+
+  if (assignments.length === 0) {
+    listContainer.innerHTML = `
+        <div class="bg-white/80 backdrop-blur-sm p-12 rounded-xl shadow-md text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <p class="text-gray-500 text-lg">No assignments yet.</p>
+            <p class="text-gray-400 text-sm mt-2">Click "Add Assignment" to create one.</p>
+        </div>`;
+    return;
+  }
+
+  let html = "";
+  assignments.forEach(assignment => {
+    // Determine color based on type
+    let typeColor = "bg-gray-100 text-gray-600";
+    if (assignment.type === 'Essay') typeColor = "bg-blue-100 text-blue-700";
+    if (assignment.type === 'Problem Set') typeColor = "bg-purple-100 text-purple-700";
+    if (assignment.type === 'Project') typeColor = "bg-green-100 text-green-700";
+    if (assignment.type === 'Exam') typeColor = "bg-red-100 text-red-700";
+    if (assignment.type === 'Reading') typeColor = "bg-yellow-100 text-yellow-700";
+
+    // Download button HTML if file exists
+    let downloadBtn = "";
+    if (assignment.hasFile) {
+      const downloadUrl = `http://localhost:8001/api/assignments/${assignment.id}/file`;
+      downloadBtn = `
+            <a href="${downloadUrl}" target="_blank" class="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors mt-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Download Attachment
+            </a>
+        `;
+    }
+
+    html += `
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow relative group">
+            <button onclick="deleteAssignment('${assignment.id}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Assignment">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                     <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold ${typeColor} mb-2">${assignment.type}</span>
+                     <h3 class="text-xl font-bold text-gray-800">${assignment.title}</h3>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Due</p>
+                    <p class="text-lg font-medium text-gray-900">${new Date(assignment.dueDate).toLocaleDateString()}</p>
+                </div>
+            </div>
+            <p class="text-gray-600 mt-2 line-clamp-2">${assignment.description || 'No description provided.'}</p>
+            ${downloadBtn}
+        </div>
+    `;
+  });
+  listContainer.innerHTML = html;
+}
+
+async function handleAddAssignment(event) {
+  event.preventDefault();
+  if (!currentCourseId) return;
+
+  const form = event.target;
+  // Create FormData directly from the form
+  const formData = new FormData(form);
+  // Append classId manually as it might not be in the form inputs
+  formData.append("classId", currentCourseId);
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    // Send FormData directly - do NOT set Content-Type header manually (browser does it for multipart)
+    const response = await fetch(`${API_BASE_URL}/assignments`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      hideModal('modal-add-assignment');
+      form.reset();
+      // Refresh list
+      await fetchAssignments(currentCourseId);
+    } else {
+      alert("Failed to create assignment");
+    }
+  } catch (error) {
+    console.error("Error creating assignment:", error);
+    alert("Error creating assignment");
+  }
+}
+
+async function deleteAssignment(assignmentId) {
+  if (!confirm("Are you sure you want to delete this assignment?")) return;
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/assignments/${assignmentId}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      await fetchAssignments(currentCourseId);
+    } else {
+      alert("Failed to delete assignment");
+    }
+  } catch (error) {
+    console.error("Error deleting assignment:", error);
+  }
+}
+
+// Make globally available
+window.handleAddAssignment = handleAddAssignment;
+window.deleteAssignment = deleteAssignment;
