@@ -2344,12 +2344,26 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
     breadcrumbElement.textContent = `${lecture.title}: Analysis`;
   }
 
-  // --- NEW: Update Survey Button based on existence ---
+  // --- NEW: Update Action Buttons ---
   const surveyButtonContainer = document.getElementById(
     "survey-button-container"
   );
   if (surveyButtonContainer) {
-    let buttonHtml = "";
+    let buttonsHtml = "";
+
+    // 1. View Plan Button
+    buttonsHtml += `
+            <button onclick="editLecture('${lecture.id}')"
+                class="flex items-center gap-2 text-gray-700 font-semibold py-2 px-4 rounded-lg bg-white border border-gray-300 shadow-sm hover:bg-gray-50 transition-colors">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+                View Plan & Materials
+            </button>`;
+
+    // 2. Survey Button (Dynamic)
     if (surveys && surveys.length > 0) {
       // Survey exists, show "View" button
       // We'll pass the latest survey to the view function
@@ -2358,7 +2372,7 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
       )[0];
       // Store survey_id for the onclick handler
       const surveyId = latestSurvey.survey_id || latestSurvey.id;
-      buttonHtml = `
+      buttonsHtml += `
                 <button onclick="viewStudentSurveyById('${surveyId}')" class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:opacity-90 transition-opacity">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -2369,7 +2383,7 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
             `;
     } else {
       // No survey, show "Generate" button
-      buttonHtml = `
+      buttonsHtml += `
                 <button onclick="showModal('modal-generate-survey')" class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:opacity-90 transition-opacity">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
@@ -2378,7 +2392,20 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
                 </button>
             `;
     }
-    surveyButtonContainer.innerHTML = buttonHtml;
+
+    // 3. Rewind Button
+    buttonsHtml += `
+            <button onclick="openLectureRewind('${lecture.id}')"
+                class="flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-lg primary-gradient shadow-md hover:opacity-90 transition-opacity">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
+                </svg>
+                Launch Lecture Rewind
+            </button>`;
+
+    surveyButtonContainer.innerHTML = buttonsHtml;
   }
 
   // Update video player
@@ -3851,3 +3878,197 @@ function toggleRecommendations() {
     chevron.classList.remove('rotate-180');
   }
 }
+
+/**
+ * Opens the Lecture Rewind modal and populates it with data
+ */
+async function openLectureRewind(lectureId) {
+  if (!lectureId) return;
+
+  // Show the modal first
+  await showModal('modal-lecture-rewind');
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    // Fetch lecture details and analysis
+    const [lectureResponse, analysisResponse] = await Promise.all([
+      fetch(`${API_BASE_URL}/lectures/${lectureId}`),
+      fetch(`${API_BASE_URL}/lectures/${lectureId}/analysis`)
+    ]);
+
+    if (lectureResponse.ok && analysisResponse.ok) {
+      const lecture = await lectureResponse.json();
+      const analysis = await analysisResponse.json();
+      populateLectureRewind(lecture, analysis);
+    } else {
+      console.error("Failed to fetch data for rewind");
+    }
+  } catch (error) {
+    console.error("Error loading lecture rewind:", error);
+  }
+}
+
+/**
+ * Populates the Lecture Rewind modal with dynamic data
+ */
+function populateLectureRewind(lecture, analysis) {
+  const modal = document.getElementById('modal-lecture-rewind');
+  if (!modal) return;
+
+  // 1. Update Header Info
+  const rewindTitle = modal.querySelector('h2');
+  if (rewindTitle) rewindTitle.textContent = `${lecture.title} Rewind`;
+
+  const mainTitle = modal.querySelector('h1.text-xl');
+  if (mainTitle) mainTitle.textContent = lecture.title + (lecture.topic ? `: ${lecture.topic}` : '');
+
+  // Summary Text
+  const summaryP = modal.querySelector('p.text-gray-600.mb-6');
+  if (summaryP && analysis.summary) {
+    summaryP.textContent = analysis.summary;
+  }
+
+  // 2. Process Insights for Cards & Lists
+  const insights = analysis.ai_reflections ? analysis.ai_reflections.insights : [];
+  const strengths = insights.filter(i => i.type === 'success' || (i.title && i.title.toLowerCase().includes('success')) || i.icon === 'green');
+  const opportunities = insights.filter(i => i.type === 'opportunity' || i.type === 'warning' || i.icon === 'yellow' || i.icon === 'red');
+
+  // Calculate "Core Vibe" based on analysis data
+  let vibe = "Balanced"; // Default
+  const interactionCount = analysis.timeline && analysis.timeline.interaction ? analysis.timeline.interaction.length : 0;
+  const clarityIssues = analysis.timeline && analysis.timeline.clarity ? analysis.timeline.clarity.length : 0;
+  const positiveMoments = analysis.timeline && analysis.timeline.positive ? analysis.timeline.positive.length : 0;
+  const topicCount = analysis.total_topics_count || 0;
+
+  if (interactionCount > 4) {
+    vibe = "Socratic & Interactive";
+  } else if (clarityIssues > 2) {
+    vibe = "Fast-Paced";
+  } else if (positiveMoments > 4) {
+    vibe = "Highly Engaging";
+  } else if (topicCount > 8) {
+    vibe = "Content-Heavy";
+  } else if (interactionCount === 0 && topicCount < 5) {
+    vibe = "Focused Dive";
+  }
+
+  // 3. Update Summary Cards
+  const scoreCard = modal.querySelectorAll('.rewind-summary-card')[0];
+  if (scoreCard) {
+    // Change Title
+    const titleEl = scoreCard.querySelector('h4');
+    if (titleEl) titleEl.textContent = "Core Vibe";
+
+    // Change Value
+    const valueEl = scoreCard.querySelector('p'); // selects the p with text-3xl
+    if (valueEl) {
+      valueEl.className = "text-2xl font-bold text-gray-900"; // Slightly smaller text for vibe strings
+      valueEl.textContent = vibe;
+    }
+  }
+
+  const strengthCard = modal.querySelectorAll('.rewind-summary-card')[1];
+  if (strengthCard) {
+    const topStrength = strengths.length > 0 ? strengths[0].title : "Pending Analysis";
+    strengthCard.querySelector('p.text-2xl').textContent = topStrength;
+  }
+
+  const opportunityCard = modal.querySelectorAll('.rewind-summary-card')[2];
+  if (opportunityCard) {
+    const topOpp = opportunities.length > 0 ? opportunities[0].title : "None Identified";
+    opportunityCard.querySelector('p.text-2xl').textContent = topOpp;
+  }
+
+  // 4. Update Master Timeline
+  const timelineContainer = modal.querySelector('.max-w-3xl');
+  if (timelineContainer && analysis.timeline) {
+    // Merge all events
+    let allEvents = [];
+
+    if (analysis.timeline.positive) {
+      allEvents = allEvents.concat(analysis.timeline.positive.map(e => ({ ...e, category: 'success', iconColor: 'green' })));
+    }
+    if (analysis.timeline.clarity) {
+      allEvents = allEvents.concat(analysis.timeline.clarity.map(e => ({ ...e, category: 'opportunity', iconColor: 'yellow' })));
+    }
+    if (analysis.timeline.interaction) {
+      allEvents = allEvents.concat(analysis.timeline.interaction.map(e => ({ ...e, category: 'interaction', iconColor: 'blue' })));
+    }
+
+    // Sort by start time
+    allEvents.sort((a, b) => a.start_time - b.start_time);
+
+    // Generate HTML
+    let timelineHtml = '';
+    allEvents.forEach(event => {
+      const timestamp = formatTimestamp(event.start_time);
+      let iconSvg = '';
+      let badgeColor = '';
+      let borderColor = '';
+
+      if (event.category === 'success') {
+        badgeColor = 'text-green-600';
+        borderColor = 'border-green-500';
+        iconSvg = `<svg class="w-5 h-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
+      } else if (event.category === 'opportunity') {
+        badgeColor = 'text-yellow-600';
+        borderColor = 'border-yellow-500';
+        iconSvg = `<svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 0a12.06 12.06 0 004.5 0m-8.25 0a12.06 12.06 0 01-4.5 0m3.75 2.023a14.077 14.077 0 01-6.75 0" /></svg>`;
+      } else {
+        badgeColor = 'text-blue-600';
+        borderColor = 'border-blue-500';
+        iconSvg = `<svg class="w-5 h-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>`;
+      }
+
+      timelineHtml += `
+            <div class="relative rewind-timeline-item pb-10">
+                <div class="flex items-start">
+                    <div class="rewind-icon flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-5 ${borderColor}">
+                        ${iconSvg}
+                    </div>
+                    <div class="rewind-timeline-card bg-white/80 backdrop-blur-sm border border-gray-200 p-4 rounded-lg shadow-sm flex-1">
+                        <span class="font-semibold text-sm ${badgeColor}">[${timestamp}] - ${event.title || event.type}</span>
+                        <h4 class="text-lg font-semibold text-gray-900 mt-1">${event.title}</h4>
+                        <p class="text-gray-600">${event.description}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    timelineContainer.innerHTML = timelineHtml;
+  }
+
+  // 5. Update Reports Sections
+  const reportSections = modal.querySelectorAll('.rewind-report-section ul');
+
+  // Strengths
+  if (reportSections[0]) {
+    reportSections[0].innerHTML = strengths.map(s => `
+        <li class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+            <h4 class="font-semibold text-green-800">${s.title}</h4>
+            <p class="text-gray-700">${s.description}</p>
+        </li>
+      `).join('');
+  }
+
+  // Opportunities
+  if (reportSections[1]) {
+    reportSections[1].innerHTML = opportunities.map(o => `
+        <li class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+            <h4 class="font-semibold text-yellow-800">${o.title}</h4>
+            <p class="text-gray-700">${o.description}</p>
+        </li>
+      `).join('');
+  }
+}
+
+// Helper for timestamp formatting
+function formatTimestamp(seconds) {
+  if (!seconds && seconds !== 0) return "00:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Make globally available
+window.openLectureRewind = openLectureRewind;

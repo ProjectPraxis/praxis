@@ -516,20 +516,34 @@ body.dark .border-red-200 {
 }
 
 /* --- NEW: Print styles for Lecture Rewind --- */
+/* --- NEW: Print styles for Lecture Rewind --- */
 @media print {
     body {
         background-color: #FFFFFF !important;
         font-family: 'Figtree', sans-serif !important;
+        overflow: visible !important;
     }
 
-    /* Hide all UI elements *except* the rewind modal */
-    body>div>div:not(#modal-lecture-rewind),
-    nav,
-    header,
-    #app-container>div>div:not(.printable-area) {
+    /* Hide background blobs */
+    .blob-container {
         display: none !important;
     }
 
+    /* Hide the main app layout (sidebar + content) */
+    #app-container>.flex {
+        display: none !important;
+    }
+
+    /* Ensure the modal container is visible */
+    #modal-container {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Target the specific modal */
     #modal-lecture-rewind {
         position: static !important;
         display: block !important;
@@ -559,6 +573,7 @@ body.dark .border-red-200 {
     .rewind-timeline-card {
         color-adjust: exact !important;
         -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .rewind-timeline-card {
