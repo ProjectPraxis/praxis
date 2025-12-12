@@ -350,11 +350,87 @@ async function showScreen(screenId, navElement, courseData = null) {
       }, 100);
     }
 
+    // Populate priority topics if on lecture edit screen
+    if (screenId === "screen-lecture-edit" && currentCourseId) {
+      setTimeout(() => {
+        populateLecturePriorityTopics(currentCourseId);
+      }, 100);
+    }
+
     // Scroll to top
     window.scrollTo(0, 0);
   } catch (error) {
     console.error("Error loading screen:", error);
     // You could show an error message to the user here
+  }
+}
+
+// --- Priority Topics Function ---
+async function populateLecturePriorityTopics(courseId) {
+  const listContainer = document.getElementById("course-delta-list");
+  if (!listContainer || !courseId) return;
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/classes/${courseId}/overview`);
+    if (!response.ok) return;
+    const data = await response.json();
+
+    // 1. Struggling topics (High Priority)
+    const struggling = (data.student_understanding || [])
+      .filter(t => t.status === 'struggling')
+      .map(t => ({ name: t.topic, reason: "Struggling", priority: 0 }));
+
+    // 2. Uncovered topics (Medium Priority)
+    const uncovered = (data.course_coverage || [])
+      .filter(t => !t.covered)
+      .map(t => ({ name: t.topic, reason: "Missing", priority: 1 }));
+
+    // Combine and dedup
+    let priorities = [...struggling, ...uncovered];
+    const unique = new Map();
+    priorities.forEach(p => {
+      if (!unique.has(p.name)) unique.set(p.name, p);
+    });
+    priorities = Array.from(unique.values());
+
+    // Sort: Struggling < Uncovered
+    priorities.sort((a, b) => a.priority - b.priority);
+
+    // Take top 5
+    priorities = priorities.slice(0, 5);
+
+    if (priorities.length === 0) {
+      listContainer.innerHTML = '<div class="text-sm text-gray-500 italic py-4 text-center">No priority topics identified yet. Great job!</div>';
+      return;
+    }
+
+    let html = '';
+    const colors = [
+      "bg-purple-600", // Highest
+      "bg-orange-500",
+      "bg-yellow-500",
+      "bg-green-500",
+      "bg-blue-500"
+    ];
+
+    priorities.forEach((item, index) => {
+      const colorClass = colors[index % colors.length];
+      // Escape single quotes in topic name for the onclick handler
+      const safeName = item.name.replace(/'/g, "\\'");
+
+      html += `
+                <div class="py-2 px-4 rounded-lg text-white font-medium shadow-sm ${colorClass} cursor-pointer hover:opacity-90 transition-opacity" 
+                     onclick="addPriorityTopic('${safeName}')"
+                     title="Reason: ${item.reason}">
+                    ${index + 1}. ${item.name}
+                </div>`;
+    });
+    listContainer.innerHTML = html;
+
+  } catch (e) {
+    console.error("Error fetching course delta:", e);
+    listContainer.innerHTML = '<div class="text-sm text-red-500 italic">Failed to load topics.</div>';
   }
 }
 
