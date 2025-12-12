@@ -204,6 +204,22 @@ async function showScreen(screenId, navElement, courseData = null) {
   // Track current screen for back button navigation
   currentScreen = screenId;
 
+  // Manage Back Button Visibility
+  const historyBackButton = document.getElementById("history-back-button");
+  if (historyBackButton) {
+    // Hide on top-level screens
+    const isRootScreen =
+      screenId === "screen-home-dashboard" ||
+      screenId === "screen-settings" ||
+      (screenId === "screen-course-hub" && !courseData); // Course hub without data is likely the list/empty state
+
+    if (isRootScreen) {
+      historyBackButton.classList.add("hidden");
+    } else {
+      historyBackButton.classList.remove("hidden");
+    }
+  }
+
   const screenFile = screenFileMap[screenId];
   if (!screenFile) {
     console.error("Unknown screen ID:", screenId);
@@ -849,18 +865,8 @@ async function refreshClassList() {
   try {
     const classes = await fetchClasses();
 
-    // Remove only dynamically added API classes (those created by createClassCard)
-    // Keep hardcoded classes that were in the original HTML
-    const existingCards = Array.from(classesGrid.children);
-    existingCards.forEach((card) => {
-      // Check if this card was created dynamically (has onclick that calls showScreen with courseData)
-      // Hardcoded cards have onclick="showScreen('screen-course-hub', document.getElementById('nav-courses'))"
-      // Dynamic cards have onclick that sets currentCourseId and passes courseData
-      const onclick = card.getAttribute("onclick");
-      if (onclick && onclick.includes("currentCourseId")) {
-        card.remove();
-      }
-    });
+    // Clear existing classes
+    classesGrid.innerHTML = '';
 
     // Add all classes from API
     if (classes.length > 0) {
@@ -2230,18 +2236,8 @@ async function refreshLecturesList() {
     const upcomingLectures = lectures.filter((l) => !l.hasAnalysis);
 
     // Clear existing dynamic lectures from both lists
-    // Keep only items with data-original-content="true"
-    Array.from(pastLecturesUl.children).forEach((item) => {
-      if (!item.hasAttribute("data-original-content")) {
-        item.remove();
-      }
-    });
-
-    Array.from(upcomingUl.children).forEach((item) => {
-      if (!item.hasAttribute("data-original-content")) {
-        item.remove();
-      }
-    });
+    pastLecturesUl.innerHTML = '';
+    upcomingUl.innerHTML = '';
 
     // Add past lectures (analyzed)
     pastLectures.forEach((lecture) => {
