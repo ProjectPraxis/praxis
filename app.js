@@ -311,6 +311,7 @@ async function showScreen(screenId, navElement, courseData = null) {
     // Refresh class list when navigating to home screen
     if (screenId === "screen-home-dashboard") {
       refreshClassList();
+      refreshPendingAnalyses();
     }
 
     // Reset to first tab if navigating to course hub
@@ -336,6 +337,10 @@ async function showScreen(screenId, navElement, courseData = null) {
     // Cache insights if we just loaded the lecture analysis screen
     if (screenId === "screen-lecture-analysis") {
       cacheOriginalInsights();
+      // Check if analysis is already running
+      if (currentLectureId) {
+        checkLectureAnalysisStatus(currentLectureId);
+      }
     }
 
     // Load existing recommendations if we are on the planning or edit screen
@@ -3035,7 +3040,25 @@ async function submitForAnalysis() {
     // Brief pause to show 100%
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const analysisResult = await response.json();
+    const result = await response.json();
+
+    if (result.status === "processing") {
+      // Analysis started in background
+      alert("Analysis started! It will continue in the background. You can navigate away and check the status on the Home dashboard.");
+
+      // Update UI to show processing state
+      submitBtn.innerHTML = `
+        <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>Processing in Background...</span>
+        </div>
+      `;
+      // Don't re-enable button immediately to prevent double-submit
+      // But allow navigation (which is effectively allowed since we return)
+      return;
+    }
+
+    const analysisResult = result.analysis;
 
     // Show success message
     alert(
@@ -4249,3 +4272,43 @@ async function deleteAssignment(assignmentId) {
 // Make globally available
 window.handleAddAssignment = handleAddAssignment;
 window.deleteAssignment = deleteAssignment;
+
+// Refresh the pending analyses list on the home screen
+async function refreshPendingAnalyses() {
+  const container = document.getElementById("pending-analyses-container");
+  if (!container) return; // Not on home screen
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    // Fetch all lectures
+    const response = await fetch(`${API_BASE_URL}/lectures`);
+    if (!response.ok) return;
+
+    const lectures = await response.json();
+    const pendingLectures = lectures.filter(l => l.analysisStatus === 'processing');
+
+    if (pendingLectures.length === 0) {
+      container.innerHTML = '<p class="text-gray-500 italic">No analyses currently in progress.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    pendingLectures.forEach(lecture => {
+      const el = document.createElement('div');
+      el.className = 'bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md';
+      el.innerHTML = `
+            <div class="flex items-center gap-4">
+                <svg class="w-6 h-6 text-gray-500 animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <div>
+                    <h3 class="font-semibold text-gray-800">Analyzing "${escapeHtml(lecture.title)}"</h3>
+                    <p class="text-sm text-gray-600">This analysis is processing...</p>
+                </div>
+            </div>
+      `;
+      container.appendChild(el);
+    });
+
+  } catch (error) {
+    console.error("Error refreshing pending analyses:", error);
+  }
+}

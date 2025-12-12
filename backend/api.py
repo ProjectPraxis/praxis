@@ -3,7 +3,7 @@ FastAPI backend server for Praxis application
 Handles class management API endpoints
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict
@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import os
+import asyncio
 from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result, generate_student_survey, save_survey
 from database import (
     connect_to_mongo, close_mongo_connection, get_classes_collection, 
@@ -86,6 +87,7 @@ class LectureResponse(BaseModel):
     createdAt: str
     hasAnalysis: Optional[bool] = False
     analysisPath: Optional[str] = None
+    analysisStatus: Optional[str] = "none"  # none, processing, completed, failed
 
 
 class AssignmentCreate(BaseModel):
@@ -582,12 +584,77 @@ async def get_lecture_video(lecture_id: str):
     )
 
 
+async def process_lecture_analysis_task(lecture_id: str, video_path: str, lecture_title: str, topics: list, class_id: str = None):
+    """
+    Background task to process lecture analysis.
+    Handling fetching context, running analysis, and updating DB.
+    """
+    print(f"Starting background analysis for lecture {lecture_id}")
+    
+    try:
+        # Load materials analysis if available (from MongoDB)
+        materials_analysis = None
+        materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
+        if materials_analysis_doc:
+            materials_analysis = materials_analysis_doc.get("analysis_data")
+        
+        # Load professor feedback for this course if available (from MongoDB)
+        professor_feedback = None
+        if class_id:
+            feedback_collection = get_feedback_collection()
+            feedback_doc = await feedback_collection.find_one({"class_id": class_id})
+            if feedback_doc:
+                professor_feedback = {"feedback": feedback_doc.get("feedback", [])}
+        
+        # Analyze the video using Gemini (blocking call, run in thread)
+        # We use asyncio.to_thread to prevent blocking the event loop
+        analysis_result = await asyncio.to_thread(
+            analyze_lecture_video,
+            video_path=video_path,
+            lecture_id=lecture_id,
+            lecture_title=lecture_title,
+            topics=topics,
+            materials_analysis=materials_analysis,
+            professor_feedback=professor_feedback
+        )
+        
+        # Check for errors
+        if "error" in analysis_result:
+            print(f"Analysis failed for {lecture_id}: {analysis_result['error']}")
+            # Update status to failed
+            await update_lecture_doc(lecture_id, {
+                "analysisStatus": "failed"
+            })
+            return
+        
+        # Save the analysis result to MongoDB (via gemini_analysis)
+        from gemini_analysis import save_analysis_result
+        await save_analysis_result(analysis_result)
+        
+        # Update lecture with analysis status
+        await update_lecture_doc(lecture_id, {
+            "hasAnalysis": True,
+            "analysisPath": None,
+            "analysisStatus": "completed"
+        })
+        
+        print(f"Background analysis completed for lecture {lecture_id}")
+        
+    except Exception as e:
+        print(f"Error in background analysis for {lecture_id}: {str(e)}")
+        # Update status to failed
+        await update_lecture_doc(lecture_id, {
+            "analysisStatus": "failed"
+        })
+
+
 @app.post("/api/lectures/{lecture_id}/analyze")
-async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(None)):
+async def analyze_lecture(lecture_id: str, background_tasks: BackgroundTasks, video: Optional[UploadFile] = File(None)):
     """
     Analyze a lecture video using Gemini 2.5 Pro API.
     Saves the analysis result to MongoDB.
     If video is not provided, uses the existing video from the lecture.
+    Processing happens in the background.
     """
     lecture = await get_lecture_by_id(lecture_id)
     if not lecture:
@@ -619,54 +686,26 @@ async def analyze_lecture(lecture_id: str, video: Optional[UploadFile] = File(No
     topics = lecture.get("topics", [])
     class_id = lecture.get("classId") or lecture.get("class_id")
     
-    # Load materials analysis if available (from MongoDB)
-    materials_analysis = None
-    materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
-    if materials_analysis_doc:
-        materials_analysis = materials_analysis_doc.get("analysis_data")
+    # Update status to processing immediately
+    await update_lecture_doc(lecture_id, {
+        "analysisStatus": "processing"
+    })
     
-    # Load professor feedback for this course if available (from MongoDB)
-    professor_feedback = None
-    if class_id:
-        feedback_collection = get_feedback_collection()
-        feedback_doc = await feedback_collection.find_one({"class_id": class_id})
-        if feedback_doc:
-            professor_feedback = {"feedback": feedback_doc.get("feedback", [])}
+    # Add to background tasks
+    background_tasks.add_task(
+        process_lecture_analysis_task,
+        lecture_id=lecture_id,
+        video_path=video_path,
+        lecture_title=lecture_title,
+        topics=topics,
+        class_id=class_id
+    )
     
-    try:
-        # Analyze the video using Gemini with materials context and professor feedback
-        analysis_result = analyze_lecture_video(
-            video_path=video_path,
-            lecture_id=lecture_id,
-            lecture_title=lecture_title,
-            topics=topics,
-            materials_analysis=materials_analysis,
-            professor_feedback=professor_feedback
-        )
-        
-        # Check for errors
-        if "error" in analysis_result:
-            raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result['error']}")
-        
-        # Save the analysis result to MongoDB (via gemini_analysis)
-        # Note: save_analysis_result is now async and saves to MongoDB
-        from gemini_analysis import save_analysis_result
-        await save_analysis_result(analysis_result)
-        
-        # Update lecture with analysis status
-        await update_lecture_doc(lecture_id, {
-            "hasAnalysis": True,
-            "analysisPath": None  # No longer using file paths
-        })
-        
-        return {
-            "status": "success",
-            "lecture_id": lecture_id,
-            "analysis": analysis_result
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing video: {str(e)}")
+    return {
+        "status": "processing",
+        "message": "Analysis started in background",
+        "lecture_id": lecture_id
+    }
 
 
 @app.post("/api/lectures/{lecture_id}/analyze-materials")
