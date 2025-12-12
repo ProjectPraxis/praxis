@@ -3230,7 +3230,11 @@ async function generateStudentSurvey(professorInput = null) {
 window.generateStudentSurvey = generateStudentSurvey;
 
 // --- Feedback Functions ---
-function openFeedbackModal(insightId, rating) {
+// --- Feedback Functions ---
+async function openFeedbackModal(insightId, rating) {
+  // Ensure the modal is loaded into the DOM first
+  await showModal("modal-feedback");
+
   const modal = document.getElementById("modal-feedback");
   const insightIdInput = document.getElementById("feedback-insight-id");
   const ratingInput = document.getElementById("feedback-rating");
@@ -3249,8 +3253,6 @@ function openFeedbackModal(insightId, rating) {
     if (titleElement) titleElement.textContent = "Thumbs Down";
     if (labelElement) labelElement.textContent = "Why didn't you like this reflection?";
   }
-
-  showModal("modal-feedback");
 }
 
 // Make it globally accessible

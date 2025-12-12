@@ -1196,6 +1196,10 @@ async def save_professor_feedback(class_id: str, request: Request):
         if not feedback_doc:
             feedback_doc = {"class_id": class_id, "feedback": []}
         
+        # Ensure feedback list exists
+        if "feedback" not in feedback_doc:
+            feedback_doc["feedback"] = []
+        
         # Add new feedback entry
         feedback_entry = {
             "insight_id": insight_id,
@@ -1207,6 +1211,10 @@ async def save_professor_feedback(class_id: str, request: Request):
         
         feedback_doc["feedback"].append(feedback_entry)
         
+        # Remove _id if present to avoid immutable field error during update
+        if "_id" in feedback_doc:
+            del feedback_doc["_id"]
+        
         # Save feedback to MongoDB
         await feedback_collection.update_one(
             {"class_id": class_id},
@@ -1217,6 +1225,7 @@ async def save_professor_feedback(class_id: str, request: Request):
         return {"status": "success", "message": "Feedback saved"}
         
     except Exception as e:
+        print(f"Error saving feedback: {str(e)}")  # Add logging
         raise HTTPException(status_code=500, detail=f"Error saving feedback: {str(e)}")
 
 
