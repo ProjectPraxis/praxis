@@ -197,13 +197,10 @@
 
                     <hr class="my-4 border-gray-200">
                     <h4 class="font-semibold text-gray-800 mb-3">Action Items for Next Lecture</h4>
-                    <ul class="space-y-2 list-disc list-inside text-sm text-gray-700">
-                        <li><b>Must Do:</b> Begin the next lecture with the deferred content (Preparation,
-                            Understanding, Documentation).</li>
-                        <li><b>Should Do:</b> Create a 5-min recap to remediate the rushed 'data shift' definitions.
-                        </li>
-                        <li><b>Continue Doing:</b> Keep leading with 1-2 strong, real-world case studies per topic.</li>
-                    </ul>
+                    <!-- Dynamic action items rendered by app.js -->
+                    <div id="lecture-action-items" class="space-y-3 text-sm text-gray-700">
+                        <!-- Populated dynamically with cards (click to navigate to source lecture) -->
+                    </div>
                 </div>
             </div>
         </aside>

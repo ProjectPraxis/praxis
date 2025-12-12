@@ -994,10 +994,16 @@ function renderActionItems(container, actionItems) {
   };
 
   let html = "";
+  // Render up to 4 items (keep the original compact view) and keep cards clickable
   actionItems.slice(0, 4).forEach(item => {
     const config = priorityConfig[item.priority] || priorityConfig.warning;
+    // If the item has a source lecture, make the whole card clickable to navigate there
+    const clickableStart = item.lecture_id ? `<a onclick="showLectureAnalysis('${item.lecture_id}')" class="block hover:shadow-lg rounded-lg focus:outline-none">` : '<div>';
+    const clickableEnd = item.lecture_id ? `</a>` : '</div>';
+
     html += `
-      <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border-l-4 ${config.border}">
+      ${clickableStart}
+      <div class="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-sm border-l-4 ${config.border} transition-transform hover:-translate-y-0.5">
         <div class="flex items-start gap-3">
           <span class="flex-shrink-0 w-8 h-8 rounded-full ${config.bg} flex items-center justify-center mt-1">
             <svg class="w-5 h-5 ${config.text}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -1005,12 +1011,13 @@ function renderActionItems(container, actionItems) {
             </svg>
           </span>
           <div>
-            <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(item.title)}</h3>
-            <p class="text-gray-600 mb-2 text-sm">${escapeHtml(item.description).substring(0, 200)}${item.description.length > 200 ? '...' : ''}</p>
+            <h3 class="text-sm font-semibold text-gray-900">${escapeHtml(item.title)}</h3>
+            <p class="text-gray-600 mb-1 text-sm">${escapeHtml(item.description || '').substring(0, 180)}${(item.description || '').length > 180 ? '...' : ''}</p>
             ${item.lecture_title ? `<p class="text-xs text-gray-400">From: ${escapeHtml(item.lecture_title)}</p>` : ''}
           </div>
         </div>
-      </div>`;
+      </div>
+      ${clickableEnd}`;
   });
 
   container.innerHTML = html;
@@ -2484,6 +2491,21 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
 
   // Populate student feedback
   populateStudentFeedback(responses, surveys);
+
+  // --- Render class-level action items in the lecture analysis sidebar ---
+  try {
+    const lectureActionContainer = document.getElementById('lecture-action-items');
+    if (lectureActionContainer && currentCourseId) {
+      const API_BASE_URL = "http://localhost:8001/api";
+      const resp = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/overview`);
+      if (resp.ok) {
+        const overviewData = await resp.json();
+        renderActionItems(lectureActionContainer, overviewData.action_items || []);
+      }
+    }
+  } catch (err) {
+    console.error('Error loading class overview action items:', err);
+  }
 }
 
 function populateTimeline(timeline, videoDuration) {
