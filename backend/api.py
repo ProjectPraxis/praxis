@@ -1011,13 +1011,21 @@ async def get_class_overview(class_id: str):
                         
                         covered = topic_item.get("covered", False)
                         notes = topic_item.get("notes", "")
-                        status = _infer_topic_status(notes)
+                        
+                        # Use AI-determined status if available, otherwise infer it
+                        status = topic_item.get("status")
+                        if not status:
+                            status = _infer_topic_status(notes)
+                        
+                        # Get AI feedback/reason if available
+                        reason = topic_item.get("status_reason", "")
                         
                         # Update or add topic (later lectures override earlier ones)
                         all_topics[topic_name] = {
                             "covered": covered,
                             "notes": notes,
                             "status": status,
+                            "reason": reason,
                             "lecture_id": lecture_id,
                             "lecture_title": lecture_title
                         }
@@ -1084,6 +1092,7 @@ async def get_class_overview(class_id: str):
                                 "covered": False,  # From materials = planned, not yet covered
                                 "notes": topic_item.get("description", ""),
                                 "status": "developing",
+                                "reason": "",
                                 "lecture_id": lecture_id,
                                 "lecture_title": lecture_title
                             }
@@ -1099,6 +1108,7 @@ async def get_class_overview(class_id: str):
             "topic": topic_name,
             "status": topic_data["status"],
             "notes": topic_data["notes"],
+            "reason": topic_data["reason"],
             "lecture_id": topic_data["lecture_id"]
         })
         

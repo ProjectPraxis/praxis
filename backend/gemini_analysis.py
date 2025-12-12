@@ -428,7 +428,9 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
                 {{
                     "topic": "Topic Name",
                     "covered": true,
-                    "notes": "Brief notes on how well it was covered",
+                    "status": "Strong|Good|Struggling",
+                    "status_reason": "Clear, actionable feedback addressed to the professor explaining WHY this rating was given. (e.g., 'The explanation was rushed and relied too heavily on text-heavy slides without examples.')",
+                    "notes": "Brief internal notes on how well it was covered",
                     "key_concepts": "A concise 1-2 sentence definition/summary of this topic based on the lecture content",
                     "examples": "Specific examples mentioned in the lecture for this topic (e.g., 'COMPAS algorithm for bias in criminal justice')",
                     "lecture_moments": "Relevant timestamps or slide references where this topic was discussed (e.g., 'Discussed at 12:30-15:45')",
@@ -462,6 +464,7 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         - For interaction events: Be conservative - only mark actual student questions
         - Include student names in interaction events when mentioned
         - Differentiate between different types of positive moments (examples, stories, analogies, humor)
+        - **JSON FORMATTING**: Ensure the output is VALID JSON. Escape all quotes inside string values (e.g., "reason": "He said \"Hello\"")
         """
         
         # Configure generation with low media resolution to save tokens

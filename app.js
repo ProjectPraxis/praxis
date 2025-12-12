@@ -642,7 +642,8 @@ function toggleVisibility(elementId) {
   }
 }
 
-async function showTopicDetail(topicName, status, lectureId, buttonElement) {
+async function showTopicDetail(topicName, status, lectureId, buttonElement, reason = null) {
+  console.log("showTopicDetail called with:", { topicName, status, lectureId, reason });
   // Ensure the modal shell is loaded
   await showModal("modal-topic-detail");
 
@@ -655,6 +656,7 @@ async function showTopicDetail(topicName, status, lectureId, buttonElement) {
       statusColorClass = "bg-green-500";
       break;
     case "Developing":
+    case "Good":
       statusColorClass = "bg-yellow-500";
       break;
     case "Struggling":
@@ -716,6 +718,9 @@ async function showTopicDetail(topicName, status, lectureId, buttonElement) {
     }
   }
 
+  // Use provided reason, or fall back to notes if no specific AI feedback exists
+  const feedbackText = reason || notes;
+
   // Construct HTML
   let html = `
         <div class="flex items-center gap-3 mb-4">
@@ -723,7 +728,7 @@ async function showTopicDetail(topicName, status, lectureId, buttonElement) {
             <h3 class="text-2xl font-bold text-gray-900">${topicName}</h3>
             <span class="text-sm font-medium text-gray-500">(${status})</span>
         </div>
-        ${notes ? `<p class="text-gray-500 text-sm italic mb-4">${notes}</p>` : ""}
+        ${feedbackText ? `<p class="mb-6 text-gray-800"><span class="font-bold">Reason:</span> ${feedbackText}</p>` : ''}
         <div class="space-y-5">
             <div><h4 class="font-semibold text-gray-700">Key Concepts</h4><p class="text-gray-600 text-sm mt-1">${keyConcepts}</p></div>
             <div><h4 class="font-semibold text-gray-700">Examples</h4><p class="text-gray-600 text-sm mt-1">${examples}</p></div>
@@ -1082,11 +1087,12 @@ function renderUnifiedTopicPills(container, studentUnderstanding, courseCoverage
   allTopics.forEach(item => {
     const escapedTopic = escapeHtml(item.topic);
     const lectureIdAttr = item.lecture_id ? `'${item.lecture_id}'` : 'null';
+    const reasonAttr = item.reason ? `'${escapeHtml(item.reason).replace(/'/g, "\\'")}'` : 'null';
 
     if (item.covered && item.status) {
       // Covered in video with understanding status - show colored based on understanding
       const config = statusConfig[item.status] || statusConfig.developing;
-      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${config.display}', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
+      html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', '${config.display}', ${lectureIdAttr}, this, ${reasonAttr})" class="topic-pill py-3 px-5 rounded-full ${config.class} font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
     } else if (item.covered) {
       // Covered in video but no understanding data yet - show as developing
       html += `<button onclick="showTopicDetail('${escapedTopic.replace(/'/g, "\\'")}', 'Developing', ${lectureIdAttr}, this)" class="topic-pill py-3 px-5 rounded-full bg-yellow-500 text-white font-medium shadow-sm hover:opacity-90 transition-opacity">${escapedTopic}</button>`;
