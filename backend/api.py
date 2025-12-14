@@ -15,7 +15,7 @@ from pathlib import Path
 import shutil
 import os
 import asyncio
-from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result, generate_student_survey, save_survey
+from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result, generate_student_survey, save_survey, analyze_assignment_alignment
 from database import (
     connect_to_mongo, close_mongo_connection, get_classes_collection, 
     get_lectures_collection, get_feedback_collection, get_surveys_collection, 
@@ -110,6 +110,12 @@ class AssignmentResponse(BaseModel):
     hasFile: Optional[bool] = False
     fileName: Optional[str] = None
     filePath: Optional[str] = None
+    latestAnalysis: Optional[dict] = None
+
+
+class AnalyzeAssignmentRequest(BaseModel):
+    lecture_ids: List[str]
+
 
 
 # MongoDB helper functions
@@ -1324,6 +1330,12 @@ async def create_assignment(
     created_assignment = await create_assignment_doc(new_assignment)
     return created_assignment
 
+async def update_assignment_doc(assignment_id: str, update_data: dict) -> dict:
+    """Update an assignment in MongoDB"""
+    collection = get_assignments_collection()
+    await collection.update_one({"_id": assignment_id}, {"$set": update_data})
+    return await collection.find_one({"_id": assignment_id})
+
 @app.get("/api/assignments/{assignment_id}/file")
 async def download_assignment_file(assignment_id: str):
     """Download the assignment file"""
@@ -1363,6 +1375,99 @@ async def delete_assignment(assignment_id: str):
     if not deleted:
         raise HTTPException(status_code=404, detail="Assignment not found")
     return
+
+@app.post("/api/assignments/{assignment_id}/analyze")
+async def analyze_assignment(assignment_id: str, request: AnalyzeAssignmentRequest):
+    """
+    Analyze an assignment against selected lectures to check for alignment.
+    """
+    collection = get_assignments_collection()
+    assignment = await collection.find_one({"_id": assignment_id})
+    if not assignment:
+        # Try with ObjectId
+        try:
+            assignment = await collection.find_one({"_id": ObjectId(assignment_id)})
+        except:
+            pass
+            
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    # Check if assignment has a file
+    file_path = assignment.get("filePath")
+    if not file_path or not Path(file_path).exists():
+        raise HTTPException(status_code=400, detail="Assignment must have a file attachment to be analyzed.")
+        
+    assignment_title = assignment.get("title", "Untitled Assignment")
+    
+    # Fetch lecture contexts
+    lecture_contexts = []
+    for lec_id in request.lecture_ids:
+        lec = await get_lecture_by_id(lec_id)
+        if lec:
+            # Get analysis if exists
+            summary = ""
+            topics = lec.get("topics", [])
+            
+            # Try to get existing analysis for better context
+            analysis_doc = await get_analysis_from_db(lec["id"])
+            if analysis_doc:
+                data = analysis_doc.get("analysis_data", {})
+                if "topic_coverage" in data:
+                     # Add covered topics
+                     covered = [t["topic"] for t in data["topic_coverage"] if t.get("covered")]
+                     if covered:
+                         topics.extend(covered)
+                # Use summary if available (we don't have a specific summary field usually, but let's check)
+                if "summary" in data:
+                    summary = data["summary"]
+            
+            lecture_contexts.append({
+                "title": lec.get("title"),
+                "topics": list(set(topics)), # dedup
+                "summary": summary
+            })
+            
+    if not lecture_contexts:
+        raise HTTPException(status_code=400, detail="No valid lectures selected.")
+        
+    # Run analysis (blocking for now as it's user-triggered and expected to return result)
+    # Using asyncio.to_thread to avoid blocking event loop
+    try:
+        result = await asyncio.to_thread(
+            analyze_assignment_alignment,
+            assignment_file_path=file_path,
+            assignment_title=assignment_title,
+            lecture_contexts=lecture_contexts
+        )
+        
+        # Save the result to the assignment
+        await update_assignment_doc(assignment_id, {"latestAnalysis": result})
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/assignments/{assignment_id}", response_model=AssignmentResponse)
+async def get_assignment(assignment_id: str):
+    """Get a single assignment by ID"""
+    collection = get_assignments_collection()
+    assignment = await collection.find_one({"_id": assignment_id})
+    if not assignment:
+        # Try with ObjectId
+        try:
+            assignment = await collection.find_one({"_id": ObjectId(assignment_id)})
+        except:
+            pass
+            
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+        
+    if "_id" in assignment:
+        assignment["id"] = str(assignment.pop("_id"))
+        
+    return assignment
 
 if __name__ == "__main__":
     import uvicorn

@@ -35,6 +35,7 @@ const modalFileMap = {
   "modal-generate-survey": "generate-survey.html",
   "modal-feedback": "feedback-modal.html",
   "modal-add-assignment": "add-assignment.html",
+  "modal-analyze-assignment": "analyze-assignment.html",
 };
 
 // --- DOMContentLoaded (Initialization) ---
@@ -1631,7 +1632,7 @@ function showMaterialsLoadingScreen() {
                 </svg>
             </div>
             <h3 class="text-2xl font-bold text-gray-900 mb-2">Analyzing Materials...</h3>
-            <p class="text-gray-600 mb-4">Gemini AI is analyzing your lecture materials to extract topics and learning objectives.</p>
+            <p class="text-gray-600 mb-4">Praxis AI is analyzing your lecture materials to extract topics and learning objectives.</p>
             <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
                 <div class="w-2 h-2 bg-indigo-600 rounded-full animate-pulse"></div>
                 <div class="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
@@ -3237,7 +3238,7 @@ async function generateStudentSurvey(professorInput = null) {
                 </svg>
             </div>
             <h3 class="text-2xl font-bold text-gray-900 mb-2">Generating Survey...</h3>
-            <p class="text-gray-600 mb-4">Gemini AI is creating a comprehension survey based on the lecture analysis.</p>
+            <p class="text-gray-600 mb-4">Praxis AI is creating a comprehension survey based on the lecture analysis.</p>
             <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
                 <div class="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
                 <div class="w-2 h-2 bg-purple-600 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
@@ -4273,6 +4274,54 @@ function renderAssignments(assignments) {
         `;
     }
 
+    // Add Analyze Button (only if file exists)
+    let analyzeBtn = "";
+    let analysisPreview = "";
+
+    if (assignment.hasFile) {
+      analyzeBtn = `
+            <button onclick="openAnalyzeModal('${assignment.id}')" class="flex items-center gap-1 text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors mt-3">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+                ${assignment.latestAnalysis ? 'Re-analyze Alignment' : 'Analyze Alignment'}
+            </button>
+        `;
+
+      // Check for saved analysis
+      if (assignment.latestAnalysis) {
+        const score = assignment.latestAnalysis.alignment_score || 0;
+        let scoreColor = 'bg-red-100 text-red-800';
+        let scoreLabel = 'Weak Alignment';
+
+        if (score >= 90) { scoreColor = 'bg-green-100 text-green-800'; scoreLabel = 'Excellent Alignment'; }
+        else if (score >= 75) { scoreColor = 'bg-green-100 text-green-800'; scoreLabel = 'Strong Alignment'; }
+        else if (score >= 60) { scoreColor = 'bg-yellow-100 text-yellow-800'; scoreLabel = 'Moderate Alignment'; }
+        else if (score >= 40) { scoreColor = 'bg-orange-100 text-orange-800'; scoreLabel = 'Weak Alignment'; }
+        else { scoreColor = 'bg-red-100 text-red-800'; scoreLabel = 'Poor Alignment'; }
+
+        analysisPreview = `
+                <div onclick="showSavedAnalysis('${assignment.id}')" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors group/preview">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700 group-hover/preview:text-indigo-600 transition-colors">AI Alignment Check</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-bold ${scoreColor}">${scoreLabel}</span>
+                    </div>
+                    <div class="space-y-2">
+                         ${(assignment.latestAnalysis.suggestions || []).slice(0, 2).map(s => `
+                            <div class="flex items-start gap-2 text-xs text-gray-600">
+                                <span class="mt-0.5 text-${s.type === 'gap_warning' ? 'orange' : 'blue'}-500">●</span>
+                                <span>${escapeHtml(s.title)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-2 text-center text-xs text-indigo-500 font-medium opacity-0 group-hover/preview:opacity-100 transition-opacity">
+                        Click to view full analysis
+                    </div>
+                </div>
+            `;
+      }
+    }
+
     html += `
         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow relative group">
             <button onclick="deleteAssignment('${assignment.id}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Assignment">
@@ -4289,7 +4338,11 @@ function renderAssignments(assignments) {
                 </div>
             </div>
             <p class="text-gray-600 mt-2 line-clamp-2">${assignment.description || 'No description provided.'}</p>
-            ${downloadBtn}
+            ${analysisPreview}
+            <div class="flex gap-4">
+                ${downloadBtn}
+                ${analyzeBtn}
+            </div>
         </div>
     `;
   });
@@ -4350,6 +4403,196 @@ async function deleteAssignment(assignmentId) {
 // Make globally available
 window.handleAddAssignment = handleAddAssignment;
 window.deleteAssignment = deleteAssignment;
+
+// --- Assignment Analysis Functions ---
+
+let currentAssignmentIdForAnalysis = null;
+
+async function openAnalyzeModal(assignmentId) {
+  currentAssignmentIdForAnalysis = assignmentId;
+  await showModal('modal-analyze-assignment');
+
+  // Fetch lectures for the checklist
+  const listContainer = document.getElementById('analyze-lectures-list');
+  listContainer.innerHTML = '<div class="text-center text-gray-500 py-4">Loading lectures...</div>';
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    // Fetch lectures for current class
+    const response = await fetch(`${API_BASE_URL}/lectures?class_id=${currentCourseId}`);
+    if (response.ok) {
+      const lectures = await response.json();
+      if (lectures.length === 0) {
+        listContainer.innerHTML = '<div class="text-center text-gray-500 py-4">No lectures found for this course.</div>';
+        return;
+      }
+
+      let html = '';
+      lectures.forEach(lec => {
+        html += `
+                <div class="flex items-center p-2 hover:bg-gray-50 rounded">
+                    <input type="checkbox" id="lec-${lec.id}" value="${lec.id}" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="lec-${lec.id}" class="ml-3 block text-sm font-medium text-gray-700 w-full cursor-pointer">
+                        ${escapeHtml(lec.title)}
+                        ${lec.hasAnalysis ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Analyzed</span>' : ''}
+                    </label>
+                </div>
+            `;
+      });
+      listContainer.innerHTML = html;
+
+      // Reset results area
+      document.getElementById('analyze-results-area').classList.add('hidden');
+      document.getElementById('analyze-content').innerHTML = '';
+    }
+  } catch (error) {
+    console.error("Error fetching lectures:", error);
+    listContainer.innerHTML = '<div class="text-center text-red-500 py-4">Error loading lectures.</div>';
+  }
+}
+
+async function runAssignmentAnalysis() {
+  // Get selected lectures
+  const checkboxes = document.querySelectorAll('#analyze-lectures-list input[type="checkbox"]:checked');
+  const selectedLectureIds = Array.from(checkboxes).map(cb => cb.value);
+
+  if (selectedLectureIds.length === 0) {
+    alert("Please select at least one lecture to compare against.");
+    return;
+  }
+
+  // Show loading
+  const resultsArea = document.getElementById('analyze-results-area');
+  const loadingDiv = document.getElementById('analyze-loading');
+  const contentDiv = document.getElementById('analyze-content');
+  const runBtn = document.getElementById('btn-run-analysis');
+
+  resultsArea.classList.remove('hidden');
+  loadingDiv.classList.remove('hidden');
+  contentDiv.innerHTML = '';
+  runBtn.disabled = true;
+  runBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/assignments/${currentAssignmentIdForAnalysis}/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ lecture_ids: selectedLectureIds })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      renderAnalysisResults(result);
+      // Refresh assignment list to show the new analysis on the card
+      await fetchAssignments(currentCourseId);
+    } else {
+      const err = await response.json();
+      contentDiv.innerHTML = `<div class="p-4 bg-red-50 text-red-700 rounded-lg">Error: ${err.detail || 'Analysis failed'}</div>`;
+    }
+  } catch (error) {
+    console.error("Analysis error:", error);
+    contentDiv.innerHTML = `<div class="p-4 bg-red-50 text-red-700 rounded-lg">Network error occurred.</div>`;
+  } finally {
+    loadingDiv.classList.add('hidden');
+    runBtn.disabled = false;
+    runBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+}
+
+function renderAnalysisResults(data) {
+  const container = document.getElementById('analyze-content');
+  let html = '';
+
+  // Score Badge
+  const score = data.alignment_score || 0;
+  let scoreColor = 'bg-red-100 text-red-800';
+  let scoreLabel = 'Weak Alignment';
+
+  if (score >= 90) { scoreColor = 'bg-green-100 text-green-800'; scoreLabel = 'Excellent Alignment'; }
+  else if (score >= 75) { scoreColor = 'bg-green-100 text-green-800'; scoreLabel = 'Strong Alignment'; }
+  else if (score >= 60) { scoreColor = 'bg-yellow-100 text-yellow-800'; scoreLabel = 'Moderate Alignment'; }
+  else if (score >= 40) { scoreColor = 'bg-orange-100 text-orange-800'; scoreLabel = 'Weak Alignment'; }
+  else { scoreColor = 'bg-red-100 text-red-800'; scoreLabel = 'Poor Alignment'; }
+
+  html += `
+        <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg mb-4">
+            <span class="text-sm font-medium text-gray-700">Alignment Assessment</span>
+            <span class="px-3 py-1 rounded-full text-lg font-bold ${scoreColor}">${scoreLabel}</span>
+        </div>
+    `;
+
+  // Suggestions / Gaps
+  if (data.suggestions && data.suggestions.length > 0) {
+    html += `<h5 class="font-medium text-gray-900 mt-4 mb-2">Suggestions & Gaps</h5><div class="space-y-3">`;
+    data.suggestions.forEach(item => {
+      const isGap = item.type === 'gap_warning';
+      html += `
+                <div class="p-3 rounded-lg border ${isGap ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5">
+                            ${isGap
+          ? '<svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
+          : '<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
+                        </div>
+                        <div>
+                            <h6 class="text-sm font-bold ${isGap ? 'text-orange-800' : 'text-blue-800'}">${item.title}</h6>
+                            <p class="text-sm text-gray-700 mt-1">${item.description}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+    });
+    html += `</div>`;
+  }
+
+  // Strengths
+  if (data.strengths && data.strengths.length > 0) {
+    html += `<h5 class="font-medium text-gray-900 mt-4 mb-2">Good Alignment</h5><ul class="list-disc list-inside text-sm text-gray-600 space-y-1">`;
+    data.strengths.forEach(str => {
+      html += `<li>${str}</li>`;
+    });
+    html += `</ul>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// Make globally available
+// --- New Function: Show Saved Analysis ---
+async function showSavedAnalysis(assignmentId) {
+  // 1. Open the modal normally to ensure structure is ready (fetches lectures, etc.)
+  await openAnalyzeModal(assignmentId);
+
+  // 2. Fetch the updated assignment details to get the saved analysis
+  try {
+    const API_BASE_URL = "http://localhost:8001/api";
+    const response = await fetch(`${API_BASE_URL}/assignments/${assignmentId}`);
+    if (response.ok) {
+      const assignment = await response.json();
+      if (assignment.latestAnalysis) {
+        // 3. Render the results immediately
+        renderAnalysisResults(assignment.latestAnalysis);
+        // 4. Reveal the results area
+        document.getElementById('analyze-results-area').classList.remove('hidden');
+
+        // Optional: Scroll to results
+        document.getElementById('analyze-results-area').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  } catch (error) {
+    console.error("Error loading saved analysis:", error);
+  }
+}
+
+// Make globally accessible
+window.showSavedAnalysis = showSavedAnalysis;
+window.openAnalyzeModal = openAnalyzeModal;
+window.runAssignmentAnalysis = runAssignmentAnalysis;
+window.renderAnalysisResults = renderAnalysisResults;
+
 
 // Refresh the pending analyses list on the home screen
 async function refreshPendingAnalyses() {

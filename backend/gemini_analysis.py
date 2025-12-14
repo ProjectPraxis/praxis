@@ -149,19 +149,20 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
             response_mime_type="application/json"
         )
         
-        # Create content with materials file and prompt
+        # Create content with materials file and prompt (using mime_type from the uploaded file)
         contents = [
             types.Content(
                 role="user",
                 parts=[
-                    types.Part.from_uri(file_uri=materials_file.uri, mime_type=mime_type),
+                    types.Part.from_uri(file_uri=materials_file.uri, mime_type=materials_file.mime_type),
                     types.Part.from_text(text=prompt_text)
                 ]
             )
         ]
         
         # Generate content with the materials file
-        print("Generating analysis with Gemini...")
+        print(f"Generating analysis with Gemini using file: {materials_file.uri} (MIME: {materials_file.mime_type})")
+        print(f"Prompt length: {len(prompt_text)}")
         
         # Retry logic for handling API overload (503 errors)
         max_retries = 3
@@ -790,5 +791,135 @@ async def save_survey(survey_data: Dict[str, Any], output_dir: Path = None) -> s
     survey_id = survey_data.get("survey_id", "unknown")
     await save_survey_to_db(survey_id, survey_data)
     
+    
     return survey_id
+
+
+def analyze_assignment_alignment(assignment_file_path: str, assignment_title: str, lecture_contexts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Analyze an assignment file against a set of lecture contexts (topics/transcripts) 
+    to determine alignment and generate suggestions.
+
+    Args:
+        assignment_file_path: Path to the assignment file (PDF, etc.)
+        assignment_title: Title of the assignment
+        lecture_contexts: List of dictionaries containing lecture info:
+                          [{'title': '...', 'topics': ['...'], 'summary': '...'}]
+
+    Returns:
+        Dictionary containing alignment analysis (good points, suggestions, score)
+    """
+    try:
+        client = get_client()
+
+        # Upload the assignment file
+        print(f"Uploading assignment file: {assignment_file_path}")
+        assignment_file = client.files.upload(file=assignment_file_path)
+
+        # Wait for processing
+        print(f"Uploaded file: {assignment_file.name}, waiting for processing...")
+        max_wait_time = 300
+        wait_time = 0
+        check_interval = 2
+        
+        while assignment_file.state == "PROCESSING":
+            if wait_time >= max_wait_time:
+                raise Exception(f"File processing timeout. State: {assignment_file.state}")
+            time.sleep(check_interval)
+            wait_time += check_interval
+            assignment_file = client.files.get(name=assignment_file.name)
+
+        if assignment_file.state != "ACTIVE":
+             raise Exception(f"File processing failed. State: {assignment_file.state}")
+
+        print(f"File active. Preparing context from {len(lecture_contexts)} lectures...")
+
+        # Prepare Lecture Context String
+        lectures_text = ""
+        for i, lec in enumerate(lecture_contexts):
+            lectures_text += f"\\n--- LECTURE {i+1}: {lec.get('title', 'Untitled')} ---\\n"
+            lectures_text += f"Topics Covered: {', '.join(lec.get('topics', []))}\\n"
+            if lec.get('summary'):
+                 lectures_text += f"Summary: {lec.get('summary')}\\n"
+            # If we had full transcripts, we could include them here, 
+            # but topics/summary is usually sufficient for high-level alignment.
+
+        prompt_text = f"""You are an expert Educational Consultant and TA.
+        
+        Your task is to analyze this Assignment (attached file) and compare it against the content covered in the following Lectures.
+        
+        Assignment Title: {assignment_title}
+        
+        CONTEXT - COURSE LECTURES COVERED SO FAR:
+        {lectures_text}
+        
+        Please evaluate how well this assignment aligns with the material taught. 
+        We want to ensure students are being tested on things they've actually learned, 
+        while also challenging them appropriately.
+
+        Provide a response in this JSON format:
+        {{
+            "alignment_score": 85,  // 0-100 score of how well the assignment fits the lectures
+            "topics_alignment": [
+                {{
+                    "topic": "Specific Concept from Assignment",
+                    "status": "Covered|Not Covered|Partially Covered",
+                    "lecture_reference": "Lecture 2", // Which lecture covered this best?
+                    "notes": "Brief explanation"
+                }}
+            ],
+            "strengths": [
+                "Good point 1: e.g. 'Excellent practical application of the theory discussed in Lecture 3'"
+            ],
+            "suggestions": [
+                {{
+                    "type": "gap_warning|improvement_idea",
+                    "title": "Short Title",
+                    "description": "Detailed suggestion. E.g. 'The assignment asks about X, but Lecture 1 only briefly mentioned it. Consider adding a reference or hint.'"
+                }}
+            ],
+            "summary": "Overall assessment of the assignment."
+        }}
+        """
+
+        # Configure generation
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
+        
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_uri(file_uri=assignment_file.uri, mime_type=assignment_file.mime_type),
+                    types.Part.from_text(text=prompt_text)
+                ]
+            )
+        ]
+
+        print("Generating assignment alignment analysis...")
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", 
+            contents=contents,
+            config=config
+        )
+
+        # Parse Response
+        response_text = response.text
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        elif "```" in response_text:
+            json_start = response_text.find("```") + 3
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        
+        analysis_data = json.loads(response_text)
+        return analysis_data
+
+    except Exception as e:
+        print(f"Error analyzing assignment: {e}")
+        return {"error": str(e)}
+
 
