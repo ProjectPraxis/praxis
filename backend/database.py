@@ -15,7 +15,7 @@ load_dotenv(dotenv_path=ENV_PATH)
 
 # MongoDB connection settings
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "praxis")
+MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "Praxis")
 
 # Global client and database instances
 client: Optional[AsyncIOMotorClient] = None
