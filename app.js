@@ -3027,6 +3027,22 @@ function showTimelineInsight(type, event) {
   // Pass the dynamic event data to showInsight
   showInsight(type, event);
   
+  // Collapse Topic Coverage smoothly to make reflections more prominent
+  collapseTopicCoverage();
+  
+  // Scroll to the AI Reflections panel smoothly
+  setTimeout(() => {
+    const insightPanel = document.getElementById("dynamic-insight-panel");
+    if (insightPanel) {
+      insightPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Add a brief highlight effect
+      insightPanel.classList.add("ring-2", "ring-purple-400", "ring-opacity-75");
+      setTimeout(() => {
+        insightPanel.classList.remove("ring-2", "ring-purple-400", "ring-opacity-75");
+      }, 1500);
+    }
+  }, 100);
+  
   // Seek video to the event's start time if available
   if (event && event.start_time !== undefined) {
     seekLectureVideo(event.start_time);
@@ -3043,35 +3059,112 @@ function seekLectureVideo(timeInSeconds) {
   const video = videoContainer.querySelector("video");
   if (video) {
     video.currentTime = timeInSeconds;
-    // Optionally scroll to video and play
-    videoContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Don't scroll to video - let user focus on reflections instead
     video.play().catch(e => console.log("Auto-play prevented:", e));
   }
 }
 
 /**
- * Toggle the Topic Coverage section collapse state
+ * Collapse the Topic Coverage section with smooth animation
  */
-function toggleTopicCoverage() {
+function collapseTopicCoverage() {
   const content = document.getElementById("topic-coverage-content");
   const icon = document.getElementById("topic-coverage-icon");
   
+  if (!content || content.classList.contains("animating")) return;
+  
+  // If already collapsed, do nothing
+  if (content.style.maxHeight === "0px") return;
+  
+  // Add transition styles if not present
+  content.style.transition = "max-height 0.3s ease-out, opacity 0.2s ease-out, margin 0.3s ease-out";
+  content.style.overflow = "hidden";
+  
+  // Get current height
+  const currentHeight = content.scrollHeight;
+  content.style.maxHeight = currentHeight + "px";
+  
+  // Force reflow
+  content.offsetHeight;
+  
+  // Collapse
+  content.classList.add("animating");
+  content.style.maxHeight = "0px";
+  content.style.opacity = "0";
+  content.style.marginTop = "0";
+  
+  // Rotate icon
+  if (icon) {
+    icon.style.transition = "transform 0.3s ease-out";
+    icon.style.transform = "rotate(-90deg)";
+  }
+  
+  // Clean up after animation
+  setTimeout(() => {
+    content.classList.remove("animating");
+    content.classList.add("collapsed");
+  }, 300);
+}
+
+/**
+ * Expand the Topic Coverage section with smooth animation
+ */
+function expandTopicCoverage() {
+  const content = document.getElementById("topic-coverage-content");
+  const icon = document.getElementById("topic-coverage-icon");
+  
+  if (!content || content.classList.contains("animating")) return;
+  
+  // If already expanded, do nothing
+  if (content.style.maxHeight !== "0px" && !content.classList.contains("collapsed")) return;
+  
+  content.classList.remove("collapsed");
+  content.classList.add("animating");
+  
+  // Add transition styles
+  content.style.transition = "max-height 0.3s ease-out, opacity 0.2s ease-out, margin 0.3s ease-out";
+  content.style.overflow = "hidden";
+  
+  // Set to auto height by measuring scrollHeight
+  content.style.opacity = "1";
+  content.style.marginTop = "1rem";
+  content.style.maxHeight = content.scrollHeight + "px";
+  
+  // Rotate icon back
+  if (icon) {
+    icon.style.transition = "transform 0.3s ease-out";
+    icon.style.transform = "rotate(0deg)";
+  }
+  
+  // Clean up after animation
+  setTimeout(() => {
+    content.classList.remove("animating");
+    content.style.maxHeight = "none";
+  }, 300);
+}
+
+/**
+ * Toggle the Topic Coverage section collapse state with animation
+ */
+function toggleTopicCoverage() {
+  const content = document.getElementById("topic-coverage-content");
+  
   if (!content) return;
   
-  const isHidden = content.classList.contains("hidden");
+  const isCollapsed = content.style.maxHeight === "0px" || content.classList.contains("collapsed");
   
-  if (isHidden) {
-    content.classList.remove("hidden");
-    if (icon) icon.style.transform = "rotate(0deg)";
+  if (isCollapsed) {
+    expandTopicCoverage();
   } else {
-    content.classList.add("hidden");
-    if (icon) icon.style.transform = "rotate(-90deg)";
+    collapseTopicCoverage();
   }
 }
 
 // Make functions available globally
 window.seekLectureVideo = seekLectureVideo;
 window.toggleTopicCoverage = toggleTopicCoverage;
+window.collapseTopicCoverage = collapseTopicCoverage;
+window.expandTopicCoverage = expandTopicCoverage;
 
 async function submitForAnalysis() {
   if (!uploadedVideoFile) {
