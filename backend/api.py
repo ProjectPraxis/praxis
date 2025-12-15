@@ -40,7 +40,8 @@ from database import (
     get_lectures_collection, get_feedback_collection, get_surveys_collection, 
     get_survey_responses_collection, save_analysis_to_db, get_analysis_from_db,
     save_materials_analysis_to_db, get_materials_analysis_doc, save_survey_to_db,
-    get_survey_from_db, get_assignments_collection
+    get_survey_from_db, get_assignments_collection, get_analyses_collection,
+    get_materials_analyses_collection
 )
 from bson import ObjectId
 from bson.errors import InvalidId

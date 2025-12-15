@@ -866,10 +866,10 @@ def generate_student_survey(lecture_id: str, lecture_title: str, analysis_data: 
         if "created_at" not in survey_data:
             survey_data["created_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
         
-        # Generate shareable link - use current host or localhost for development
-        # In production, this would be the actual domain
+        # Generate shareable link - use environment variable or default based on environment
+        # In production (Render), set SURVEY_BASE_URL env var to the Vercel frontend URL
         import os
-        base_url = os.getenv("SURVEY_BASE_URL", "http://localhost:8000")
+        base_url = os.getenv("SURVEY_BASE_URL", "https://praxis-rnv864wdk-mdsiam8s-projects.vercel.app")
         survey_data["shareable_link"] = f"{base_url}/?survey_id={survey_data['survey_id']}"
         
         print(f"Survey generated successfully with {len(survey_data.get('questions', []))} questions.")

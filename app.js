@@ -1,6 +1,11 @@
 // --- Global API Configuration ---
 // Use localhost for development, Render URL for production
-const API_BASE_URL = window.location.hostname === 'localhost' 
+const isLocalDev = window.location.hostname === 'localhost' 
+    || window.location.hostname === '127.0.0.1'
+    || window.location.hostname === '[::1]'
+    || window.location.hostname.startsWith('192.168.')
+    || window.location.hostname === '[::]';
+const API_BASE_URL = isLocalDev 
     ? 'http://localhost:8001/api'
     : 'https://praxis-r64o.onrender.com/api';
 
