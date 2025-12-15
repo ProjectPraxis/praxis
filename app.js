@@ -2504,9 +2504,7 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
   }
 
   // Update video player
-  const videoContainer = document.querySelector(
-    "#screen-lecture-analysis .bg-gray-900.rounded-xl"
-  );
+  const videoContainer = document.getElementById("lecture-video-container");
   if (videoContainer && lecture.hasVideo) {
     const videoUrl = `${API_BASE_URL}/lectures/${lecture.id}/video`;
 
@@ -3023,7 +3021,52 @@ function formatTime(seconds) {
 function showTimelineInsight(type, event) {
   // Pass the dynamic event data to showInsight
   showInsight(type, event);
+  
+  // Seek video to the event's start time if available
+  if (event && event.start_time !== undefined) {
+    seekLectureVideo(event.start_time);
+  }
 }
+
+/**
+ * Seek the lecture video to a specific time in seconds
+ */
+function seekLectureVideo(timeInSeconds) {
+  const videoContainer = document.getElementById("lecture-video-container");
+  if (!videoContainer) return;
+  
+  const video = videoContainer.querySelector("video");
+  if (video) {
+    video.currentTime = timeInSeconds;
+    // Optionally scroll to video and play
+    videoContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    video.play().catch(e => console.log("Auto-play prevented:", e));
+  }
+}
+
+/**
+ * Toggle the Topic Coverage section collapse state
+ */
+function toggleTopicCoverage() {
+  const content = document.getElementById("topic-coverage-content");
+  const icon = document.getElementById("topic-coverage-icon");
+  
+  if (!content) return;
+  
+  const isHidden = content.classList.contains("hidden");
+  
+  if (isHidden) {
+    content.classList.remove("hidden");
+    if (icon) icon.style.transform = "rotate(0deg)";
+  } else {
+    content.classList.add("hidden");
+    if (icon) icon.style.transform = "rotate(-90deg)";
+  }
+}
+
+// Make functions available globally
+window.seekLectureVideo = seekLectureVideo;
+window.toggleTopicCoverage = toggleTopicCoverage;
 
 async function submitForAnalysis() {
   if (!uploadedVideoFile) {
