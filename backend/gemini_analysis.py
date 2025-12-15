@@ -12,6 +12,9 @@ from typing import Dict, Any, List
 import os
 import time
 from dotenv import load_dotenv
+import boto3
+import tempfile
+import shutil
 
 # Load environment variables from .env file in the same directory as this script
 ENV_PATH = Path(__file__).parent / ".env"
@@ -20,9 +23,54 @@ load_dotenv(dotenv_path=ENV_PATH)
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+# Configure S3
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "praxis-uploads")
+
 def get_client():
     """Get the Gemini client"""
     return genai.Client(api_key=GEMINI_API_KEY)
+
+def get_s3_client():
+    """Get S3 client if credentials exist"""
+    if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+        return boto3.client(
+            's3',
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            region_name=AWS_REGION
+        )
+    return None
+
+def ensure_local_file(file_path: str) -> str:
+    """
+    Ensure the file exists locally. If not and it looks like an S3 key, download it to a temp file.
+    Returns the path to the local file (original or temp).
+    """
+    # If file exists locally, just return it
+    if os.path.exists(file_path):
+        return file_path
+        
+    # If not, try to download from S3
+    s3 = get_s3_client()
+    if s3 and S3_BUCKET_NAME:
+        try:
+            # Create a temp file
+            suffix = Path(file_path).suffix
+            tf = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            tf.close()
+            
+            print(f"Downloading {file_path} from S3 to {tf.name}...")
+            s3.download_file(S3_BUCKET_NAME, file_path, tf.name)
+            return tf.name
+        except Exception as e:
+            print(f"Failed to download from S3: {e}")
+            # If download fails, return original path and let caller fail
+            return file_path
+            
+    return file_path
 
 def get_model():
     """Get the Gemini model, trying 2.5 Pro first, then falling back to 1.5 Pro"""
@@ -59,7 +107,11 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
         
         # Upload the file to Gemini using the new client API
         print(f"Uploading materials file: {file_path}")
-        materials_file = client.files.upload(file=file_path)
+        
+        # Ensure file exists locally (download from S3 if needed)
+        local_path = ensure_local_file(file_path)
+            
+        materials_file = client.files.upload(file=local_path)
         
         # Wait for the file to be processed and become ACTIVE
         print(f"Uploaded file: {materials_file.name}, waiting for processing...")
@@ -234,6 +286,14 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
             print("Cleaned up uploaded materials file")
         except:
             pass
+            
+        # Clean up local temp file if it was downloaded
+        if 'local_path' in locals() and local_path != file_path and os.path.exists(local_path):
+            try:
+                os.remove(local_path)
+                print(f"Cleaned up temp file {local_path}")
+            except:
+                pass
 
 
 def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str = "Lecture", topics: list = None, materials_analysis: Dict[str, Any] = None, professor_feedback: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -271,18 +331,21 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
             }
             mime_type = mime_type_map.get(extension, 'video/mp4')
         
+        print(f"Uploading video file: {video_path} (mime type: {mime_type})")
+        
+        # Ensure file exists locally (download from S3 if needed)
+        local_path = ensure_local_file(video_path)
+        
         # Check file size
-        video_path_obj = Path(video_path)
+        video_path_obj = Path(local_path)
         file_size_mb = video_path_obj.stat().st_size / (1024 * 1024)
         print(f"Video file size: {file_size_mb:.2f} MB")
         
         # Warn if file is very large
         if file_size_mb > 500:
             print(f"WARNING: Large file ({file_size_mb:.2f} MB). This may take a while or fail.")
-        
-        # Upload video file (use 'file' parameter, not 'path')
-        print(f"Uploading video file: {video_path} (mime type: {mime_type})")
-        video_file = client.files.upload(file=video_path)
+            
+        video_file = client.files.upload(file=local_path)
         
         # Wait for the file to be processed and become ACTIVE
         print(f"Uploaded file: {video_file.name}, waiting for processing...")
@@ -562,6 +625,14 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
             print("Cleaned up uploaded video file")
         except:
             pass
+            
+        # Clean up local temp file if it was downloaded
+        if 'local_path' in locals() and local_path != video_path and os.path.exists(local_path):
+            try:
+                os.remove(local_path)
+                print(f"Cleaned up temp file {local_path}")
+            except:
+                pass
 
 
 async def save_analysis_result(analysis_data: Dict[str, Any], output_dir: Path = None) -> str:
@@ -812,10 +883,19 @@ def analyze_assignment_alignment(assignment_file_path: str, assignment_title: st
     try:
         client = get_client()
 
-        # Upload the assignment file
+        # Determine mime type
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(assignment_file_path)
+        if not mime_type:
+            mime_type = "application/pdf"
+            
         print(f"Uploading assignment file: {assignment_file_path}")
-        assignment_file = client.files.upload(file=assignment_file_path)
-
+        
+        # Ensure file exists locally (download from S3 if needed)
+        local_path = ensure_local_file(assignment_file_path)
+        
+        assignment_file = client.files.upload(file=local_path, mime_type=mime_type)
+        
         # Wait for processing
         print(f"Uploaded file: {assignment_file.name}, waiting for processing...")
         max_wait_time = 300
@@ -824,7 +904,9 @@ def analyze_assignment_alignment(assignment_file_path: str, assignment_title: st
         
         while assignment_file.state == "PROCESSING":
             if wait_time >= max_wait_time:
-                raise Exception(f"File processing timeout. State: {assignment_file.state}")
+                raise Exception(f"File processing timeout")
+            
+            print(f"File state: {assignment_file.state}, waiting... ({wait_time}s)")
             time.sleep(check_interval)
             wait_time += check_interval
             assignment_file = client.files.get(name=assignment_file.name)
@@ -921,5 +1003,21 @@ def analyze_assignment_alignment(assignment_file_path: str, assignment_title: st
     except Exception as e:
         print(f"Error analyzing assignment: {e}")
         return {"error": str(e)}
+    finally:
+        # Clean up uploaded file
+        try:
+            if 'assignment_file' in locals():
+                client.files.delete(name=assignment_file.name)
+                print("Cleaned up uploaded assignment file")
+        except:
+            pass
+            
+        # Clean up local temp file if it was downloaded
+        if 'local_path' in locals() and local_path != assignment_file_path and os.path.exists(local_path):
+            try:
+                os.remove(local_path)
+                print(f"Cleaned up temp file {local_path}")
+            except:
+                pass
 
 
