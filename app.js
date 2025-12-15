@@ -2,7 +2,7 @@
 // Use localhost for development, Render URL for production
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8001/api'
-    : 'https://praxis-backend-t1pu.onrender.com/api';
+    : 'https://praxis-r64o.onrender.com/api';
 
 // --- Globals ---
 const appContainer = document.getElementById("app-container");
