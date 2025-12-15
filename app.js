@@ -2858,15 +2858,15 @@ function populateAIReflections(reflections) {
                     <div class="flex-1">
                         <h4 class="font-semibold text-gray-800">${typeLabel}: ${insight.title}</h4>
                         <p class="text-gray-600">${insight.description}</p>
-                        <div class="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="openFeedbackModal('${insightId}', 'up')" class="p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Helpful">
-                                <svg class="w-4 h-4 text-gray-600 hover:text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558-.645 1.08-1.084 1.533a9.04 9.04 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672V12.75a.75.75 0 01-.75.75h-4.5A2.25 2.25 0 013 11.25v-1.5A2.25 2.25 0 015.25 7.5h1.383z" />
+                        <div class="flex items-center gap-2 mt-2 transition-opacity">
+                            <button onclick="openFeedbackModal('${insightId}', 'up')" class="p-1.5 rounded-full hover:bg-green-50 hover:text-green-600 text-gray-400 transition-colors" title="Upvote">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
                                 </svg>
                             </button>
-                            <button onclick="openFeedbackModal('${insightId}', 'down')" class="p-1.5 rounded-full hover:bg-gray-100 transition-colors" title="Not helpful">
-                                <svg class="w-4 h-4 text-gray-600 hover:text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.367 13.5c-.806 0-1.533.446-2.031 1.08a9.041 9.041 0 01-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.498 4.498 0 00-.322 1.672V21a.75.75 0 01-.75.75A2.25 2.25 0 017.5 19.5c0-1.152.26-2.243.723-3.218.266-.558.645-1.08 1.084-1.533a9.04 9.04 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V11.25a.75.75 0 01.75-.75h4.5A2.25 2.25 0 0119.5 12.75v1.5a2.25 2.25 0 01-2.25 2.25h-1.883z" />
+                            <button onclick="openFeedbackModal('${insightId}', 'down')" class="p-1.5 rounded-full hover:bg-red-50 hover:text-red-600 text-gray-400 transition-colors" title="Downvote">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                                 </svg>
                             </button>
                         </div>
