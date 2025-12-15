@@ -5,7 +5,7 @@ Handles class management API endpoints
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 import json
@@ -15,6 +15,15 @@ from pathlib import Path
 import shutil
 import os
 import asyncio
+from dotenv import load_dotenv
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
 from gemini_analysis import (
     analyze_lecture_video,
     save_analysis_result,
@@ -24,8 +33,7 @@ from gemini_analysis import (
     save_materials_analysis_result,
     generate_student_survey,
     save_survey,
-    generate_simulated_trends,
-    analyze_syllabus
+    analyze_assignment_alignment
 )
 from database import (
     connect_to_mongo, close_mongo_connection, get_classes_collection, 
@@ -36,6 +44,9 @@ from database import (
 )
 from bson import ObjectId
 from bson.errors import InvalidId
+
+import boto3
+from botocore.exceptions import ClientError
 
 app = FastAPI(title="Praxis API", version="1.0.0")
 
@@ -49,11 +60,73 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# File paths (for file uploads only, data is in MongoDB)
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "praxis-uploads")
+
+s3_client = None
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    try:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            region_name=AWS_REGION
+        )
+        print(f"S3 Client initialized successfully. Bucket: {S3_BUCKET_NAME}")
+    except Exception as e:
+        print(f"Failed to initialize S3 client: {e}")
+else:
+    print("Warning: AWS credentials not found in environment. Falling back to local storage.")
+    # Debug print to help user
+    print(f"AWS_ACCESS_KEY_ID present: {bool(AWS_ACCESS_KEY_ID)}")
+
+
+# File paths (fallback or temporary storage)
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)  # Create uploads directory if it doesn't exist
 ANALYSIS_DIR = Path(__file__).parent / "data" / "analyses"
-ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)  # Create analyses directory if it doesn't exist (for file storage if needed)
+ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)  # Create analyses directory if it doesn't exist
+
+# --- S3 Helper Functions ---
+async def upload_to_s3(file_obj, object_name: str, content_type: str = None) -> bool:
+    """Upload a file-like object to S3."""
+    if not s3_client:
+        print("S3 client not initialized. Cannot upload.")
+        return False
+    try:
+        extra_args = {}
+        if content_type:
+            extra_args['ContentType'] = content_type
+            
+        # If it's an async UploadFile, we need to read it or use its file attribute
+        # Boto3 expects a sync file-like object. 
+        # For UploadFile, .file is a SpooledTemporaryFile which is sync.
+        s3_client.upload_fileobj(file_obj, S3_BUCKET_NAME, object_name, ExtraArgs=extra_args)
+        return True
+    except ClientError as e:
+        print(f"S3 Upload Error: {e}")
+        return False
+    except Exception as e:
+        print(f"Error uploading to S3: {e}")
+        return False
+
+def create_presigned_url(object_name: str, expiration=3600) -> Optional[str]:
+    """Generate a presigned URL to share an S3 object."""
+    if not s3_client:
+        return None
+    try:
+        response = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': S3_BUCKET_NAME, 'Key': object_name},
+            ExpiresIn=expiration
+        )
+        return response
+    except ClientError as e:
+        print(f"S3 Presign Error: {e}")
+        return None
 
 
 # Pydantic models for request/response
@@ -121,6 +194,12 @@ class AssignmentResponse(BaseModel):
     hasFile: Optional[bool] = False
     fileName: Optional[str] = None
     filePath: Optional[str] = None
+    latestAnalysis: Optional[dict] = None
+
+
+class AnalyzeAssignmentRequest(BaseModel):
+    lecture_ids: List[str]
+
 
 
 # MongoDB helper functions
@@ -363,6 +442,8 @@ async def create_lecture(
     video: Optional[UploadFile] = File(None)
 ):
     """Create a new lecture with optional file upload"""
+    logger.info(f"STARTING create_lecture. s3_client present: {bool(s3_client)}")
+    
     # Parse topics from JSON string
     try:
         topics_list = json.loads(topics) if topics else []
@@ -376,9 +457,10 @@ async def create_lecture(
         # Generate unique filename
         file_ext = Path(file.filename).suffix
         file_name = f"{uuid.uuid4()}{file_ext}"
-        file_path = str(UPLOAD_DIR / file_name)
         
-        # Save file
+        # Save to local storage
+        logger.info("Saving slides locally")
+        file_path = str(UPLOAD_DIR / file_name)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     
@@ -389,11 +471,18 @@ async def create_lecture(
         # Generate unique filename
         video_ext = Path(video.filename).suffix
         video_name = f"{uuid.uuid4()}{video_ext}"
-        video_path = str(UPLOAD_DIR / video_name)
         
-        # Save video file
-        with open(video_path, "wb") as buffer:
-            shutil.copyfileobj(video.file, buffer)
+        logger.info(f"Processing video upload. s3_client: {s3_client}")
+        if s3_client:
+            logger.info("Attempting S3 upload for video")
+            video_path = f"lectures/videos/{video_name}"
+            await upload_to_s3(video.file, video_path, video.content_type)
+        else:
+            logger.info("Falling back to local storage for video")
+            # Fallback to local storage
+            video_path = str(UPLOAD_DIR / video_name)
+            with open(video_path, "wb") as buffer:
+                shutil.copyfileobj(video.file, buffer)
     
     # Create new lecture object
     new_lecture = {
@@ -535,12 +624,22 @@ async def download_lecture_file(lecture_id: str):
         raise HTTPException(status_code=404, detail="Lecture not found")
     
     file_path = lecture.get("filePath")
-    if file_path and Path(file_path).exists():
-        return FileResponse(
-            file_path,
-            filename=lecture.get("fileName", "slides.pdf"),
-            media_type="application/octet-stream"
-        )
+    if file_path:
+        # Check if it's an S3 object key (relative path) vs local absolute path
+        if not Path(file_path).is_absolute() and s3_client:
+            url = create_presigned_url(file_path)
+            if url:
+                return RedirectResponse(url=url)
+            # If valid S3 key but signing failed, fall through to error
+        
+        # Local file fallback
+        if Path(file_path).exists():
+            return FileResponse(
+                file_path,
+                filename=lecture.get("fileName", "slides.pdf"),
+                media_type="application/octet-stream"
+            )
+            
     raise HTTPException(status_code=404, detail="File not found")
 
 
@@ -554,6 +653,12 @@ async def get_lecture_video(lecture_id: str):
     video_path = lecture.get("videoPath")
     if not video_path:
         raise HTTPException(status_code=404, detail=f"Video path not set for lecture {lecture_id}")
+    
+    # Check if it's an S3 object key
+    if not Path(video_path).is_absolute() and s3_client:
+        url = create_presigned_url(video_path)
+        if url:
+            return RedirectResponse(url=url)
     
     video_path_obj = Path(video_path)
     if not video_path_obj.exists():
@@ -673,15 +778,24 @@ async def analyze_lecture(lecture_id: str, background_tasks: BackgroundTasks, vi
     
     # Use existing video path if available, otherwise use uploaded video
     video_path = lecture.get("videoPath")
-    
+
+    # If video file is provided, check if we need to save it
+    # Currently, if video_path exists, we use it. If a new file is uploaded, we replace it.
     if video and video.filename:
-        # Save the new video file if provided
+        # Save the file
         video_ext = Path(video.filename).suffix
         video_name = f"{uuid.uuid4()}{video_ext}"
-        video_path = str(UPLOAD_DIR / video_name)
         
-        with open(video_path, "wb") as buffer:
-            shutil.copyfileobj(video.file, buffer)
+        logger.info(f"Processing analyze upload. s3_client: {s3_client}")
+        if s3_client:
+            logger.info("Uploading new video to S3 for analysis")
+            video_path = f"lectures/videos/{video_name}"
+            await upload_to_s3(video.file, video_path, video.content_type)
+        else:
+            logger.info("Saving new video locally for analysis")
+            video_path = str(UPLOAD_DIR / video_name)
+            with open(video_path, "wb") as buffer:
+                shutil.copyfileobj(video.file, buffer)
         
         # Update lecture with new video path
         await update_lecture_doc(lecture_id, {
@@ -736,8 +850,10 @@ async def analyze_materials(lecture_id: str, materials: Optional[UploadFile] = F
         # Save the new materials file if provided
         file_ext = Path(materials.filename).suffix
         file_name = f"{uuid.uuid4()}{file_ext}"
-        materials_path = str(UPLOAD_DIR / file_name)
         
+        # Save to local storage
+        logger.info("Saving new materials locally")
+        materials_path = str(UPLOAD_DIR / file_name)
         with open(materials_path, "wb") as buffer:
             shutil.copyfileobj(materials.file, buffer)
         
@@ -1431,9 +1547,9 @@ async def create_assignment(
         # Generate unique filename
         file_ext = Path(file.filename).suffix
         file_name = f"{uuid.uuid4()}{file_ext}"
-        file_path = str(UPLOAD_DIR / file_name)
         
-        # Save file
+        # Save to local storage
+        file_path = str(UPLOAD_DIR / file_name)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
@@ -1452,6 +1568,12 @@ async def create_assignment(
     created_assignment = await create_assignment_doc(new_assignment)
     return created_assignment
 
+async def update_assignment_doc(assignment_id: str, update_data: dict) -> dict:
+    """Update an assignment in MongoDB"""
+    collection = get_assignments_collection()
+    await collection.update_one({"_id": assignment_id}, {"$set": update_data})
+    return await collection.find_one({"_id": assignment_id})
+
 @app.get("/api/assignments/{assignment_id}/file")
 async def download_assignment_file(assignment_id: str):
     """Download the assignment file"""
@@ -1464,12 +1586,21 @@ async def download_assignment_file(assignment_id: str):
         raise HTTPException(status_code=404, detail="Assignment not found")
     
     file_path = assignment.get("filePath")
-    if file_path and Path(file_path).exists():
-        return FileResponse(
-            file_path,
-            filename=assignment.get("fileName", "assignment.pdf"),
-            media_type="application/octet-stream"
-        )
+    if file_path:
+        # Check if it's an S3 object key
+        if not Path(file_path).is_absolute() and s3_client:
+            url = create_presigned_url(file_path)
+            if url:
+                return RedirectResponse(url=url)
+                
+        # Local file fallback
+        if Path(file_path).exists():
+            return FileResponse(
+                file_path,
+                filename=assignment.get("fileName", "assignment.pdf"),
+                media_type="application/octet-stream"
+            )
+            
     raise HTTPException(status_code=404, detail="File not found")
 
 @app.delete("/api/assignments/{assignment_id}", status_code=204)
@@ -1491,6 +1622,8 @@ async def delete_assignment(assignment_id: str):
     if not deleted:
         raise HTTPException(status_code=404, detail="Assignment not found")
     return
+
+
 
 @app.post("/api/classes/{class_id}/syllabus")
 async def upload_syllabus(class_id: str, file: UploadFile = File(...)):
@@ -1853,6 +1986,102 @@ async def generate_trends(class_id: str):
     except Exception as e:
         print(f"Error generating trends: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate trends: {str(e)}")
+
+
+@app.post("/api/assignments/{assignment_id}/analyze")
+async def analyze_assignment(assignment_id: str, request: AnalyzeAssignmentRequest):
+    """
+    Analyze an assignment against selected lectures to check for alignment.
+    """
+    collection = get_assignments_collection()
+    assignment = await collection.find_one({"_id": assignment_id})
+    if not assignment:
+        # Try with ObjectId
+        try:
+            assignment = await collection.find_one({"_id": ObjectId(assignment_id)})
+        except:
+            pass
+            
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    # Check if assignment has a file
+    file_path = assignment.get("filePath")
+    if not file_path or not Path(file_path).exists():
+        raise HTTPException(status_code=400, detail="Assignment must have a file attachment to be analyzed.")
+        
+    assignment_title = assignment.get("title", "Untitled Assignment")
+    
+    # Fetch lecture contexts
+    lecture_contexts = []
+    for lec_id in request.lecture_ids:
+        lec = await get_lecture_by_id(lec_id)
+        if lec:
+            # Get analysis if exists
+            summary = ""
+            topics = lec.get("topics", [])
+            
+            # Try to get existing analysis for better context
+            analysis_doc = await get_analysis_from_db(lec["id"])
+            if analysis_doc:
+                data = analysis_doc.get("analysis_data", {})
+                if "topic_coverage" in data:
+                     # Add covered topics
+                     covered = [t["topic"] for t in data["topic_coverage"] if t.get("covered")]
+                     if covered:
+                         topics.extend(covered)
+                # Use summary if available (we don't have a specific summary field usually, but let's check)
+                if "summary" in data:
+                    summary = data["summary"]
+            
+            lecture_contexts.append({
+                "title": lec.get("title"),
+                "topics": list(set(topics)), # dedup
+                "summary": summary
+            })
+            
+    if not lecture_contexts:
+        raise HTTPException(status_code=400, detail="No valid lectures selected.")
+        
+    # Run analysis (blocking for now as it's user-triggered and expected to return result)
+    # Using asyncio.to_thread to avoid blocking event loop
+    try:
+        result = await asyncio.to_thread(
+            analyze_assignment_alignment,
+            assignment_file_path=file_path,
+            assignment_title=assignment_title,
+            lecture_contexts=lecture_contexts
+        )
+        
+        # Save the result to the assignment
+        await update_assignment_doc(assignment_id, {"latestAnalysis": result})
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/assignments/{assignment_id}", response_model=AssignmentResponse)
+async def get_assignment(assignment_id: str):
+    """Get a single assignment by ID"""
+    collection = get_assignments_collection()
+    assignment = await collection.find_one({"_id": assignment_id})
+    if not assignment:
+        # Try with ObjectId
+        try:
+            assignment = await collection.find_one({"_id": ObjectId(assignment_id)})
+        except:
+            pass
+            
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+        
+    if "_id" in assignment:
+        assignment["id"] = str(assignment.pop("_id"))
+        
+    return assignment
+
+
 
 if __name__ == "__main__":
     import uvicorn
