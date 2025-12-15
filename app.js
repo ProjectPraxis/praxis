@@ -1,3 +1,9 @@
+// --- Global API Configuration ---
+// Use localhost for development, Render URL for production
+const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8001/api'
+    : 'https://praxis-backend-t1pu.onrender.com/api';
+
 // --- Globals ---
 const appContainer = document.getElementById("app-container");
 const themes = ["theme-spring", "theme-ocean", "theme-twilight"];
@@ -112,7 +118,6 @@ async function navigateToCourseHub(courseId) {
   }
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const courseResponse = await fetch(`${API_BASE_URL}/classes/${courseId}`);
     if (courseResponse.ok) {
       const courseData = await courseResponse.json();
@@ -153,7 +158,6 @@ async function handleBackButton() {
   ) {
     if (currentCourseId) {
       try {
-        const API_BASE_URL = "http://localhost:8001/api";
         const courseResponse = await fetch(
           `${API_BASE_URL}/classes/${currentCourseId}`
         );
@@ -372,7 +376,6 @@ async function populateLecturePriorityTopics(courseId) {
   if (!listContainer || !courseId) return;
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/classes/${courseId}/overview`);
     if (!response.ok) return;
     const data = await response.json();
@@ -789,7 +792,6 @@ async function showTopicDetail(topicName, status, lectureId, buttonElement, reas
   const targetLectureId = lectureId || currentLectureId;
   if (targetLectureId) {
     try {
-      const API_BASE_URL = "http://localhost:8001/api";
       const lectureRes = await fetch(`${API_BASE_URL}/lectures/${targetLectureId}`);
       if (lectureRes.ok) {
         const lecture = await lectureRes.json();
@@ -871,7 +873,6 @@ async function handleAddClass(event) {
 
   try {
     // API endpoint - update this to match your backend
-    const API_BASE_URL = "http://localhost:8001/api"; // FastAPI port
     const response = await fetch(`${API_BASE_URL}/classes`, {
       method: "POST",
       headers: {
@@ -929,7 +930,6 @@ async function handleAddClass(event) {
 // Fetch all classes from the API
 async function fetchClasses() {
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/classes`);
 
     if (!response.ok) {
@@ -1042,7 +1042,6 @@ async function refreshCourseOverview() {
   }
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/overview`);
 
     if (!response.ok) {
@@ -1281,7 +1280,6 @@ async function handleAddLecture(event) {
   submitButton.textContent = "Creating...";
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const formDataToSend = new FormData();
     formDataToSend.append("title", lectureTitle);
     formDataToSend.append("topics", JSON.stringify([]));
@@ -1327,7 +1325,6 @@ async function handleAddLecture(event) {
       );
       if (courseBreadcrumb && currentCourseId) {
         try {
-          const API_BASE_URL = "http://localhost:8001/api";
           const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
           if (courseResponse.ok) {
             const courseData = await courseResponse.json();
@@ -1541,7 +1538,6 @@ async function analyzeMaterials(lectureId, materialsFile = null) {
   showMaterialsLoadingScreen();
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const formData = new FormData();
 
     // Append materials file
@@ -2070,7 +2066,6 @@ async function saveLecture() {
       '<svg class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
 
     try {
-      const API_BASE_URL = "http://localhost:8001/api";
       const formData = new FormData();
       formData.append("title", title);
       formData.append("topics", JSON.stringify(topics));
@@ -2130,7 +2125,6 @@ async function saveLecture() {
       const navCourses = document.getElementById("nav-courses");
       if (currentCourseId) {
         try {
-          const API_BASE_URL = "http://localhost:8001/api";
           const courseResponse = await fetch(
             `${API_BASE_URL}/classes/${currentCourseId}`
           );
@@ -2175,7 +2169,6 @@ async function saveLecture() {
 
 async function editLecture(lectureId) {
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}`);
 
     if (!response.ok) {
@@ -2203,7 +2196,6 @@ async function editLecture(lectureId) {
       );
       if (courseBreadcrumb && currentCourseId) {
         try {
-          const API_BASE_URL = "http://localhost:8001/api";
           const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
           if (courseResponse.ok) {
             const courseData = await courseResponse.json();
@@ -2269,7 +2261,6 @@ async function editLecture(lectureId) {
 
         // Show video preview if video path exists
         if (lecture.videoPath && videoPreviewContainer && videoPreview) {
-          const API_BASE_URL = "http://localhost:8001/api";
           // Serve video through API endpoint
           videoPreview.src = `${API_BASE_URL}/lectures/${lectureId}/video`;
           videoPreviewContainer.classList.remove("hidden");
@@ -2309,7 +2300,6 @@ async function refreshLecturesList() {
   if (!pastLecturesUl || !upcomingUl) return;
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const url = currentCourseId
       ? `${API_BASE_URL}/lectures?class_id=${currentCourseId}`
       : `${API_BASE_URL}/lectures`;
@@ -2358,7 +2348,6 @@ async function showLectureAnalysis(lectureId) {
     // --- FIX: Set the global lecture ID when loading the analysis page ---
     currentLectureId = lectureId;
 
-    const API_BASE_URL = "http://localhost:8001/api";
 
     // Fetch lecture, analysis, survey data, survey responses, AND materials analysis
     const [lectureResponse, analysisResponse, surveysResponse, responsesResponse, materialsResponse] =
@@ -2422,7 +2411,6 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
   );
   if (courseBreadcrumb && currentCourseId) {
     try {
-      const API_BASE_URL = "http://localhost:8001/api";
       const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
       if (courseResponse.ok) {
         const courseData = await courseResponse.json();
@@ -2513,7 +2501,6 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
     "#screen-lecture-analysis .bg-gray-900.rounded-xl"
   );
   if (videoContainer && lecture.hasVideo) {
-    const API_BASE_URL = "http://localhost:8001/api";
     const videoUrl = `${API_BASE_URL}/lectures/${lecture.id}/video`;
 
     // Clear the container and set up proper styling
@@ -2586,7 +2573,6 @@ async function populateAnalysisPage(lecture, analysis, surveys = [], responses =
   try {
     const lectureActionContainer = document.getElementById('lecture-action-items');
     if (lectureActionContainer && currentCourseId) {
-      const API_BASE_URL = "http://localhost:8001/api";
       const resp = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/overview`);
       if (resp.ok) {
         const overviewData = await resp.json();
@@ -3062,7 +3048,6 @@ async function submitForAnalysis() {
     `;
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const formData = new FormData();
     formData.append("video", uploadedVideoFile);
 
@@ -3151,7 +3136,6 @@ async function generateStudentSurvey(professorInput = null) {
   document.body.appendChild(loadingOverlay);
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const requestBody = {};
     if (professorInput) {
       requestBody.professor_input = professorInput;
@@ -3250,7 +3234,6 @@ async function handleFeedbackSubmit(event) {
   }
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/feedback`, {
       method: "POST",
       headers: {
@@ -3293,7 +3276,6 @@ window.handleFeedbackSubmit = handleFeedbackSubmit;
 
 async function viewStudentSurveyById(surveyId) {
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}`);
     if (!response.ok) {
       throw new Error("Failed to load survey");
@@ -3324,7 +3306,6 @@ async function viewStudentSurvey(survey) {
     // If survey doesn't have questions, fetch the full survey data
     let fullSurvey = survey;
     if (!survey.questions && survey.survey_id) {
-      const API_BASE_URL = "http://localhost:8001/api";
       const response = await fetch(`${API_BASE_URL}/surveys/${survey.survey_id}`);
       if (response.ok) {
         fullSurvey = await response.json();
@@ -3363,7 +3344,6 @@ async function populateSurveyScreen(survey) {
   );
   if (courseBreadcrumb && currentCourseId) {
     try {
-      const API_BASE_URL = "http://localhost:8001/api";
       const courseResponse = await fetch(`${API_BASE_URL}/classes/${currentCourseId}`);
       if (courseResponse.ok) {
         const courseData = await courseResponse.json();
@@ -3501,7 +3481,6 @@ function copySurveyLink() {
 
 async function loadSurveyForStudent(surveyId) {
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
 
     // Fetch the survey
     const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}`);
@@ -3640,7 +3619,6 @@ async function submitSurveyResponse(surveyId, lectureId) {
       }
     }
 
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/surveys/${surveyId}/submit`, {
       method: "POST",
       headers: {
@@ -3871,7 +3849,6 @@ async function loadMaterialsAnalysis(lectureId) {
   if (!lectureId) return;
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/lectures/${lectureId}/materials-analysis`);
 
     if (response.ok) {
@@ -3919,7 +3896,6 @@ async function openLectureRewind(lectureId) {
   await showModal('modal-lecture-rewind');
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     // Fetch lecture details and analysis
     const [lectureResponse, analysisResponse] = await Promise.all([
       fetch(`${API_BASE_URL}/lectures/${lectureId}`),
@@ -4121,7 +4097,6 @@ async function showAssignmentsTab() {
 
 async function fetchAssignments(courseId) {
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/assignments?class_id=${courseId}`);
 
     if (response.ok) {
@@ -4261,7 +4236,6 @@ async function handleAddAssignment(event) {
   formData.append("classId", currentCourseId);
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     // Send FormData directly - do NOT set Content-Type header manually (browser does it for multipart)
     const response = await fetch(`${API_BASE_URL}/assignments`, {
       method: 'POST',
@@ -4286,7 +4260,6 @@ async function deleteAssignment(assignmentId) {
   if (!confirm("Are you sure you want to delete this assignment?")) return;
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/assignments/${assignmentId}`, {
       method: 'DELETE'
     });
@@ -4318,7 +4291,6 @@ async function openAnalyzeModal(assignmentId) {
   listContainer.innerHTML = '<div class="text-center text-gray-500 py-4">Loading lectures...</div>';
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     // Fetch lectures for current class
     const response = await fetch(`${API_BASE_URL}/lectures?class_id=${currentCourseId}`);
     if (response.ok) {
@@ -4375,7 +4347,6 @@ async function runAssignmentAnalysis() {
   runBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/assignments/${currentAssignmentIdForAnalysis}/analyze`, {
       method: 'POST',
       headers: {
@@ -4469,7 +4440,6 @@ async function showSavedAnalysis(assignmentId) {
 
   // 2. Fetch the updated assignment details to get the saved analysis
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     const response = await fetch(`${API_BASE_URL}/assignments/${assignmentId}`);
     if (response.ok) {
       const assignment = await response.json();
@@ -4501,7 +4471,6 @@ async function refreshPendingAnalyses() {
   if (!container) return; // Not on home screen
 
   try {
-    const API_BASE_URL = "http://localhost:8001/api";
     // Fetch all lectures
     const response = await fetch(`${API_BASE_URL}/lectures`);
     if (!response.ok) return;
@@ -4543,7 +4512,6 @@ async function loadStudentTrends(courseId) {
     if (!courseId) return;
     
     try {
-        const API_BASE_URL = "http://localhost:8001/api";
         const response = await fetch(`${API_BASE_URL}/classes/${courseId}/trends`);
         if (!response.ok) throw new Error("Failed to fetch trends data");
         
@@ -4786,7 +4754,6 @@ async function refreshStudentTrends() {
     }
 
     try {
-        const API_BASE_URL = "http://localhost:8001/api";
         // Call the generation endpoint
         const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/generate-trends`, {
             method: 'POST'
@@ -4841,7 +4808,6 @@ async function refreshTrends() {
     `;
     
     try {
-        const API_BASE_URL = "http://localhost:8001/api";
         const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/generate-trends`, {
             method: 'POST'
         });
@@ -4901,7 +4867,6 @@ async function handleSyllabusUpload(event) {
     formData.append("file", file);
     
     try {
-        const API_BASE_URL = "http://localhost:8001/api";
         const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/syllabus`, {
             method: 'POST',
             body: formData
@@ -4949,7 +4914,6 @@ function startAnalysisPoller() {
 
 async function checkAnalysisStatus() {
     try {
-        const API_BASE_URL = "http://localhost:8001/api";
         const response = await fetch(`${API_BASE_URL}/lectures`);
         if (!response.ok) return;
         
