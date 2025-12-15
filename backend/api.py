@@ -1654,7 +1654,7 @@ async def create_assignment(
     classId: str = Form(...),
     file: Optional[UploadFile] = File(None)
 ):
-    """Create a new assignment with optional file upload"""
+    """Create a new assignment with optional file upload to S3"""
     
     # Handle file upload
     file_path = None
@@ -1662,12 +1662,34 @@ async def create_assignment(
     if file and file.filename:
         # Generate unique filename
         file_ext = Path(file.filename).suffix
-        file_name = f"{uuid.uuid4()}{file_ext}"
+        file_name = f"assignments/{classId}/{uuid.uuid4()}{file_ext}"
         
-        # Save to local storage
-        file_path = str(UPLOAD_DIR / file_name)
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Try to upload to S3 first
+        if s3_client and S3_BUCKET_NAME:
+            try:
+                file_content = await file.read()
+                s3_client.put_object(
+                    Bucket=S3_BUCKET_NAME,
+                    Key=file_name,
+                    Body=file_content,
+                    ContentType=file.content_type or "application/octet-stream"
+                )
+                file_path = file_name  # Store S3 key
+                print(f"Assignment file uploaded to S3: {file_name}")
+            except Exception as e:
+                print(f"S3 upload failed, falling back to local: {e}")
+                # Fall back to local storage
+                await file.seek(0)
+                local_file_name = f"{uuid.uuid4()}{file_ext}"
+                file_path = str(UPLOAD_DIR / local_file_name)
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(file.file, buffer)
+        else:
+            # Save to local storage if S3 not configured
+            local_file_name = f"{uuid.uuid4()}{file_ext}"
+            file_path = str(UPLOAD_DIR / local_file_name)
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
 
     new_assignment = {
         "title": title,
@@ -1678,7 +1700,7 @@ async def create_assignment(
         "createdAt": datetime.now().isoformat(),
         "status": "Active",
         "hasFile": file is not None and file.filename is not None,
-        "fileName": file_name,
+        "fileName": file.filename if file else None,  # Store original filename
         "filePath": file_path
     }
     created_assignment = await create_assignment_doc(new_assignment)

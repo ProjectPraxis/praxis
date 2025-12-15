@@ -4526,55 +4526,232 @@ function renderAnalysisResults(data) {
   const container = document.getElementById('analyze-content');
   let html = '';
 
-  // Score Badge
+  // Score Badge with reasoning
   const score = data.alignment_score || 0;
-  let scoreColor = 'bg-red-100 text-red-800';
-  let scoreLabel = 'Weak Alignment';
+  let scoreColor = 'bg-red-100 text-red-800 border-red-200';
+  let scoreLabel = 'Poor Alignment';
+  let scoreBg = 'from-red-500 to-red-600';
 
-  if (score >= 90) { scoreColor = 'bg-green-100 text-green-800'; scoreLabel = 'Excellent Alignment'; }
-  else if (score >= 75) { scoreColor = 'bg-green-100 text-green-800'; scoreLabel = 'Strong Alignment'; }
-  else if (score >= 60) { scoreColor = 'bg-yellow-100 text-yellow-800'; scoreLabel = 'Moderate Alignment'; }
-  else if (score >= 40) { scoreColor = 'bg-orange-100 text-orange-800'; scoreLabel = 'Weak Alignment'; }
-  else { scoreColor = 'bg-red-100 text-red-800'; scoreLabel = 'Poor Alignment'; }
+  if (score >= 90) { scoreColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'; scoreLabel = 'Excellent'; scoreBg = 'from-emerald-500 to-emerald-600'; }
+  else if (score >= 75) { scoreColor = 'bg-green-100 text-green-800 border-green-200'; scoreLabel = 'Strong'; scoreBg = 'from-green-500 to-green-600'; }
+  else if (score >= 60) { scoreColor = 'bg-yellow-100 text-yellow-800 border-yellow-200'; scoreLabel = 'Moderate'; scoreBg = 'from-yellow-500 to-yellow-600'; }
+  else if (score >= 40) { scoreColor = 'bg-orange-100 text-orange-800 border-orange-200'; scoreLabel = 'Weak'; scoreBg = 'from-orange-500 to-orange-600'; }
+  else { scoreColor = 'bg-red-100 text-red-800 border-red-200'; scoreLabel = 'Poor'; scoreBg = 'from-red-500 to-red-600'; }
 
+  // Header with score
   html += `
-        <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg mb-4">
-            <span class="text-sm font-medium text-gray-700">Alignment Assessment</span>
-            <span class="px-3 py-1 rounded-full text-lg font-bold ${scoreColor}">${scoreLabel}</span>
+    <div class="bg-gradient-to-r ${scoreBg} rounded-xl p-5 mb-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-white/80 text-sm font-medium">Alignment Score</p>
+          <p class="text-3xl font-bold">${score}/100</p>
+          <p class="text-sm text-white/90 mt-1">${scoreLabel} Alignment</p>
         </div>
-    `;
+        <div class="text-6xl font-bold opacity-20">${score}</div>
+      </div>
+    </div>
+  `;
 
-  // Suggestions / Gaps
-  if (data.suggestions && data.suggestions.length > 0) {
-    html += `<h5 class="font-medium text-gray-900 mt-4 mb-2">Suggestions & Gaps</h5><div class="space-y-3">`;
-    data.suggestions.forEach(item => {
-      const isGap = item.type === 'gap_warning';
+  // Score reasoning
+  if (data.score_reasoning) {
+    html += `
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-gray-700">Why This Score?</p>
+            <p class="text-sm text-gray-600 mt-1">${data.score_reasoning}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Summary
+  if (data.summary) {
+    html += `
+      <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+        <p class="text-sm font-semibold text-indigo-800 mb-1">Summary</p>
+        <p class="text-sm text-indigo-700">${data.summary}</p>
+      </div>
+    `;
+  }
+
+  // Professor Gaps - What's missing in teaching
+  if (data.professor_gaps && data.professor_gaps.length > 0) {
+    html += `
+      <div class="mb-6">
+        <h5 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          Teaching Gaps to Address
+        </h5>
+        <div class="space-y-3">
+    `;
+    data.professor_gaps.forEach(gap => {
       html += `
-                <div class="p-3 rounded-lg border ${isGap ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}">
-                    <div class="flex items-start gap-3">
-                        <div class="mt-0.5">
-                            ${isGap
-          ? '<svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
-          : '<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
-                        </div>
-                        <div>
-                            <h6 class="text-sm font-bold ${isGap ? 'text-orange-800' : 'text-blue-800'}">${item.title}</h6>
-                            <p class="text-sm text-gray-700 mt-1">${item.description}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p class="font-semibold text-red-800">${gap.gap}</p>
+          <p class="text-sm text-red-700 mt-1"><strong>Impact:</strong> ${gap.impact}</p>
+          <p class="text-sm text-red-700 mt-1"><strong>Recommendation:</strong> ${gap.recommendation}</p>
+        </div>
+      `;
     });
-    html += `</div>`;
+    html += `</div></div>`;
+  }
+
+  // Reinforcement Topics - What needs strengthening
+  if (data.reinforcement_topics && data.reinforcement_topics.length > 0) {
+    html += `
+      <div class="mb-6">
+        <h5 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          Topics to Reinforce
+        </h5>
+        <div class="grid gap-3">
+    `;
+    data.reinforcement_topics.forEach(topic => {
+      html += `
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p class="font-semibold text-amber-800">${topic.topic}</p>
+          <p class="text-sm text-amber-700 mt-1">${topic.reason}</p>
+          <div class="mt-2 flex items-start gap-2">
+            <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            <p class="text-sm text-amber-800 font-medium">${topic.teaching_tip}</p>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+  }
+
+  // Suggestions with priority
+  if (data.suggestions && data.suggestions.length > 0) {
+    html += `
+      <div class="mb-6">
+        <h5 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          Suggestions & Improvements
+        </h5>
+        <div class="space-y-3">
+    `;
+    data.suggestions.forEach(item => {
+      const isGap = item.type === 'gap_warning' || item.type === 'prerequisite_missing';
+      const priorityColors = {
+        'High': 'bg-red-100 text-red-700',
+        'Medium': 'bg-yellow-100 text-yellow-700',
+        'Low': 'bg-gray-100 text-gray-700'
+      };
+      const priorityClass = priorityColors[item.priority] || priorityColors['Medium'];
+      
+      html += `
+        <div class="p-4 rounded-lg border ${isGap ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3 flex-1">
+              <div class="mt-0.5">
+                ${isGap
+                  ? '<svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
+                  : '<svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>'}
+              </div>
+              <div>
+                <h6 class="text-sm font-bold ${isGap ? 'text-orange-800' : 'text-blue-800'}">${item.title}</h6>
+                <p class="text-sm text-gray-700 mt-1">${item.description}</p>
+              </div>
+            </div>
+            ${item.priority ? `<span class="px-2 py-0.5 text-xs font-semibold rounded ${priorityClass}">${item.priority}</span>` : ''}
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
   }
 
   // Strengths
   if (data.strengths && data.strengths.length > 0) {
-    html += `<h5 class="font-medium text-gray-900 mt-4 mb-2">Good Alignment</h5><ul class="list-disc list-inside text-sm text-gray-600 space-y-1">`;
+    html += `
+      <div class="mb-6">
+        <h5 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          What's Working Well
+        </h5>
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <ul class="space-y-2">
+    `;
     data.strengths.forEach(str => {
-      html += `<li>${str}</li>`;
+      html += `
+        <li class="flex items-start gap-2 text-sm text-green-800">
+          <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          ${str}
+        </li>
+      `;
     });
-    html += `</ul>`;
+    html += `</ul></div></div>`;
+  }
+
+  // Topic Alignment Table
+  if (data.topics_alignment && data.topics_alignment.length > 0) {
+    html += `
+      <div class="mb-6">
+        <h5 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+          </svg>
+          Topic-by-Topic Analysis
+        </h5>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="text-left p-3 font-semibold text-gray-700 border-b">Topic</th>
+                <th class="text-center p-3 font-semibold text-gray-700 border-b">Status</th>
+                <th class="text-center p-3 font-semibold text-gray-700 border-b">Depth</th>
+                <th class="text-left p-3 font-semibold text-gray-700 border-b">Lecture</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    data.topics_alignment.forEach(topic => {
+      const statusColors = {
+        'Covered': 'bg-green-100 text-green-800',
+        'Partially Covered': 'bg-yellow-100 text-yellow-800',
+        'Not Covered': 'bg-red-100 text-red-800'
+      };
+      const depthColors = {
+        'Deep': 'bg-purple-100 text-purple-800',
+        'Moderate': 'bg-blue-100 text-blue-800',
+        'Surface': 'bg-gray-100 text-gray-700',
+        'None': 'bg-red-100 text-red-700'
+      };
+      html += `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="p-3">
+            <p class="font-medium text-gray-800">${topic.topic}</p>
+            ${topic.notes ? `<p class="text-xs text-gray-500 mt-1">${topic.notes}</p>` : ''}
+          </td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-1 rounded text-xs font-medium ${statusColors[topic.status] || 'bg-gray-100'}">${topic.status}</span>
+          </td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-1 rounded text-xs font-medium ${depthColors[topic.coverage_depth] || 'bg-gray-100'}">${topic.coverage_depth || 'N/A'}</span>
+          </td>
+          <td class="p-3 text-gray-600">${topic.lecture_reference || 'N/A'}</td>
+        </tr>
+      `;
+    });
+    html += `</tbody></table></div></div>`;
   }
 
   container.innerHTML = html;
@@ -4816,7 +4993,8 @@ function renderStudentTrendsCharts(data) {
                         data: data.engagement_history.map(d => d.interaction_count),
                         backgroundColor: gradientBar,
                         borderRadius: 4,
-                        yAxisID: 'y'
+                        yAxisID: 'y',
+                        order: 1  // Higher order = renders behind
                     },
                     {
                         label: 'Engagement Score',
@@ -4828,7 +5006,8 @@ function renderStudentTrendsCharts(data) {
                         pointRadius: 4,
                         pointBackgroundColor: '#fff',
                         pointBorderWidth: 2,
-                        yAxisID: 'y1'
+                        yAxisID: 'y1',
+                        order: 0  // Lower order = renders on top
                     }
                 ]
             },

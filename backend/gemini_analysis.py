@@ -1157,15 +1157,31 @@ def analyze_assignment_alignment(assignment_file_path: str, assignment_title: st
         We want to ensure students are being tested on things they've actually learned, 
         while also challenging them appropriately.
 
-        Provide a response in this JSON format:
+        Provide a DETAILED response in this JSON format:
         {{
             "alignment_score": 85,  // 0-100 score of how well the assignment fits the lectures
+            "score_reasoning": "A 2-3 sentence explanation of WHY this specific score was given. Be specific about what factors contributed to the score.",
             "topics_alignment": [
                 {{
                     "topic": "Specific Concept from Assignment",
                     "status": "Covered|Not Covered|Partially Covered",
                     "lecture_reference": "Lecture 2", // Which lecture covered this best?
-                    "notes": "Brief explanation"
+                    "coverage_depth": "Deep|Moderate|Surface|None", // How deeply was this covered in lectures?
+                    "notes": "Brief explanation of how well this was covered and any gaps"
+                }}
+            ],
+            "professor_gaps": [
+                {{
+                    "gap": "What specific topic or concept the professor did NOT adequately cover",
+                    "impact": "How this gap affects student ability to complete the assignment",
+                    "recommendation": "What the professor should do to address this (e.g., review session, supplementary materials, modify assignment)"
+                }}
+            ],
+            "reinforcement_topics": [
+                {{
+                    "topic": "Topic name that students may struggle with",
+                    "reason": "Why students might find this challenging based on lecture coverage",
+                    "teaching_tip": "Specific action the professor can take to strengthen student understanding"
                 }}
             ],
             "strengths": [
@@ -1173,12 +1189,13 @@ def analyze_assignment_alignment(assignment_file_path: str, assignment_title: st
             ],
             "suggestions": [
                 {{
-                    "type": "gap_warning|improvement_idea",
+                    "type": "gap_warning|improvement_idea|prerequisite_missing",
+                    "priority": "High|Medium|Low",
                     "title": "Short Title",
-                    "description": "Detailed suggestion. E.g. 'The assignment asks about X, but Lecture 1 only briefly mentioned it. Consider adding a reference or hint.'"
+                    "description": "Detailed suggestion with specific actionable steps"
                 }}
             ],
-            "summary": "Overall assessment of the assignment."
+            "summary": "A comprehensive 3-4 sentence overall assessment explaining the alignment, key concerns, and top recommendations."
         }}
         """
 
