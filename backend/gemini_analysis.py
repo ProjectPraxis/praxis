@@ -29,9 +29,12 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "praxis-uploads")
 
-def get_client():
-    """Get the Gemini client"""
-    return genai.Client(api_key=GEMINI_API_KEY)
+def get_client(custom_api_key: str = None):
+    """Get the Gemini client, optionally with a custom API key"""
+    api_key = custom_api_key or GEMINI_API_KEY
+    if not api_key:
+        raise ValueError("No Gemini API key provided. Set GEMINI_API_KEY env var or provide a custom key.")
+    return genai.Client(api_key=api_key)
 
 def get_s3_client():
     """Get S3 client if credentials exist"""
@@ -1112,7 +1115,7 @@ def analyze_assignment_alignment(assignment_file_path: str, assignment_title: st
         # Ensure file exists locally (download from S3 if needed)
         local_path = ensure_local_file(assignment_file_path)
         
-        assignment_file = client.files.upload(file=local_path, mime_type=mime_type)
+        assignment_file = client.files.upload(file=local_path)
         
         # Wait for processing
         print(f"Uploaded file: {assignment_file.name}, waiting for processing...")

@@ -371,6 +371,7 @@ async function showScreen(screenId, navElement, courseData = null) {
     if (screenId === "screen-settings") {
       setTimeout(() => {
         loadSettingsCourses();
+        loadGeminiApiKeyStatus();
       }, 100);
     }
 
@@ -5509,3 +5510,189 @@ async function confirmDeleteCourse() {
 window.loadSettingsCourses = loadSettingsCourses;
 window.showDeleteCourseModal = showDeleteCourseModal;
 window.confirmDeleteCourse = confirmDeleteCourse;
+
+// --- Gemini API Key Management ---
+
+const GEMINI_KEY_STORAGE = 'praxis_gemini_api_key';
+
+/**
+ * Get the custom Gemini API key if set, otherwise null
+ */
+function getCustomGeminiApiKey() {
+    return localStorage.getItem(GEMINI_KEY_STORAGE);
+}
+
+/**
+ * Save a custom Gemini API key
+ */
+async function saveGeminiApiKey() {
+    const input = document.getElementById('gemini-api-key-input');
+    const message = document.getElementById('gemini-key-message');
+    const status = document.getElementById('gemini-key-status');
+    const saveBtn = document.querySelector('[onclick="saveGeminiApiKey()"]');
+    
+    if (!input) return;
+    
+    const key = input.value.trim();
+    
+    if (!key) {
+        showMessage(message, 'Please enter an API key', 'error');
+        return;
+    }
+    
+    // Basic validation - Gemini keys typically start with "AIza"
+    if (!key.startsWith('AIza') || key.length < 30) {
+        showMessage(message, 'This doesn\'t look like a valid Gemini API key', 'error');
+        return;
+    }
+    
+    // Show loading state
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Validating...
+        `;
+    }
+    
+    showMessage(message, 'Validating API key...', 'info');
+    
+    try {
+        // Validate with backend
+        const response = await fetch(`${API_BASE_URL}/validate-gemini-key`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: key })
+        });
+        
+        const result = await response.json();
+        
+        if (result.valid) {
+            // Save to localStorage
+            localStorage.setItem(GEMINI_KEY_STORAGE, key);
+            
+            // Update UI
+            if (status) {
+                status.textContent = 'Custom Key';
+                status.className = 'px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700';
+            }
+            
+            showMessage(message, '✓ API key validated and saved!', 'success');
+            showToast('API Key Saved', 'Your custom Gemini API key is now active.');
+        } else {
+            showMessage(message, result.error || 'Invalid API key', 'error');
+        }
+    } catch (error) {
+        console.error('Error validating API key:', error);
+        // Save anyway if validation endpoint fails
+        localStorage.setItem(GEMINI_KEY_STORAGE, key);
+        showMessage(message, '⚠️ Saved (couldn\'t validate - will test on first use)', 'warning');
+    } finally {
+        // Reset button
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Save Key
+            `;
+        }
+    }
+}
+
+/**
+ * Clear the custom API key and use default
+ */
+function clearGeminiApiKey() {
+    const input = document.getElementById('gemini-api-key-input');
+    const message = document.getElementById('gemini-key-message');
+    const status = document.getElementById('gemini-key-status');
+    
+    localStorage.removeItem(GEMINI_KEY_STORAGE);
+    
+    if (input) input.value = '';
+    
+    if (status) {
+        status.textContent = 'Using Default';
+        status.className = 'px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700';
+    }
+    
+    showMessage(message, 'Switched to the default API key.', 'success');
+}
+
+/**
+ * Toggle visibility of the API key input
+ */
+function toggleApiKeyVisibility() {
+    const input = document.getElementById('gemini-api-key-input');
+    const toggleText = document.getElementById('toggle-key-text');
+    
+    if (!input || !toggleText) return;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        toggleText.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        toggleText.textContent = 'Show';
+    }
+}
+
+/**
+ * Load the API key status when settings page loads
+ */
+function loadGeminiApiKeyStatus() {
+    const input = document.getElementById('gemini-api-key-input');
+    const status = document.getElementById('gemini-key-status');
+    
+    const savedKey = getCustomGeminiApiKey();
+    
+    if (savedKey) {
+        if (input) {
+            // Show a masked version
+            input.value = savedKey;
+        }
+        if (status) {
+            status.textContent = 'Custom Key';
+            status.className = 'px-2 py-0.5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-700';
+        }
+    }
+}
+
+/**
+ * Show a message with appropriate styling
+ */
+function showMessage(element, text, type) {
+    if (!element) return;
+    
+    element.textContent = text;
+    element.classList.remove('hidden', 'text-green-600', 'text-red-600', 'text-gray-500');
+    
+    if (type === 'success') {
+        element.classList.add('text-green-600');
+    } else if (type === 'error') {
+        element.classList.add('text-red-600');
+    } else if (type === 'warning') {
+        element.classList.add('text-orange-600');
+    } else if (type === 'info') {
+        element.classList.add('text-blue-600');
+    } else {
+        element.classList.add('text-gray-500');
+    }
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        element.classList.add('hidden');
+    }, 5000);
+}
+
+// Make API key functions available globally
+window.getCustomGeminiApiKey = getCustomGeminiApiKey;
+window.saveGeminiApiKey = saveGeminiApiKey;
+window.clearGeminiApiKey = clearGeminiApiKey;
+window.toggleApiKeyVisibility = toggleApiKeyVisibility;
+window.loadGeminiApiKeyStatus = loadGeminiApiKeyStatus;

@@ -341,6 +341,37 @@ def read_root():
     return {"message": "Praxis API is running", "version": "1.0.0"}
 
 
+@app.post("/api/validate-gemini-key")
+async def validate_gemini_key(request: Request):
+    """Validate a custom Gemini API key"""
+    try:
+        body = await request.json()
+        api_key = body.get("api_key", "")
+        
+        if not api_key:
+            return {"valid": False, "error": "No API key provided"}
+        
+        # Try to create a client and make a simple request
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        
+        # Make a simple test request
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents="Say hello in 3 words"
+        )
+        
+        return {"valid": True, "message": "API key is valid"}
+    except Exception as e:
+        error_msg = str(e)
+        if "API_KEY_INVALID" in error_msg or "invalid" in error_msg.lower():
+            return {"valid": False, "error": "Invalid API key"}
+        elif "quota" in error_msg.lower():
+            return {"valid": False, "error": "API key quota exceeded"}
+        else:
+            return {"valid": False, "error": f"Validation failed: {error_msg[:100]}"}
+
+
 @app.get("/api/classes", response_model=List[ClassResponse])
 async def get_classes():
     """Get all classes"""
