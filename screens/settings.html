@@ -1,37 +1,109 @@
 <div id="screen-settings" class="screen space-y-8">
     <h1 class="text-4xl font-bold text-gray-900">Settings</h1>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md space-y-4">
             <h3 class="text-xl font-semibold text-gray-800 mb-2">Appearance</h3>
             <p class="text-sm text-gray-600">Choose your app theme.</p>
             <div class="flex gap-4">
-                <button onclick="setTheme('theme-spring')" class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-amber-500 text-white shadow-md">Spring</button>
-                <button onclick="setTheme('theme-ocean')" class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md">Ocean</button>
-                <button onclick="setTheme('theme-twilight')" class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">Twilight</button>
+                <button onclick="setTheme('theme-spring')"
+                    class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-amber-500 text-white shadow-md">Spring</button>
+                <button onclick="setTheme('theme-ocean')"
+                    class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md">Ocean</button>
+                <button onclick="setTheme('theme-twilight')"
+                    class="flex-1 font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">Twilight</button>
             </div>
         </div>
-        
+
         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md space-y-4">
             <h3 class="text-xl font-semibold text-gray-800 mb-2">API Integrations</h3>
             <div class="flex items-center justify-between">
                 <span class="font-medium text-gray-700">Canvas LMS</span>
-                <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div></div>
+                <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center">
+                    <div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div>
+                </div>
             </div>
             <div class="flex items-center justify-between">
                 <span class="font-medium text-gray-700">Zoom Cloud Recordings</span>
-                <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div></div>
+                <div class="w-10 h-6 bg-green-500 rounded-full p-1 flex items-center">
+                    <div class="w-4 h-4 bg-white rounded-full shadow-md transform translate-x-4"></div>
+                </div>
             </div>
             <div class="flex items-center justify-between">
                 <span class="font-medium text-gray-700">Google Calendar</span>
-                <div class="w-10 h-6 bg-gray-200 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow-md"></div></div>
+                <div class="w-10 h-6 bg-gray-200 rounded-full p-1 flex items-center">
+                    <div class="w-4 h-4 bg-white rounded-full shadow-md"></div>
+                </div>
             </div>
         </div>
-        
+
+        <!-- Manage Courses Section -->
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md md:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800">Manage Courses</h3>
+                    <p class="text-sm text-gray-600">Delete courses and all associated data including videos, analyses,
+                        and surveys.</p>
+                </div>
+                <button onclick="loadSettingsCourses()"
+                    class="text-sm px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                    Refresh
+                </button>
+            </div>
+            <div id="settings-courses-list" class="space-y-3">
+                <div class="flex items-center justify-center py-8 text-gray-400">
+                    <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    Loading courses...
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
             <h3 class="text-xl font-semibold text-gray-800 mb-2">Privacy & Data</h3>
-            <p class="text-gray-600 mb-4">Your data is private and is never used for performance reviews. You are in full control.</p>
+            <p class="text-gray-600 mb-4">Your data is private and is never used for performance reviews. You are in
+                full control.</p>
             <button class="font-medium primary-gradient-text">Manage My Data</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="modal-delete-course"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-gray-900">Delete Course?</h3>
+                <p class="text-sm text-gray-500">This action cannot be undone.</p>
+            </div>
+        </div>
+        <p class="text-gray-600 mb-2">You are about to delete:</p>
+        <p id="delete-course-name" class="font-semibold text-gray-900 mb-4">Course Name</p>
+        <p class="text-sm text-gray-500 mb-6">This will permanently delete all lectures, videos, analyses, surveys,
+            assignments, and feedback associated with this course.</p>
+        <div class="flex gap-3">
+            <button onclick="hideModal('modal-delete-course')"
+                class="flex-1 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                Cancel
+            </button>
+            <button id="confirm-delete-btn" onclick="confirmDeleteCourse()"
+                class="flex-1 py-2 px-4 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
+                Delete Everything
+            </button>
         </div>
     </div>
 </div>

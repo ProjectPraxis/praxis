@@ -362,6 +362,13 @@ async function showScreen(screenId, navElement, courseData = null) {
       }, 100);
     }
 
+    // Load courses list when settings screen loads
+    if (screenId === "screen-settings") {
+      setTimeout(() => {
+        loadSettingsCourses();
+      }, 100);
+    }
+
     // Scroll to top
     window.scrollTo(0, 0);
   } catch (error) {
@@ -5034,3 +5041,151 @@ if (document.readyState === 'loading') {
 } else {
     startAnalysisPoller();
 }
+
+// --- Course Management Functions (Settings Page) ---
+
+// Store the course ID that's pending deletion
+let pendingDeleteCourseId = null;
+
+/**
+ * Load all courses into the settings page management section
+ */
+async function loadSettingsCourses() {
+    const listContainer = document.getElementById("settings-courses-list");
+    if (!listContainer) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/classes`);
+        if (!response.ok) throw new Error("Failed to fetch courses");
+        
+        const courses = await response.json();
+        
+        if (courses.length === 0) {
+            listContainer.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <p>No courses found.</p>
+                    <p class="text-sm mt-1">Add a course from the Home page to get started.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Build the courses list
+        let html = '';
+        for (const course of courses) {
+            // Count lectures for this course
+            const lecturesRes = await fetch(`${API_BASE_URL}/lectures?class_id=${course.id}`);
+            const lectures = lecturesRes.ok ? await lecturesRes.json() : [];
+            const lectureCount = lectures.length;
+            const videoCount = lectures.filter(l => l.hasVideo).length;
+            
+            html += `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-gray-900 truncate">${course.code} - ${course.name}</h4>
+                        <p class="text-sm text-gray-500">${course.semester} • ${lectureCount} lecture${lectureCount !== 1 ? 's' : ''} • ${videoCount} video${videoCount !== 1 ? 's' : ''}</p>
+                    </div>
+                    <button 
+                        onclick="showDeleteCourseModal('${course.id}', '${course.code} - ${course.name}')"
+                        class="ml-4 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            `;
+        }
+        
+        listContainer.innerHTML = html;
+    } catch (error) {
+        console.error("Error loading courses for settings:", error);
+        listContainer.innerHTML = `
+            <div class="text-center py-8 text-red-500">
+                <p>Failed to load courses.</p>
+                <button onclick="loadSettingsCourses()" class="mt-2 text-sm text-blue-600 hover:underline">Try again</button>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Show the delete confirmation modal for a course
+ */
+function showDeleteCourseModal(courseId, courseName) {
+    pendingDeleteCourseId = courseId;
+    
+    const modal = document.getElementById("modal-delete-course");
+    const courseNameElement = document.getElementById("delete-course-name");
+    
+    if (courseNameElement) {
+        courseNameElement.textContent = courseName;
+    }
+    
+    if (modal) {
+        modal.classList.remove("hidden");
+    }
+}
+
+/**
+ * Confirm and execute the course deletion
+ */
+async function confirmDeleteCourse() {
+    if (!pendingDeleteCourseId) return;
+    
+    const confirmBtn = document.getElementById("confirm-delete-btn");
+    const originalText = confirmBtn?.textContent;
+    
+    try {
+        // Show loading state
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `
+                <svg class="animate-spin h-4 w-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Deleting...
+            `;
+        }
+        
+        // Call the full delete API
+        const response = await fetch(`${API_BASE_URL}/classes/${pendingDeleteCourseId}/full`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Failed to delete course");
+        }
+        
+        const result = await response.json();
+        console.log("Delete result:", result);
+        
+        // Hide modal
+        hideModal("modal-delete-course");
+        
+        // Refresh the courses list
+        loadSettingsCourses();
+        
+        // Show success message
+        showToast("success", "Course Deleted", result.message);
+        
+    } catch (error) {
+        console.error("Error deleting course:", error);
+        showToast("error", "Delete Failed", error.message || "Failed to delete course. Please try again.");
+    } finally {
+        // Reset button state
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = originalText;
+        }
+        pendingDeleteCourseId = null;
+    }
+}
+
+// Make functions available globally
+window.loadSettingsCourses = loadSettingsCourses;
+window.showDeleteCourseModal = showDeleteCourseModal;
+window.confirmDeleteCourse = confirmDeleteCourse;

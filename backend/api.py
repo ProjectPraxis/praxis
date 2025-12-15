@@ -399,6 +399,121 @@ async def delete_class_endpoint(class_id: str):
     return
 
 
+def delete_s3_object(object_key: str) -> bool:
+    """Delete an object from S3"""
+    if not s3_client or not object_key:
+        return False
+    try:
+        s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=object_key)
+        logger.info(f"Deleted S3 object: {object_key}")
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting S3 object {object_key}: {e}")
+        return False
+
+
+@app.delete("/api/classes/{class_id}/full", status_code=200)
+async def delete_class_full(class_id: str):
+    """
+    Delete a class and ALL associated data:
+    - Lectures (including videos from S3/local storage)
+    - Analyses and materials analyses
+    - Surveys and survey responses
+    - Assignments  
+    - Professor feedback
+    """
+    # Verify class exists
+    class_item = await get_class_by_id(class_id)
+    if not class_item:
+        raise HTTPException(status_code=404, detail="Class not found")
+    
+    deleted_counts = {
+        "lectures": 0,
+        "videos_s3": 0,
+        "videos_local": 0,
+        "analyses": 0,
+        "materials_analyses": 0,
+        "surveys": 0,
+        "survey_responses": 0,
+        "assignments": 0,
+        "feedback": 0
+    }
+    
+    # 1. Get all lectures for this class
+    lectures = await get_lectures_by_class_id(class_id)
+    
+    for lecture in lectures:
+        lecture_id = lecture.get("id") or lecture.get("_id")
+        
+        # Delete video from S3 if it's an S3 path
+        video_path = lecture.get("videoPath")
+        if video_path:
+            if not Path(video_path).is_absolute():
+                # It's an S3 object key
+                if delete_s3_object(video_path):
+                    deleted_counts["videos_s3"] += 1
+            elif Path(video_path).exists():
+                # It's a local file
+                try:
+                    os.remove(video_path)
+                    deleted_counts["videos_local"] += 1
+                except Exception as e:
+                    logger.error(f"Error deleting local video {video_path}: {e}")
+        
+        # Delete slides file if exists
+        file_path = lecture.get("filePath")
+        if file_path and Path(file_path).exists():
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                logger.error(f"Error deleting slides {file_path}: {e}")
+        
+        # Delete analysis
+        analyses_collection = get_analyses_collection()
+        result = await analyses_collection.delete_one({"lecture_id": lecture_id})
+        deleted_counts["analyses"] += result.deleted_count
+        
+        # Delete materials analysis
+        materials_collection = get_materials_analyses_collection()
+        result = await materials_collection.delete_one({"lecture_id": lecture_id})
+        deleted_counts["materials_analyses"] += result.deleted_count
+    
+    # Delete all lectures
+    lectures_collection = get_lectures_collection()
+    result = await lectures_collection.delete_many({"classId": class_id})
+    deleted_counts["lectures"] = result.deleted_count
+    
+    # 2. Delete surveys associated with class lectures
+    surveys_collection = get_surveys_collection()
+    result = await surveys_collection.delete_many({"class_id": class_id})
+    deleted_counts["surveys"] = result.deleted_count
+    
+    # 3. Delete survey responses
+    responses_collection = get_survey_responses_collection()
+    result = await responses_collection.delete_many({"class_id": class_id})
+    deleted_counts["survey_responses"] = result.deleted_count
+    
+    # 4. Delete assignments
+    assignments_collection = get_assignments_collection()
+    result = await assignments_collection.delete_many({"classId": class_id})
+    deleted_counts["assignments"] = result.deleted_count
+    
+    # 5. Delete professor feedback
+    feedback_collection = get_feedback_collection()
+    result = await feedback_collection.delete_many({"class_id": class_id})
+    deleted_counts["feedback"] = result.deleted_count
+    
+    # 6. Finally delete the class itself
+    await delete_class(class_id)
+    
+    logger.info(f"Deleted class {class_id} and all associated data: {deleted_counts}")
+    
+    return {
+        "message": f"Successfully deleted class '{class_item.get('name', class_id)}' and all associated data",
+        "deleted": deleted_counts
+    }
+
+
 # Lecture endpoints
 @app.get("/api/lectures", response_model=List[LectureResponse], response_model_exclude_unset=False, response_model_exclude_none=False)
 async def get_lectures(class_id: Optional[str] = None):
