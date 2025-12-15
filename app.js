@@ -564,6 +564,12 @@ function showTab(tabId, tabElement) {
     }, 50);
   } else if (tabId === "tab-assignments") {
     showAssignmentsTab();
+  } else if (tabId === "tab-trends") {
+    // Load student trends data when the tab is shown
+    // Use currentCourseId global if available
+    if (typeof currentCourseId !== 'undefined') {
+        loadStudentTrends(currentCourseId);
+    }
   }
 }
 
@@ -3040,53 +3046,24 @@ async function submitForAnalysis() {
   if (!submitBtn) return;
 
   // Prevent double-submission
-  if (submitBtn.disabled) {
-    return;
-  }
+  if (submitBtn.disabled) return;
 
-  // Disable button and show loading state with progress bar
+  // Disable button and show loading state
   submitBtn.disabled = true;
   const originalText = submitBtn.innerHTML;
 
-  // Initial loading state
   submitBtn.innerHTML = `
-    <div class="flex flex-col items-center w-full">
-        <div class="flex items-center gap-2 mb-1">
-            <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span>Analyzing Video... <span id="analysis-progress-text">0%</span></span>
-        </div>
-        <div class="w-full bg-indigo-700/50 rounded-full h-1.5 mt-1 overflow-hidden">
-            <div id="analysis-progress-bar" class="bg-white h-1.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-        </div>
-    </div>
-  `;
-
-  // Simulated progress logic
-  let progress = 0;
-  const progressInterval = setInterval(() => {
-    // Fast at first, then slows down
-    let increment = 0;
-    if (progress < 30) increment = Math.random() * 5;
-    else if (progress < 60) increment = Math.random() * 2;
-    else if (progress < 90) increment = Math.random() * 0.5;
-
-    progress = Math.min(progress + increment, 90); // Cap at 90% until done
-
-    const progressBar = document.getElementById('analysis-progress-bar');
-    const progressText = document.getElementById('analysis-progress-text');
-
-    if (progressBar) progressBar.style.width = `${progress}%`;
-    if (progressText) progressText.textContent = `${Math.round(progress)}%`;
-  }, 500);
+      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Processing...
+    `;
 
   try {
     const API_BASE_URL = "http://localhost:8001/api";
     const formData = new FormData();
-
-    // Only append video if we have a new upload, otherwise backend will use saved video
-    if (uploadedVideoFile) {
-      formData.append("video", uploadedVideoFile);
-    }
+    formData.append("video", uploadedVideoFile);
 
     const response = await fetch(
       `${API_BASE_URL}/lectures/${currentLectureId}/analyze`,
@@ -3096,106 +3073,30 @@ async function submitForAnalysis() {
       }
     );
 
-    clearInterval(progressInterval);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ detail: "Unknown error" }));
-      throw new Error(
-        errorData.detail || `HTTP error! status: ${response.status}`
-      );
-    }
-
-    // Complete progress bar
-    const progressBar = document.getElementById('analysis-progress-bar');
-    const progressText = document.getElementById('analysis-progress-text');
-    if (progressBar) progressBar.style.width = "100%";
-    if (progressText) progressText.textContent = "100%";
-
-    // Brief pause to show 100%
-    await new Promise(resolve => setTimeout(resolve, 500));
-
     const result = await response.json();
 
-    if (result.status === "processing") {
-      // Analysis started in background
-      alert("Analysis started! It will continue in the background. You can navigate away and check the status on the Home dashboard.");
-
-      // Update UI to show processing state
-      submitBtn.innerHTML = `
-        <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span>Processing in Background...</span>
-        </div>
-      `;
-      // Don't re-enable button immediately to prevent double-submit
-      // But allow navigation (which is effectively allowed since we return)
-      return;
-    }
-
-    const analysisResult = result.analysis;
-
-    // Show success message
-    alert(
-      "Analysis complete! The lecture has been analyzed with AI-powered insights."
-    );
-
-    // Re-enable button first
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalText;
-
-    // Small delay to ensure backend has saved the lecture update
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Navigate back to course hub to show the lecture has moved to Past Lectures
-    if (currentCourseId) {
-      try {
-        const API_BASE_URL = "http://localhost:8001/api";
-        const courseResponse = await fetch(
-          `${API_BASE_URL}/classes/${currentCourseId}`
-        );
-        if (courseResponse.ok) {
-          const courseData = await courseResponse.json();
-          const navCourses = document.getElementById("nav-courses");
-          await showScreen("screen-course-hub", navCourses, courseData);
-
-          // Wait for screen to fully load, then switch to lectures tab
-          // The showScreen function already calls refreshLecturesList when course hub loads,
-          // but we need to make sure we're on the lectures tab to see it
-          setTimeout(() => {
-            const tabBtnLectures = document.getElementById("tab-btn-lectures");
-            if (tabBtnLectures) {
-              showTab("tab-lectures", tabBtnLectures);
-              // Force a refresh after switching to lectures tab to ensure we have latest data
-              // Add a small delay to ensure the tab is fully visible
-              setTimeout(() => {
-                refreshLecturesList();
-              }, 200);
-            } else {
-              console.error("Could not find tab-btn-lectures button");
-            }
-          }, 400);
-        } else {
-          // If course fetch fails, just navigate to analysis page
-          await showLectureAnalysis(currentLectureId);
+    if (response.ok) {
+        // Just add to tracking, the poller will handle the rest
+        if (typeof processingLectures !== 'undefined') {
+            processingLectures.add(currentLectureId);
         }
-      } catch (error) {
-        console.error("Error fetching course data:", error);
-        // If error, navigate to analysis page
-        await showLectureAnalysis(currentLectureId);
-      }
+        
+        // Button stays in "Processing..." state until poller completes it
+        submitBtn.innerHTML = `
+            <svg class="animate-pulse -ml-1 mr-2 h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.788m13.788 0c3.808 3.808 3.808 9.98 0 13.788M12 10.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+            </svg>
+            Analyzing in background...
+        `;
     } else {
-      // No course ID, just navigate to analysis page
-      await showLectureAnalysis(currentLectureId);
+        throw new Error(result.detail || "Analysis failed to start");
     }
-  } catch (error) {
-    console.error("Error submitting for analysis:", error);
-    alert(
-      `Failed to analyze lecture: ${error.message}\n\nNote: Make sure your backend API is running at http://localhost:8001`
-    );
 
-    // Re-enable button
+  } catch (error) {
+    console.error("Error submitting analysis:", error);
+    alert(`Error: ${error.message}`);
+    
+    // Reset button
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalText;
   }
@@ -4389,4 +4290,540 @@ async function refreshPendingAnalyses() {
   } catch (error) {
     console.error("Error refreshing pending analyses:", error);
   }
+}
+
+// --- STUDENT TRENDS CHARTS ---
+
+let trendsCharts = {}; // Store chart instances to destroy them before re-rendering
+
+async function loadStudentTrends(courseId) {
+    if (!courseId) return;
+    
+    try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        const response = await fetch(`${API_BASE_URL}/classes/${courseId}/trends`);
+        if (!response.ok) throw new Error("Failed to fetch trends data");
+        
+        const data = await response.json();
+        renderStudentTrendsCharts(data);
+        
+    } catch (error) {
+        console.error("Error loading student trends:", error);
+        // Show error state in charts
+    }
+}
+
+function renderStudentTrendsCharts(data) {
+    // Destroy existing charts
+    Object.values(trendsCharts).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    trendsCharts = {};
+
+    // 1. Topic Drift (Streamgraph - approximated as Stacked Area)
+    const ctxDrift = document.getElementById('chart-topic-drift');
+    if (ctxDrift) {
+        // Process data for Chart.js
+        const labels = data.topic_drift.map(d => d.lecture);
+        
+        // Get all unique topics
+        const allTopics = new Set();
+        data.topic_drift.forEach(d => Object.keys(d.topics).forEach(t => allTopics.add(t)));
+        
+        // Professional Color Palette (Cool spectrum)
+        const palette = [
+             '#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f43f5e', 
+             '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981'
+        ];
+
+        // Create datasets
+        const datasets = Array.from(allTopics).map((topic, index) => {
+            const color = palette[index % palette.length];
+            return {
+                label: topic,
+                data: data.topic_drift.map(d => d.topics[topic] || 0),
+                backgroundColor: color + '90', // 90% opacity hex
+                borderColor: color,
+                borderWidth: 1,
+                fill: true,
+                tension: 0.4, // Smooth curves
+                pointRadius: 0
+            };
+        });
+
+        trendsCharts.drift = new Chart(ctxDrift, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } },
+                    tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#1f2937', bodyColor: '#4b5563', borderColor: '#e5e7eb', borderWidth: 1 }
+                },
+                scales: {
+                    y: { stacked: true, beginAtZero: true, display: false },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    }
+
+    // 2. Sentiment & Performance
+    const ctxSentiment = document.getElementById('chart-sentiment');
+    if (ctxSentiment) {
+        const labels = data.sentiment_history.map(d => d.lecture);
+        
+        // Create Gradients
+        const ctx = ctxSentiment.getContext('2d');
+        const gradientSentiment = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientSentiment.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Blue
+        gradientSentiment.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+        const gradientPerformance = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientPerformance.addColorStop(0, 'rgba(16, 185, 129, 0.5)'); // Green
+        gradientPerformance.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+        
+        trendsCharts.sentiment = new Chart(ctxSentiment, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Student Sentiment',
+                        data: data.sentiment_history.map(d => d.sentiment),
+                        borderColor: '#3B82F6',
+                        backgroundColor: gradientSentiment,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#3B82F6',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'AI Performance Rating',
+                        data: data.sentiment_history.map(d => d.performance),
+                        borderColor: '#10B981',
+                        backgroundColor: gradientPerformance,
+                        fill: true,
+                        tension: 0.4,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10B981',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true } },
+                    tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#1f2937', bodyColor: '#4b5563', borderColor: '#e5e7eb', borderWidth: 1 }
+                },
+                scales: {
+                    y: { min: 0, max: 10, grid: { borderDash: [2, 4], color: '#f3f4f6' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // 3. Engagement Pulse
+    const ctxEngagement = document.getElementById('chart-engagement');
+    if (ctxEngagement) {
+        const labels = data.engagement_history.map(d => d.lecture);
+        
+        // Gradient for bars
+        const ctx = ctxEngagement.getContext('2d');
+        const gradientBar = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientBar.addColorStop(0, '#fbbf24'); // Amber-400
+        gradientBar.addColorStop(1, '#d97706'); // Amber-600
+
+        trendsCharts.engagement = new Chart(ctxEngagement, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Interaction Count',
+                        data: data.engagement_history.map(d => d.interaction_count),
+                        backgroundColor: gradientBar,
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Engagement Score',
+                        data: data.engagement_history.map(d => d.score),
+                        borderColor: '#8B5CF6', // Purple
+                        backgroundColor: '#8B5CF6',
+                        type: 'line',
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                     legend: { position: 'top', align: 'end', labels: { usePointStyle: true } },
+                     tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#1f2937', bodyColor: '#4b5563', borderColor: '#e5e7eb', borderWidth: 1 }
+                },
+                scales: {
+                    y: { beginAtZero: true, position: 'left', grid: { display: false } },
+                    y1: { beginAtZero: true, position: 'right', min: 0, max: 10, grid: { borderDash: [2, 4], color: '#f3f4f6' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // 4. Understanding Gap
+    const ctxGap = document.getElementById('chart-understanding-gap');
+    if (ctxGap) {
+        const labels = data.understanding_gap.map(d => d.topic);
+        
+        trendsCharts.gap = new Chart(ctxGap, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Intended Depth',
+                        data: data.understanding_gap.map(d => d.intended),
+                        backgroundColor: '#9CA3AF', // Gray
+                    },
+                    {
+                        label: 'Actual Understanding',
+                        data: data.understanding_gap.map(d => d.actual),
+                        backgroundColor: data.understanding_gap.map(d => d.gap > 1 ? '#EF4444' : '#10B981'), // Red if gap > 1, else Green
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // Horizontal Bar Chart
+                scales: {
+                    x: { min: 0, max: 5 }
+                }
+            }
+        });
+    }
+}
+
+async function refreshStudentTrends() {
+    if (!currentCourseId) return;
+
+    // specific button in student-trends.html
+    const btn = document.querySelector('button[onclick="refreshStudentTrends()"]');
+    let originalText = "";
+    
+    if (btn) {
+        originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Analyzing...
+        `;
+    }
+
+    try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        // Call the generation endpoint
+        const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/generate-trends`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Failed to generate trends");
+        }
+        
+        const result = await response.json();
+        
+        // Show success toast
+        if (typeof showToast === 'function') {
+            showToast("Trends Updated", result.message || "Simulated trends generated successfully.");
+        } else {
+            alert(result.message || "Trends updated.");
+        }
+
+        // Reload the charts with the new data
+        await loadStudentTrends(currentCourseId);
+
+    } catch (error) {
+        console.error("Error refreshing trends:", error);
+        alert(`Failed to refresh trends: ${error.message}`);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+}
+
+// Make globally available
+window.loadStudentTrends = loadStudentTrends;
+window.refreshStudentTrends = refreshStudentTrends;
+
+async function refreshTrends() {
+    if (!currentCourseId) return;
+    
+    const btn = document.querySelector('button[onclick="refreshTrends()"]');
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Refreshing...
+    `;
+    
+    try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/generate-trends`, {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to refresh trends");
+        }
+        
+        const result = await response.json();
+        
+        // Refresh the charts
+        await loadStudentTrends(currentCourseId);
+        
+        alert(result.message || `Trends refreshed! ${result.analyzed_lectures} lectures have analysis data.`);
+        
+    } catch (error) {
+        console.error("Error refreshing trends:", error);
+        alert(`Error: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+window.refreshTrends = refreshTrends;
+// Keep backward compatibility
+window.generateAIInsights = refreshTrends;
+// --- SYLLABUS UPLOAD ---
+
+function triggerSyllabusUpload() {
+    const fileInput = document.getElementById("syllabus-upload");
+    if (fileInput) {
+        fileInput.click();
+    }
+}
+
+async function handleSyllabusUpload(event) {
+    if (!currentCourseId) return;
+    
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // UI Feedback
+    const btn = document.querySelector('button[onclick="triggerSyllabusUpload()"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Analyzing Syllabus...
+    `;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        const response = await fetch(`${API_BASE_URL}/classes/${currentCourseId}/syllabus`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to upload syllabus");
+        }
+        
+        const result = await response.json();
+        
+        alert("Syllabus analyzed successfully! Course structure has been updated.");
+        
+        // Refresh views to show new data
+        await refreshCourseOverview(currentCourseId);
+        await loadStudentTrends(currentCourseId);
+        
+    } catch (error) {
+        console.error("Error uploading syllabus:", error);
+        alert(`Error: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        event.target.value = ""; // Reset input
+    }
+}
+
+// Make globally available
+window.triggerSyllabusUpload = triggerSyllabusUpload;
+window.handleSyllabusUpload = handleSyllabusUpload;
+
+
+// --- ANALYSIS POLLER & NOTIFICATIONS ---
+
+const processingLectures = new Set();
+let analysisPollerInterval = null;
+
+function startAnalysisPoller() {
+    if (analysisPollerInterval) clearInterval(analysisPollerInterval);
+    
+    // Check every 3 seconds
+    analysisPollerInterval = setInterval(checkAnalysisStatus, 3000);
+}
+
+async function checkAnalysisStatus() {
+    try {
+        const API_BASE_URL = "http://localhost:8001/api";
+        const response = await fetch(`${API_BASE_URL}/lectures`);
+        if (!response.ok) return;
+        
+        const lectures = await response.json();
+        
+        lectures.forEach(lecture => {
+            if (lecture.analysisStatus === 'processing') {
+                processingLectures.add(lecture.id);
+            } else if (processingLectures.has(lecture.id)) {
+                // Status changed from processing to something else (completed or failed)
+                processingLectures.delete(lecture.id);
+                handleAnalysisCompletion(lecture);
+            }
+        });
+        
+    } catch (error) {
+        console.error("Error polling analysis status:", error);
+    }
+}
+
+function handleAnalysisCompletion(lecture) {
+    if (lecture.analysisStatus === 'completed') {
+        // Need to determine if we are currently editing/viewing THIS lecture
+        const isEditingThisLecture = (
+            (typeof currentScreen !== 'undefined' && 
+             (currentScreen === 'screen-lecture-edit' || currentScreen === 'screen-lecture-planning')) && 
+            (typeof currentLectureId !== 'undefined' && currentLectureId === lecture.id)
+        );
+        
+        if (isEditingThisLecture) {
+            // Auto-redirect if user is waiting on the page
+            showLectureAnalysis(lecture.id);
+        } else {
+            // Show toast notification
+            showToast(
+                "Analysis Complete", 
+                `"${lecture.title}" is ready to view.`, 
+                () => showLectureAnalysis(lecture.id)
+            );
+        }
+    } else if (lecture.analysisStatus === 'failed') {
+        showToast(
+            "Analysis Failed", 
+            `Analysis for "${lecture.title}" failed. Please try again.`, 
+            null,
+            "error"
+        );
+        
+        // Reset button state if on the page
+        const submitBtn = document.getElementById("submit-analysis-btn");
+        if ((typeof currentScreen !== 'undefined' && 
+             (currentScreen === 'screen-lecture-edit' || currentScreen === 'screen-lecture-planning')) && 
+            (typeof currentLectureId !== 'undefined' && currentLectureId === lecture.id) && submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 0-6.23-.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                </svg>
+                Submit for Analysis
+            `;
+        }
+    }
+}
+
+function showToast(title, message, onClick, type = "success") {
+    // Create toast container if it doesn't exist
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'fixed top-24 right-6 z-50 flex flex-col gap-3 pointer-events-none';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    const borderClass = type === 'error' ? 'border-red-500' : 'border-green-500';
+    const iconColor = type === 'error' ? 'text-red-500' : 'text-green-500';
+    const icon = type === 'error' 
+        ? `<svg class="w-6 h-6 ${iconColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+        : `<svg class="w-6 h-6 ${iconColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+    
+    toast.className = `pointer-events-auto bg-white/95 backdrop-blur shadow-lg rounded-lg p-4 border-l-4 ${borderClass} flex items-start gap-3 w-80 transform transition-all duration-300 translate-x-full cursor-pointer hover:shadow-xl`;
+    toast.innerHTML = `
+        <div class="flex-shrink-0 pt-0.5">${icon}</div>
+        <div class="flex-1">
+            <h4 class="font-semibold text-gray-900 text-sm">${title}</h4>
+            <p class="text-gray-600 text-sm mt-1">${message}</p>
+        </div>
+        <button class="text-gray-400 hover:text-gray-600" onclick="event.stopPropagation(); this.parentElement.remove();">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    `;
+    
+    if (onClick) {
+        toast.onclick = () => {
+            onClick();
+            toast.remove();
+        };
+    }
+    
+    container.appendChild(toast);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-full');
+    });
+    
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 6000);
+}
+
+// Start polling immediately if DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", startAnalysisPoller);
+} else {
+    startAnalysisPoller();
 }

@@ -15,7 +15,18 @@ from pathlib import Path
 import shutil
 import os
 import asyncio
-from gemini_analysis import analyze_lecture_video, save_analysis_result, analyze_lecture_materials, save_materials_analysis_result, generate_student_survey, save_survey
+from gemini_analysis import (
+    analyze_lecture_video,
+    save_analysis_result,
+    analyze_syllabus,
+    generate_simulated_trends,
+    analyze_lecture_materials,
+    save_materials_analysis_result,
+    generate_student_survey,
+    save_survey,
+    generate_simulated_trends,
+    analyze_syllabus
+)
 from database import (
     connect_to_mongo, close_mongo_connection, get_classes_collection, 
     get_lectures_collection, get_feedback_collection, get_surveys_collection, 
@@ -1028,141 +1039,258 @@ async def get_class_overview(class_id: str):
     class_lectures = await get_lectures_by_class_id(class_id)
     
     # Aggregate data from analyses
-    all_topics = {}  # topic_name -> {covered: bool, notes: str, status: str, lecture_id: str}
+    total_sentiment = 0
+    sentiment_count = 0
+    all_key_takeaways = []
+    
+    # Topic Status: {topic_name: {status: 'strong'|'developing'|'struggling'|'not covered', count: int, notes: []}}
+    topic_status_map = {}
+    
+    # --- Initialize with Syllabus Themes (Ground Truth) ---
+    if class_doc.get("hasSyllabus"):
+        syllabus_data = class_doc.get("syllabusData", {})
+        key_themes = syllabus_data.get("key_themes", [])
+        for theme in key_themes:
+            topic_status_map[theme] = {
+                "status": "not covered",
+                "count": 0,
+                "notes": [],
+                "is_syllabus": True  # Mark as syllabus topic
+            }
+            
     all_action_items = []  # List of action items from analyses
     
     for lecture in class_lectures:
         lecture_id = lecture.get("id")
-        lecture_title = lecture.get("title", "Lecture")
+        lecture_title = lecture.get("title", "Lecture") # Keep lecture_title for action items
         
-        # Load video analysis if available (from MongoDB)
-        analysis_doc = await get_analysis_from_db(lecture_id)
-        if analysis_doc:
-            try:
-                analysis_data = analysis_doc.get("analysis_data", {})
-                
-                # Extract topic coverage
-                if "topic_coverage" in analysis_data:
-                    for topic_item in analysis_data["topic_coverage"]:
-                        topic_name = topic_item.get("topic", "")
-                        if not topic_name:
-                            continue
-                        
-                        covered = topic_item.get("covered", False)
-                        notes = topic_item.get("notes", "")
-                        
-                        # Use AI-determined status if available, otherwise infer it
-                        status = topic_item.get("status")
-                        if not status:
-                            status = _infer_topic_status(notes)
-                        
-                        # Get AI feedback/reason if available
-                        reason = topic_item.get("status_reason", "")
-                        
-                        # Update or add topic (later lectures override earlier ones)
-                        all_topics[topic_name] = {
-                            "covered": covered,
-                            "notes": notes,
-                            "status": status,
-                            "reason": reason,
-                            "lecture_id": lecture_id,
-                            "lecture_title": lecture_title
-                        }
-                
-                # Extract action items from ai_reflections
-                if "ai_reflections" in analysis_data:
-                    reflections = analysis_data["ai_reflections"]
-                    if "action_items" in reflections:
-                        for item in reflections["action_items"]:
-                            priority = item.get("priority", "Should Do")
-                            # Normalize priority
-                            if "must" in priority.lower():
-                                priority_level = "critical"
-                            elif "continue" in priority.lower():
-                                priority_level = "success"
-                            else:
-                                priority_level = "warning"
-                            
-                            all_action_items.append({
-                                "priority": priority_level,
-                                "title": item.get("item", "")[:100],  # Truncate long items
-                                "description": item.get("item", ""),
-                                "lecture_id": lecture_id,
-                                "lecture_title": lecture_title
-                            })
+        # Get analysis if available
+        if lecture.get("hasAnalysis"):
+            analysis_doc = await get_analysis_from_db(lecture_id)
+            if analysis_doc:
+                try: # Wrap the analysis processing in a try-except
+                    analysis_data = analysis_doc.get("analysis_data", {})
                     
-                    # Also extract insights as potential action items
-                    if "insights" in reflections:
-                        for insight in reflections["insights"][:3]:  # Limit to top 3
-                            insight_type = insight.get("type", "opportunity")
-                            if insight_type == "opportunity" or insight.get("icon") == "yellow":
-                                priority_level = "warning"
-                            elif insight_type == "success" or insight.get("icon") == "green":
-                                priority_level = "success"
-                            else:
-                                priority_level = "critical"
-                            
-                            all_action_items.append({
-                                "priority": priority_level,
-                                "title": insight.get("title", ""),
-                                "description": insight.get("description", ""),
-                                "lecture_id": lecture_id,
-                                "lecture_title": lecture_title
-                            })
-                            
-            except (json.JSONDecodeError, IOError):
-                pass
-        
-        # Also load materials analysis for additional topics (from MongoDB)
-        materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
-        if materials_analysis_doc:
-            try:
-                materials_data = materials_analysis_doc.get("analysis_data", {})
-                
-                if "topics" in materials_data:
-                    for topic_item in materials_data["topics"]:
-                        topic_name = topic_item.get("name", "")
-                        if not topic_name:
-                            continue
+                    # Sentiment
+                    metrics = analysis_data.get("metrics", {})
+                    if "sentiment_score" in metrics:
+                        total_sentiment += metrics["sentiment_score"]
+                        sentiment_count += 1
+                    
+                    # Takeaways
+                    if "key_takeaways" in analysis_data:
+                        all_key_takeaways.extend(analysis_data.get("key_takeaways", []))
+
+                    # Topics Coverage
+                    # We need to map lecture topics to our syllabus themes if possible fuzzy matching?)
+                    # For now, we'll just check for exact or partial string matches
+                    
+                    topics = analysis_data.get("topic_coverage", [])
+                    for topic in topics:
+                        name = topic.get("topic")
+                        covered = topic.get("covered", False)
+                        notes = topic.get("notes", "") # Changed from coverage_notes to notes based on original
                         
-                        # Only add if not already in all_topics (video analysis takes precedence)
-                        if topic_name not in all_topics:
-                            all_topics[topic_name] = {
-                                "covered": False,  # From materials = planned, not yet covered
-                                "notes": topic_item.get("description", ""),
-                                "status": "developing",
-                                "reason": "",
-                                "lecture_id": lecture_id,
-                                "lecture_title": lecture_title
-                            }
-            except (json.JSONDecodeError, IOError):
-                pass
+                        if covered:
+                            # Determine status for this specific lecture
+                            status = _infer_topic_status(notes)
+                            
+                            # Check if this maps to a syllabus theme
+                            matched_theme = None
+                            if class_doc.get("hasSyllabus"):
+                                for theme in topic_status_map:
+                                    # Simple matching: check if theme is in name or name is in theme
+                                    if theme.lower() in name.lower() or name.lower() in theme.lower():
+                                        matched_theme = theme
+                                        break
+                            
+                            target_name = matched_theme if matched_theme else name
+                            
+                            if target_name not in topic_status_map:
+                                topic_status_map[target_name] = {
+                                    "status": "not covered", 
+                                    "count": 0,
+                                    "notes": [],
+                                    "is_syllabus": False,
+                                    "lecture_id": lecture_id, # Track last seen lecture
+                                    "lecture_title": lecture_title
+                                }
+                            
+                            # Update status logic:
+                            current_status = topic_status_map[target_name]["status"]
+                            topic_status_map[target_name]["count"] += 1
+                            
+                            # Update priority (Struggling is stickiest)
+                            if status == "struggling":
+                                topic_status_map[target_name]["status"] = "struggling"
+                            elif status == "developing" and current_status != "struggling":
+                                topic_status_map[target_name]["status"] = "developing"
+                            elif status == "strong" and current_status == "not covered":
+                                 topic_status_map[target_name]["status"] = "strong"
+                            
+                            if notes:
+                                 topic_status_map[target_name]["notes"].append(notes)
+                                 
+                    # Extract action items from ai_reflections
+                    if "ai_reflections" in analysis_data:
+                        reflections = analysis_data["ai_reflections"]
+                        if "action_items" in reflections:
+                            for item in reflections["action_items"]:
+                                priority = item.get("priority", "Should Do")
+                                # Normalize priority
+                                if "must" in priority.lower():
+                                    priority_level = "critical"
+                                elif "continue" in priority.lower():
+                                    priority_level = "success"
+                                else:
+                                    priority_level = "warning"
+                                
+                                all_action_items.append({
+                                    "priority": priority_level,
+                                    "title": item.get("item", "")[:100],  # Truncate long items
+                                    "description": item.get("item", ""),
+                                    "lecture_id": lecture_id,
+                                    "lecture_title": lecture_title
+                                })
+                        
+                        # Also extract insights as potential action items
+                        if "insights" in reflections:
+                            for insight in reflections["insights"][:3]:  # Limit to top 3
+                                insight_type = insight.get("type", "opportunity")
+                                if insight_type == "opportunity" or insight.get("icon") == "yellow":
+                                    priority_level = "warning"
+                                elif insight_type == "success" or insight.get("icon") == "green":
+                                    priority_level = "success"
+                                else:
+                                    priority_level = "critical"
+                                
+                                all_action_items.append({
+                                    "priority": priority_level,
+                                    "title": insight.get("title", ""),
+                                    "description": insight.get("description", ""),
+                                    "lecture_id": lecture_id,
+                                    "lecture_title": lecture_title
+                                })
+                                
+                except (json.JSONDecodeError, IOError):
+                    pass
+            
+            # Also load materials analysis for additional topics (from MongoDB)
+            materials_analysis_doc = await get_materials_analysis_doc(lecture_id)
+            if materials_analysis_doc:
+                try:
+                    materials_data = materials_analysis_doc.get("analysis_data", {})
+                    
+                    if "topics" in materials_data:
+                        for topic_item in materials_data["topics"]:
+                            topic_name = topic_item.get("name", "")
+                            if not topic_name:
+                                continue
+                            
+                            # Only add if not already covered (video analysis takes precedence)
+                            # Check against map keys
+                            is_present = False
+                            if topic_name in topic_status_map:
+                                is_present = True
+                            else:
+                                # Check partial matches against syllabus themes
+                                for theme in topic_status_map:
+                                    if theme.lower() in topic_name.lower() or topic_name.lower() in theme.lower():
+                                        is_present = True
+                                        break
+                            
+                            if not is_present:
+                                topic_status_map[topic_name] = {
+                                    "status": "developing", # Infer developing for materials only
+                                    "count": 1,
+                                    "notes": ["From materials"],
+                                    "is_syllabus": False,
+                                    "lecture_id": lecture_id,
+                                    "lecture_title": lecture_title
+                                }
+
+                except (json.JSONDecodeError, IOError):
+                    pass
+
+    # Convert topic_status_map to flat list for frontend
+    unified_topics = []
     
-    # Format for response
+    # First add Syllabus themes to ensure order
+    processed_topics = set()
+    
+    # Get syllabus themes order
+    syllabus_order = []
+    if class_doc.get("hasSyllabus"):
+        syllabus_order = class_doc.get("syllabusData", {}).get("key_themes", [])
+        
+    for theme in syllabus_order:
+        if theme in topic_status_map:
+            data = topic_status_map[theme]
+            
+            # Format status text
+            status_text = data["status"]
+            if data["count"] > 0:
+                coverage_pct = min(100, data["count"] * 20) # Rough estimate
+            else:
+                 coverage_pct = 0
+            
+            unified_topics.append({
+                "topic": theme,
+                "status": status_text,
+                "coverage_pct": coverage_pct,
+                "notes": data["notes"][-1] if data["notes"] else "Planned in syllabus",
+                "lecture_id": data.get("lecture_id", ""),
+                "lecture_title": data.get("lecture_title", "")
+            })
+            processed_topics.add(theme)
+
+    # Add remaining topics
+    for topic_name, data in topic_status_map.items():
+        if topic_name not in processed_topics:
+            status_text = data["status"]
+            # Skip "not covered" for non-syllabus topics (shouldn't happen per logic above but good safety)
+            if status_text == "not covered" and not data["is_syllabus"]:
+                continue
+                
+            unified_topics.append({
+                "topic": topic_name,
+                "status": status_text,
+                "coverage_pct": 50 if status_text == "developing" else (80 if status_text == "strong" else 30),
+                "notes": data["notes"][-1] if data["notes"] else "",
+                "lecture_id": data.get("lecture_id", ""),
+                "lecture_title": data.get("lecture_title", "")
+            })
+
+    # Sort non-syllabus topics by status urgency
+    # We already have syllabus topics at the top. Let's append the others sorted.
+    # Actually unified_topics already has syllabus on top.
+    
+    # Sort action items by priority
+    priority_order = {"critical": 0, "warning": 1, "success": 2}
+    
     student_understanding = []
     course_coverage = []
-    
-    for topic_name, topic_data in all_topics.items():
+
+    for topic_data in unified_topics:
         student_understanding.append({
-            "topic": topic_name,
+            "topic": topic_data["topic"],
             "status": topic_data["status"],
             "notes": topic_data["notes"],
-            "reason": topic_data["reason"],
+            "reason": "", # This field is not directly available from new structure
             "lecture_id": topic_data["lecture_id"]
         })
         
         course_coverage.append({
-            "topic": topic_name,
-            "covered": topic_data["covered"],
+            "topic": topic_data["topic"],
+            "covered": topic_data["status"] != "not covered", # Infer covered from status
             "lecture_id": topic_data["lecture_id"]
         })
-    
+
     # Sort: struggling first, then developing, then strong
-    status_order = {"struggling": 0, "developing": 1, "strong": 2}
+    status_order = {"struggling": 0, "developing": 1, "strong": 2, "not covered": 3}
     student_understanding.sort(key=lambda x: status_order.get(x["status"], 1))
     
     # Sort action items: critical first
-    priority_order = {"critical": 0, "warning": 1, "success": 2}
     all_action_items.sort(key=lambda x: priority_order.get(x["priority"], 1))
     
     return {
@@ -1364,7 +1492,368 @@ async def delete_assignment(assignment_id: str):
         raise HTTPException(status_code=404, detail="Assignment not found")
     return
 
+@app.post("/api/classes/{class_id}/syllabus")
+async def upload_syllabus(class_id: str, file: UploadFile = File(...)):
+    """
+    Upload and analyze a syllabus for the class.
+    Extracts key themes and schedule to drive analytics.
+    """
+    class_doc = await get_class_by_id(class_id)
+    if not class_doc:
+        raise HTTPException(status_code=404, detail="Class not found")
+        
+    # unique filename
+    file_ext = Path(file.filename).suffix
+    file_name = f"syllabus_{class_id}_{uuid.uuid4()}{file_ext}"
+    file_path = str(UPLOAD_DIR / file_name)
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Analyze using Gemini
+        syllabus_data = analyze_syllabus(file_path, course_code=class_doc.get("code", ""))
+        
+        if "error" in syllabus_data:
+             raise HTTPException(status_code=500, detail=f"Analysis failed: {syllabus_data['error']}")
+             
+        # Update class with syllabus data
+        update_data = {
+            "hasSyllabus": True,
+            "syllabusPath": file_path,
+            "syllabusName": file.filename,
+            "syllabusData": syllabus_data
+        }
+        
+        await update_class(class_id, update_data)
+        
+        return {
+            "status": "success",
+            "message": "Syllabus analyzed successfully",
+            "data": syllabus_data
+        }
+        
+    except Exception as e:
+        print(f"Error processing syllabus: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.get("/api/classes/{class_id}/trends")
+async def get_class_trends(class_id: str):
+    """
+    Get aggregated trends data for a class.
+    Aggregates data from all lectures to power the Student Trends dashboard.
+    """
+    # Check for AI-generated trends data (Meta Analysis)
+    class_doc = await get_class_by_id(class_id)
+    if class_doc and class_doc.get("trendsData"):
+        saved_trends = class_doc.get("trendsData")
+        
+        # Transform saved trends to response format
+        ai_response_data = {
+            "topic_drift": [],
+            "sentiment_history": [],
+            "engagement_history": [],
+            "understanding_gap": saved_trends.get("understanding_gaps", [])
+        }
+        
+        for l in saved_trends.get("lectures", []):
+            # Topic Drift
+            topics_map = {}
+            for t in l.get("topics", []):
+                topics_map[t["name"]] = t["depth"]
+            
+            ai_response_data["topic_drift"].append({
+                "lecture": l.get("title"),
+                "topics": topics_map
+            })
+            
+            # Sentiment
+            metrics = l.get("metrics", {})
+            ai_response_data["sentiment_history"].append({
+                "lecture": l.get("title"),
+                "sentiment": metrics.get("sentiment_score", 0),
+                "performance": metrics.get("performance_rating", 0)
+            })
+            
+            # Engagement
+            ai_response_data["engagement_history"].append({
+                "lecture": l.get("title"),
+                "score": metrics.get("engagement_score", 0),
+                "interaction_count": metrics.get("interaction_count", 0) # Fallback to 0
+            })
+            
+        print(f"Serving AI-generated trends for class {class_id}")
+        return ai_response_data
+
+    # 1. Get all lectures for the class
+    lectures = await get_lectures_by_class_id(class_id)
+    
+    # Sort by creation date
+    lectures.sort(key=lambda x: x.get("createdAt", ""))
+    
+    # Initialize data structures
+    response_data = {
+        "topic_drift": [],
+        "sentiment_history": [],
+        "engagement_history": [],
+        "understanding_gap": []
+    }
+    
+    all_topics = set()
+    topic_depths = {}  # {topic: {intended: X, actual: Y}}
+    
+    for i, lecture in enumerate(lectures):
+        lecture_id = lecture.get("id")
+        lecture_title = lecture.get("title", f"Lecture {i+1}")
+        
+        # Get Analysis Data
+        analysis = None
+        if lecture.get("hasAnalysis"):
+            analysis_doc = await get_analysis_from_db(lecture_id)
+            if analysis_doc:
+                analysis = analysis_doc.get("analysis_data")
+        
+        # Get Materials Analysis Data
+        materials_analysis = None
+        materials_doc = await get_materials_analysis_doc(lecture_id)
+        if materials_doc:
+            materials_analysis = materials_doc.get("analysis_data")
+            
+        # --- 1. Topic Drift (Streamgraph) ---
+        # We need a list of topics and their "weight" (depth/coverage) per lecture
+        lecture_topics = {}
+        
+        # From Materials
+        if materials_analysis and "topics" in materials_analysis:
+            for topic in materials_analysis["topics"]:
+                name = topic.get("name")
+                depth = topic.get("intended_depth", 3) # Default to 3 if missing
+                lecture_topics[name] = depth
+                all_topics.add(name)
+                
+                # Store for Gap Analysis
+                if name not in topic_depths:
+                    topic_depths[name] = {"intended": 0, "actual": 0, "count": 0}
+                topic_depths[name]["intended"] += depth
+                topic_depths[name]["count"] += 1
+
+        # From Video Analysis (Override with actuals if available)
+        if analysis and "topic_coverage" in analysis:
+            for topic in analysis["topic_coverage"]:
+                name = topic.get("topic")
+                if topic.get("covered"):
+                    depth = topic.get("actual_depth", 3)
+                    lecture_topics[name] = depth # Use actual depth
+                    all_topics.add(name)
+                    
+                    # Store for Gap Analysis
+                    if name not in topic_depths:
+                        topic_depths[name] = {"intended": 0, "actual": 0, "count": 0}
+                    topic_depths[name]["actual"] += depth
+                    # If we didn't have intended, assume it matches actual (no gap)
+                    if topic_depths[name]["intended"] == 0:
+                         topic_depths[name]["intended"] = depth
+                         topic_depths[name]["count"] += 1
+
+        response_data["topic_drift"].append({
+            "lecture": lecture_title,
+            "topics": lecture_topics
+        })
+        
+        # --- 2. Sentiment & Performance ---
+        metrics = analysis.get("metrics", {}) if analysis else {}
+        response_data["sentiment_history"].append({
+            "lecture": lecture_title,
+            "sentiment": metrics.get("sentiment_score", 0), # Default 0 if no analysis
+            "performance": metrics.get("performance_rating", 0)
+        })
+        
+        # --- 3. Engagement Pulse ---
+        # Count interaction events
+        interaction_count = 0
+        if analysis and "timeline" in analysis and "interaction" in analysis["timeline"]:
+             interaction_count = len(analysis["timeline"]["interaction"])
+             
+        response_data["engagement_history"].append({
+            "lecture": lecture_title,
+            "score": metrics.get("engagement_score", 0),
+            "interaction_count": interaction_count
+        })
+    
+    # --- Limit topic_drift based on Syllabus or Top Themes ---
+    
+    # Check for syllabus themes
+    class_doc = await get_class_by_id(class_id)
+    syllabus_themes = []
+    if class_doc and class_doc.get("hasSyllabus"):
+        syllabus_data = class_doc.get("syllabusData", {})
+        syllabus_themes = syllabus_data.get("key_themes", [])
+    
+    if syllabus_themes:
+        # User Syllabus themes as the filter
+        target_topics = set(syllabus_themes)
+        
+        # We also want to include any high-signal topics that might not be in syllabus but are prominent
+        # But primarily focus on syllabus structure.
+        # For this implementation, we will strictly filter for syllabus themes + top 3 other topics to allow for "drift"
+        
+        # Calculate total depth solely for finding additional prominent topics
+        topic_total_depths = {}
+        for lecture_entry in response_data["topic_drift"]:
+            for topic_name, depth in lecture_entry["topics"].items():
+                topic_total_depths[topic_name] = topic_total_depths.get(topic_name, 0) + depth
+        
+        sorted_topics = sorted(topic_total_depths.keys(), key=lambda t: topic_total_depths[t], reverse=True)
+        
+        # Add syllabus themes to target set (ensure they appear even if 0 depth currently)
+        # Note: We can't force them into the streamgraph if they have 0 depth in all lectures, 
+        # but we can ensure they aren't filtered out if they appear.
+        
+        # Add top 3 non-syllabus topics - REMOVED per user request to prioritize syllabus themes
+        # extras_added = 0
+        # for t in sorted_topics:
+        #     if t not in target_topics and extras_added < 3:
+        #         target_topics.add(t)
+        #         extras_added += 1
+                
+        # Filter
+        for lecture_entry in response_data["topic_drift"]:
+             lecture_entry["topics"] = {k: v for k, v in lecture_entry["topics"].items() if k in target_topics or any(theme in k for theme in syllabus_themes)}
+
+    else:
+        # Fallback to Top 7 auto-detected
+        topic_total_depths = {}
+        for lecture_entry in response_data["topic_drift"]:
+            for topic_name, depth in lecture_entry["topics"].items():
+                topic_total_depths[topic_name] = topic_total_depths.get(topic_name, 0) + depth
+        
+        # Get top 7 topics
+        top_topics = sorted(topic_total_depths.keys(), key=lambda t: topic_total_depths[t], reverse=True)[:7]
+        top_topics_set = set(top_topics)
+        
+        # Filter topic_drift to only include top topics
+        for lecture_entry in response_data["topic_drift"]:
+            lecture_entry["topics"] = {k: v for k, v in lecture_entry["topics"].items() if k in top_topics_set}
+
+    # --- 4. Understanding Gap (Aggregated) ---
+    # Convert dict to list
+    for topic, data in topic_depths.items():
+        if data["count"] > 0:
+            avg_intended = data["intended"] / data["count"]
+            avg_actual = data["actual"] / data["count"]
+            
+            # Only include if there's a meaningful gap or significant coverage
+            if avg_intended > 0:
+                response_data["understanding_gap"].append({
+                    "topic": topic,
+                    "intended": round(avg_intended, 1),
+                    "actual": round(avg_actual, 1),
+                    "gap": round(avg_intended - avg_actual, 1)
+                })
+    
+    # Sort gaps by magnitude (descending) and take top 10
+    response_data["understanding_gap"].sort(key=lambda x: abs(x["gap"]), reverse=True)
+    response_data["understanding_gap"] = response_data["understanding_gap"][:10]
+    
+    return response_data
+
+@app.post("/api/classes/{class_id}/generate-trends")
+async def generate_trends(class_id: str):
+    """
+    Refresh trends data for the class.
+    This endpoint simply verifies that lectures exist and returns the count of analyzed lectures.
+    The actual trends data is served by GET /api/classes/{class_id}/trends using real analysis data.
+    """
+    lectures = await get_lectures_by_class_id(class_id)
+    
+    if not lectures:
+        raise HTTPException(status_code=404, detail="No lectures found for this class")
+    
+    # helper to get analysis context
+    lectures_data = []
+    
+    analyzed_count = 0
+    for lecture in lectures:
+        l_data = {
+            "title": lecture.get("title", "Untitled Lecture"),
+            "id": lecture.get("id"),
+            "context": ""
+        }
+        
+        # If analyzed, get the full analysis data
+        if lecture.get("hasAnalysis"):
+            analyzed_count += 1
+            analysis_doc = await get_analysis_from_db(lecture.get("id"))
+            if analysis_doc:
+                analysis = analysis_doc.get("analysis_data", {})
+                
+                # Build rich context
+                context_parts = []
+                
+                # Summary
+                if analysis.get("summary"):
+                    context_parts.append(f"Summary: {analysis['summary']}")
+                
+                # Topic Coverage
+                topics = [t.get("topic") for t in analysis.get("topic_coverage", []) if t.get("covered")]
+                if topics:
+                    context_parts.append(f"Topics Covered: {', '.join(topics)}")
+                
+                # Metrics
+                metrics = analysis.get("metrics", {})
+                if metrics:
+                    context_parts.append(f"Metrics: Sentiment={metrics.get('sentiment_score', 'N/A')}, Engagement={metrics.get('engagement_score', 'N/A')}, Performance={metrics.get('performance_rating', 'N/A')}")
+                
+                # AI Reflections
+                reflections = analysis.get("ai_reflections", {})
+                if reflections:
+                    strengths = reflections.get("strengths", [])
+                    improvements = reflections.get("improvements", [])
+                    if strengths:
+                        context_parts.append(f"Strengths: {'; '.join(strengths[:3])}")
+                    if improvements:
+                        context_parts.append(f"Areas for Improvement: {'; '.join(improvements[:3])}")
+                
+                # Transcript (truncated)
+                transcript = analysis.get("transcript", [])
+                if transcript:
+                    # Get the first ~3000 chars of transcript text
+                    transcript_text = " ".join([t.get("text", "") for t in transcript[:50]])
+                    if len(transcript_text) > 3000:
+                        transcript_text = transcript_text[:3000] + "...(truncated)"
+                    context_parts.append(f"Transcript Excerpt: {transcript_text}")
+                
+                l_data["context"] = "\n".join(context_parts)
+        
+        lectures_data.append(l_data)
+        
+    # Generate Trends via Gemini
+    try:
+        trends_result = await generate_simulated_trends(class_id, lectures_data)
+        
+        if trends_result:
+            # Save to Class Document
+            await update_class(class_id, {
+                "trendsData": trends_result,
+                "lastTrendsUpdate": datetime.now().isoformat()
+            })
+            
+            return {
+                "status": "success", 
+                "total_lectures": len(lectures),
+                "analyzed_lectures": analyzed_count,
+                "message": "Trends data successfully generated and updated using Gemini."
+            }
+        else:
+             raise HTTPException(status_code=500, detail="Gemini returned empty trends data")
+             
+    except Exception as e:
+        print(f"Error generating trends: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate trends: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
-

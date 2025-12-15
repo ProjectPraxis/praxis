@@ -39,6 +39,44 @@ def format_time(seconds: float) -> str:
     secs = int(seconds % 60)
     return f"{minutes:02d}:{secs:02d}"
 
+import re
+
+def clean_and_parse_json(text: str) -> Dict[str, Any]:
+    """
+    Clean up JSON response from Gemini and parse it.
+    Handles:
+    - Markdown code fences (```json ... ```)
+    - Trailing commas
+    - Leading/trailing whitespace
+    """
+    try:
+        # Strip markdown code fences
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0]
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0]
+        
+        text = text.strip()
+        
+        # Try direct parse first
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # Fix trailing commas: ,} -> } and ,] -> ]
+            text = re.sub(r',\s*}', '}', text)
+            text = re.sub(r',\s*]', ']', text)
+            
+            # Simple unquoted keys fix (risky but handles simple cases: { key: "value" })
+            # detailed regex for unquoted keys is complex, sticking to trailing comma first
+            pass
+            
+        return json.loads(text)
+    except Exception as e:
+        print(f"Failed to parse JSON: {e}")
+        print(f"Original text start: {text[:100]}...")
+        # Return empty dict on absolute failure to allow graceful degradation
+        raise e
+
 
 def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: str = "Lecture") -> Dict[str, Any]:
     """
@@ -107,7 +145,8 @@ def analyze_lecture_materials(file_path: str, lecture_id: str, lecture_title: st
                     "subtopics": ["Subtopic 1", "Subtopic 2"],
                     "description": "Brief description of what this topic covers",
                     "key_concepts": ["Concept 1", "Concept 2"],
-                    "estimated_time": "Brief note on coverage depth"
+                    "estimated_time": "Brief note on coverage depth",
+                    "intended_depth": 3  # 1-5 scale (1=Intro, 5=Deep Dive)
                 }}
             ],
             "learning_objectives": [
@@ -367,10 +406,13 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
         3. **Topic Coverage**: List which topics were covered and which were missed. {
             "If materials analysis was provided, compare against those topics and indicate whether each intended topic was covered in the video." if materials_context else ""
         }
-        4. **AI Reflections**: Provide insights and action items:
         - Opportunities for improvement
         - Successes to highlight
         - Action items for next lecture
+        5. **Metrics**:
+        - **AI Sentiment Score**: 1-10 (1=Negative/Frustrated, 10=Positive/Enthusiastic) based on student reactions and general vibe.
+        - **Professor Performance Rating**: 1-10 (1=Poor, 10=Excellent) based on clarity, engagement, and pacing.
+        - **Engagement Score**: 1-10 (1=Passive, 10=Highly Interactive).
 
         **CRITICAL GUIDELINES FOR INTERACTION DETECTION:**
         - Student questions: when you clearly hear a different speaker (not the professor) asking something
@@ -434,9 +476,15 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
                     "key_concepts": "A concise 1-2 sentence definition/summary of this topic based on the lecture content",
                     "examples": "Specific examples mentioned in the lecture for this topic (e.g., 'COMPAS algorithm for bias in criminal justice')",
                     "lecture_moments": "Relevant timestamps or slide references where this topic was discussed (e.g., 'Discussed at 12:30-15:45')",
-                    "ai_reflection": "Teaching insight: common student misconceptions, tips for better understanding, or areas that need reinforcement"
+                    "ai_reflection": "Teaching insight: common student misconceptions, tips for better understanding, or areas that need reinforcement",
+                    "actual_depth": 3  # 1-5 scale (1=Mentioned, 5=Deep Dive)
                 }}
             ],
+            "metrics": {{
+                "sentiment_score": 8,
+                "performance_rating": 7,
+                "engagement_score": 6
+            }},
             "ai_reflections": {{
                 "insights": [
                     {{
@@ -512,20 +560,11 @@ def analyze_lecture_video(video_path: str, lecture_id: str, lecture_title: str =
                     raise  # Re-raise if it's not a 503 error
         
         # Parse the response
-        response_text = response.text
-        
-        # Extract JSON from response (it might be wrapped in markdown code blocks)
-        if "```json" in response_text:
-            json_start = response_text.find("```json") + 7
-            json_end = response_text.find("```", json_start)
-            response_text = response_text[json_start:json_end].strip()
-        elif "```" in response_text:
-            json_start = response_text.find("```") + 3
-            json_end = response_text.find("```", json_start)
-            response_text = response_text[json_start:json_end].strip()
+
         
         # Parse JSON
-        analysis_data = json.loads(response_text)
+        # Parse JSON using robust helper
+        analysis_data = clean_and_parse_json(response.text)
         
         # Calculate timeline percentages based on video duration
         video_duration = analysis_data.get("video_duration", 3600)  # Default to 1 hour if not provided
@@ -792,3 +831,178 @@ async def save_survey(survey_data: Dict[str, Any], output_dir: Path = None) -> s
     
     return survey_id
 
+async def generate_simulated_trends(class_id: str, lectures: list) -> Dict[str, Any]:
+    """
+    Generates simulated trend data for a sequence of lectures using Gemini.
+    This is used to populate the Student Trends dashboard when real analysis data is missing.
+    """
+    client = get_client() # Get the client for Gemini
+    
+    # Prepare prompt for ALL lectures
+    lectures_info = []
+    for l in lectures:
+        info = f"Title: {l.get('title')}"
+        if l.get("context"):
+            # We can be more generous with context now since we are doing 1 call
+            # But still keep it reasonable to avoid massive latency
+            context = l.get("context", "")
+            if len(context) > 5000:
+                context = context[:5000] + "...(truncated)"
+            info += f"\nContext/Summary: {context}"
+        lectures_info.append(info)
+        
+    prompt = f"""
+    I have a course with the following sequence of {len(lectures)} lectures:
+    
+    {json.dumps(lectures_info, indent=2)}
+    
+    Generate realistic "Student Trend" data for ALL of these lectures.
+    If "Context/Summary" is provided, USE IT. Otherwise simulate based on title.
+    
+    For EACH lecture, generate:
+    1. **Sentiment Score** (1-10)
+    2. **Performance Rating** (1-10)
+    3. **Engagement Score** (1-10)
+    4. **Topic Drift**: Identify 1-2 **BROAD THEMATIC CATEGORIES** (e.g., "Cognitive Psychology"). Assign depth (1-5).
+    
+    Also identify "Understanding Gaps" based on the entire course (optional).
+    
+    Return JSON structure:
+    {{
+        "lectures": [
+            {{
+                "title": "Exact Title from input",
+                "metrics": {{ "sentiment_score": 8, "performance_rating": 7, "engagement_score": 6 }},
+                "topics": [ {{ "name": "Category", "depth": 4 }} ]
+            }}
+        ],
+        "understanding_gaps": [ {{ "topic": "Topic", "intended": 5, "actual": 3 }} ]
+    }}
+    
+    IMPORTANT: Return RAW JSON only. Ensure the number of lectures in output matches the input.
+    """
+
+    contents = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
+    
+    # Retry logic for rate limits (still good hygiene, even for 1 call)
+    max_retries = 3
+    response = None
+    
+    for attempt in range(max_retries + 1):
+        try:
+            # Configure generation for JSON output
+            gen_config = types.GenerateContentConfig(
+                response_mime_type="application/json"
+            )
+
+            # Try 2.5 Flash (aligning with video analysis for reliability)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=contents,
+                config=gen_config
+            )
+            break # Success
+        except Exception as e:
+            is_rate_limit = "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e)
+            
+            if is_rate_limit and attempt < max_retries:
+                wait_time = (attempt + 1) * 20 # 20s, 40s, 60s
+                print(f"Rate limit hit. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            
+            print(f"Generation failed: {e}")
+            raise e
+    
+    if not response:
+        return {}
+
+    # Parse response
+    try:
+        text = response.text
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0]
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0]
+        
+        return json.loads(text)
+        
+    except Exception as e:
+        print(f"Error parsing response: {e}")
+        return {}
+
+
+def analyze_syllabus(file_path: str, course_code: str = "") -> Dict[str, Any]:
+    """
+    Analyze a syllabus file (PDF/Text) using Gemini to extract structured course data.
+    
+    Args:
+        file_path: Path to the syllabus file
+        course_code: Course code for context
+    
+    Returns:
+        Dictionary containing:
+        - key_themes: List of main topics
+        - weekly_schedule: List of {week: int, topic: str, description: str}
+        - learning_objectives: List of strings
+    """
+    try:
+        client = get_client()
+        
+        # Upload file
+        file = client.files.upload(file=file_path)
+        
+        # Wait for processing
+        while file.state == "PROCESSING":
+            time.sleep(1)
+            file = client.files.get(name=file.name)
+            
+        if file.state == "FAILED":
+            raise ValueError(f"File processing failed: {file.state}")
+            
+        prompt = f"""
+        Analyze this syllabus for course {course_code}.
+        Extract the following structured information:
+        
+        1. **Key Themes**: Identify 5-7 distinct high-level thematic categories that this course covers. These will be used to track "Topic Drift" over time.
+        2. **Weekly Schedule**: A chronological list of topics covered week by week.
+        3. **Learning Objectives**: The stated goals of the course.
+        
+        Return JSON format:
+        {{
+            "key_themes": [ "Theme 1", "Theme 2" ],
+            "weekly_schedule": [
+                {{ "week": 1, "topic": "Intro to AI", "description": "History and basics" }},
+                {{ "week": 2, "topic": "Neural Networks", "description": "Perceptrons and layers" }}
+            ],
+            "learning_objectives": [ "Objective 1", "Objective 2" ]
+        }}
+        """
+        
+        gen_config = types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_uri(
+                            file_uri=file.uri,
+                            mime_type=file.mime_type
+                        ),
+                        types.Part.from_text(text=prompt)
+                    ]
+                )
+            ],
+            config=gen_config
+        )
+        
+        # Parse response
+        return clean_and_parse_json(response.text)
+        
+    except Exception as e:
+        print(f"Error analyzing syllabus: {e}")
+        return {"error": str(e)}

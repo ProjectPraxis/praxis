@@ -15,6 +15,19 @@
     </div>
 
     <div id="tab-overview" class="tab-content space-y-8">
+        <div class="flex justify-end">
+            <button onclick="triggerSyllabusUpload()"
+                class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+                Upload Syllabus
+            </button>
+            <input type="file" id="syllabus-upload" style="display: none;" onchange="handleSyllabusUpload(event)"
+                accept=".pdf, .txt, .md">
+        </div>
         <!-- Priority Action Items - Dynamic -->
         <section>
             <h2 class="text-2xl font-semibold text-gray-800 mb-4">Priority Action Items</h2>
@@ -120,8 +133,70 @@
     </div>
 
     <div id="tab-trends" class="tab-content hidden space-y-6">
+        <div class="flex justify-between items-end">
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Student Insights & Trends</h3>
+                <p class="text-gray-600 mt-1">Deep pedagogical analytics powered by AI.</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="refreshTrends()"
+                    class="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1">
+
+
+                    <button onclick="refreshTrends()"
+                        class="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1">
+                        <button onclick="refreshStudentTrends()"
+                            class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            Refresh Data
+                        </button>
+            </div>
+        </div>
+
+        <!-- 1. Topic Drift Streamgraph -->
         <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
-            <p class="text-gray-600">Student trends content will be displayed here.</p>
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Topic Drift (Streamgraph)</h3>
+                    <p class="text-sm text-gray-600">How the course focus evolves over time.</p>
+                </div>
+            </div>
+            <div class="w-full h-64">
+                <canvas id="chart-topic-drift"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- 2. Sentiment vs AI Rating -->
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Sentiment & Performance</h3>
+                <p class="text-sm text-gray-600 mb-4">Student sentiment vs. AI-rated teaching performance.</p>
+                <div class="w-full h-64">
+                    <canvas id="chart-sentiment"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. Engagement Pulse -->
+            <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Engagement Pulse</h3>
+                <p class="text-sm text-gray-600 mb-4">Class interactivity levels per lecture.</p>
+                <div class="w-full h-64">
+                    <canvas id="chart-engagement"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Understanding Gap -->
+        <div class="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">The Understanding Gap</h3>
+            <p class="text-sm text-gray-600 mb-4">Intended depth (Professor) vs. Actual understanding (Student/AI).</p>
+            <div class="w-full h-80">
+                <canvas id="chart-understanding-gap"></canvas>
+            </div>
         </div>
     </div>
 
