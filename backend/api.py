@@ -2145,8 +2145,13 @@ async def analyze_assignment(assignment_id: str, request: AnalyzeAssignmentReque
     
     # Check if assignment has a file
     file_path = assignment.get("filePath")
-    if not file_path or not Path(file_path).exists():
+    if not file_path:
         raise HTTPException(status_code=400, detail="Assignment must have a file attachment to be analyzed.")
+    
+    # Check if file exists - handle both S3 keys and local paths
+    is_s3_path = file_path.startswith("assignments/") or (s3_client and S3_BUCKET_NAME and not file_path.startswith("/"))
+    if not is_s3_path and not Path(file_path).exists():
+        raise HTTPException(status_code=400, detail="Assignment file not found on server.")
         
     assignment_title = assignment.get("title", "Untitled Assignment")
     
